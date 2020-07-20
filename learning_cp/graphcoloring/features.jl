@@ -8,7 +8,8 @@ function CPRL.featurize(g::CPRL.CPLayerGraph)
 end
 """
 
-function CPRL.featurize(g::CPRL.CPLayerGraph)
+function CPRL.featurize(sr::CPRL.DefaultStateRepresentation{CPRL.DefaultFeaturization})
+    g = sr.cplayergraph
     features = zeros(Float32, nv(g), 16)
     for i in 1:nv(g)
         cp_vertex = CPRL.cpVertexFromIndex(g, i)
