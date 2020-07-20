@@ -24,7 +24,6 @@ include("agents.jl")
 learnedHeuristic = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, InspectReward, CPRL.FixedOutput}(agent)
 
 selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
-
 heuristic_min = CPRL.BasicHeuristic(selectMin)
 
 function selectRandVariable(model::CPRL.CPModel)
