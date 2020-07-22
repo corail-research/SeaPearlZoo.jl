@@ -26,11 +26,7 @@ learnedHeuristic = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, Inspec
 selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
 heuristic_min = CPRL.BasicHeuristic(selectMin)
 
-function selectRandVariable(model::CPRL.CPModel)
-    vars = collect(values(model.variables))
-    filter!(x -> length(x.domain) > 1, vars)
-    return rand(vars)
-end
+variableSelection = CPRL.RandomVariableSelection()
 
 ############# TRAIN
 
@@ -39,7 +35,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.train!(
     generator=coloring_generator,
     nb_episodes=400,
     strategy=CPRL.DFSearch,
-    variableHeuristic=selectRandVariable,
+    variableHeuristic=variableSelection,
     verbose = false
 )
 

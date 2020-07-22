@@ -26,20 +26,13 @@ learnedHeuristic = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, IlanRe
 
 basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.maximum(x.domain))
 
-function selectNonObjVariable(model::CPRL.CPModel)
-    selectedVar = nothing
-    minSize = typemax(Int)
-    for (k, x) in model.variables
-        if length(x.domain) > 1 && length(x.domain) < minSize# && k != "numberOfColors"
-            selectedVar = x
-            minSize = length(x.domain)
-        end
+struct KnapsackVariableSelection <: CPRL.AbstractVariableSelection{true} end
+function (::KnapsackVariableSelection)(model::CPRL.CPModel)
+    i = 1
+    while CPRL.isbound(model.variables[string(i)])
+        i += 1
     end
-    # @assert !isnothing(selectedVar)
-    if isnothing(selectedVar)
-        return model.variables["numberOfColors"]
-    end
-    return selectedVar
+    return model.variables[string(i)]
 end
 
 maxNumOfEpisodes = 4000
@@ -87,7 +80,7 @@ function trytrain(nepisodes::Int)
         generator=knapsack_generator,
         nb_episodes=nepisodes,
         strategy=CPRL.DFSearch,
-        variableHeuristic=selectNonObjVariable,
+        variableHeuristic=KnapsackVariableSelection,
         metricsFun=metricsFun,
         verbose=false
     )
