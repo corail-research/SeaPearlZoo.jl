@@ -36,7 +36,12 @@ function outputFromCPRL(sol::CPRL.Solution; optimality=false)
     return OutputData(numberOfColors, edgeColors, optimality)
 end
 
-function selectVariable(model::CPRL.CPModel, sortedPermutation, degrees)
+struct GraphColoringVariableSelection  <: CPRL.AbstractVariableSelection{true}
+    sortedPermutation
+    degrees
+end
+function (vs::GraphColoringVariableSelection)(model::CPRL.CPModel)
+    sortedPermutation, degrees = vs.sortedPermutation, vs.degrees
     maxDegree = 0
     toReturn = nothing
     for i in sortedPermutation
@@ -79,7 +84,8 @@ function solve_coloring_MOI(input_file; benchmark=false)
     sortedPermutation = sortperm(degrees; rev=true)
 
     # define the heuristic used for variable selection
-    variableheuristic(m) = selectVariable(m, sortedPermutation, degrees)
+    variableheuristic = GraphColoringVariableSelection(sortedPermutation, degrees)
+    MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
 
     MOI.set(model, CPRL.VariableSelection(), variableheuristic)
 
@@ -88,6 +94,7 @@ function solve_coloring_MOI(input_file; benchmark=false)
     output = outputFromCPRL(solution)
     printSolution(output)
 end
+
 
 
 function solve_coloring_JuMP(input_file; benchmark=false)
@@ -117,9 +124,8 @@ function solve_coloring_JuMP(input_file; benchmark=false)
     sortedPermutation = sortperm(degrees; rev=true)
 
     # define the heuristic used for variable selection
-    variableheuristic(m) = selectVariable(m, sortedPermutation, degrees)
-
-    MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+    variableheuristic = GraphColoringVariableSelection(sortedPermutation, degrees)
+    MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
 
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())

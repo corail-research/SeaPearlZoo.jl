@@ -23,6 +23,14 @@ end
 
 include("IOmanager.jl")
 
+struct KnapsackVariableSelection <: CPRL.AbstractVariableSelection{true} end
+function (::KnapsackVariableSelection)(model::CPRL.CPModel)
+    i = 1
+    while CPRL.isbound(model.variables[string(i)])
+        i += 1
+    end
+    return model.variables[string(i)]
+end
 
 function solve_knapsack_JuMP(filename::String; benchmark=false)
     input = parseFile!(filename)
@@ -54,9 +62,9 @@ function solve_knapsack_JuMP(filename::String; benchmark=false)
     @objective(model, Min, -val_sum)
 
 
-    variableheuristic(m) = selectVariableWithoutDP(m)
-
-    MOI.set(model, CPRL.VariableSelection(), variableheuristic)
+    # define the heuristic used for variable selection
+    variableheuristic = KnapsackVariableSelection()
+    MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
 
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
@@ -66,22 +74,6 @@ function solve_knapsack_JuMP(filename::String; benchmark=false)
     println(has_values(model))
     println(value.(x))
     println(solutionFromJuMPWithoutDP(value.(x), input, permutation))
-end
-
-function selectVariable(model::CPRL.CPModel)
-    i = 1
-    while CPRL.isbound(model.variables["x_a[" * string(i) * "]"])
-        i += 1
-    end
-    return model.variables["x_a[" * string(i) * "]"]
-end
-
-function selectVariableWithoutDP(model::CPRL.CPModel)
-    i = 1
-    while CPRL.isbound(model.variables[string(i)])
-        i += 1
-    end
-    return model.variables[string(i)]
 end
 
 function solutionFromCPRL(cprlSol::CPRL.Solution, input::InputData, permutation::Array{Int})
