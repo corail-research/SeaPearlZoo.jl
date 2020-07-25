@@ -1,14 +1,6 @@
-"""
-function CPRL.featurize(g::CPRL.CPLayerGraph)
-    features = zeros(Float32, nv(g), nv(g))
-    for i in 1:size(features)[1]
-        features[i, i] = 1.0f0
-    end
-    features
-end
-"""
+struct BetterFeaturization <: CPRL.AbstractFeaturization end
 
-function CPRL.featurize(sr::CPRL.DefaultStateRepresentation{CPRL.DefaultFeaturization})
+function CPRL.featurize(sr::CPRL.DefaultStateRepresentation{BetterFeaturization})
     g = sr.cplayergraph
     features = zeros(Float32, nv(g), 16)
     for i in 1:nv(g)

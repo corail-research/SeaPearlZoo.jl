@@ -21,7 +21,7 @@ numberOfCPNodes = 1 + floor(Int64, coloring_generator.nb_nodes * ( 3 + coloring_
 state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1, 1)
 
 include("agents.jl")
-learnedHeuristic = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, InspectReward, CPRL.FixedOutput}(agent)
+learnedHeuristic = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation{BetterFeaturization}, InspectReward, CPRL.FixedOutput}(agent)
 
 selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
 heuristic_min = CPRL.BasicHeuristic(selectMin)
