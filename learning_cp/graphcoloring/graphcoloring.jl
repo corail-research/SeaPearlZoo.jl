@@ -52,7 +52,7 @@ bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
     generator=coloring_generator,
     nb_episodes=200,
     strategy=CPRL.DFSearch,
-    variableHeuristic=selectRandVariable,
+    variableHeuristic=variableSelection,
     verbose = false
 )
 
