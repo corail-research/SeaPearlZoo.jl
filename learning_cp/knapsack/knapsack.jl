@@ -29,10 +29,10 @@ basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.maximum(x.domain))
 struct KnapsackVariableSelection <: CPRL.AbstractVariableSelection{true} end
 function (::KnapsackVariableSelection)(model::CPRL.CPModel)
     i = 1
-    while CPRL.isbound(model.variables[string(i)])
+    while CPRL.isbound(model.variables["x[" * string(i) * "]"])
         i += 1
     end
-    return model.variables[string(i)]
+    return model.variables["x[" * string(i) * "]"]
 end
 
 maxNumOfEpisodes = 4000
@@ -80,7 +80,7 @@ function trytrain(nepisodes::Int)
         generator=knapsack_generator,
         nb_episodes=nepisodes,
         strategy=CPRL.DFSearch,
-        variableHeuristic=KnapsackVariableSelection,
+        variableHeuristic=KnapsackVariableSelection(),
         metricsFun=metricsFun,
         verbose=false
     )

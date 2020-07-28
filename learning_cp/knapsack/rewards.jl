@@ -1,6 +1,13 @@
 
 struct IlanReward <: CPRL.AbstractReward end  
 
+function CPRL.set_reward!(::CPRL.StepPhase, lh::CPRL.LearnedHeuristic{SR, IlanReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where {
+    SR <: CPRL.AbstractStateRepresentation,
+    O <: CPRL.ActionOutput
+}
+    nothing
+end
+
 function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{SR, IlanReward, O}, model::CPRL.CPModel) where {
     SR <: CPRL.AbstractStateRepresentation,
     O <: CPRL.ActionOutput
@@ -9,10 +16,10 @@ function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{SR, Il
     nothing  
 end  
     
-function CPRL.set_reward!(::CPRL.EndingPhase, env::CPRL.LearnedHeuristic{SR, IlanReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where { 
+function CPRL.set_reward!(::CPRL.EndingPhase, lh::CPRL.LearnedHeuristic{SR, IlanReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where { 
     SR <: CPRL.AbstractStateRepresentation,
     O <: CPRL.ActionOutput
 }
-    env.reward += 100/model.statistics.numberOfNodes + 10 
+    lh.current_reward += 100/model.statistics.numberOfNodes + 10 
     nothing  
 end  
