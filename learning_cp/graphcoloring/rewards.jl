@@ -1,9 +1,9 @@
 
-struct InspectReward <: CPRL.AbstractReward end 
+struct InspectReward <: SeaPearl.AbstractReward end 
 
-function CPRL.set_reward!(::CPRL.StepPhase, lh::CPRL.LearnedHeuristic{SR, InspectReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where {
-    SR <: CPRL.AbstractStateRepresentation,
-    O <: CPRL.ActionOutput
+function SeaPearl.set_reward!(::SeaPearl.StepPhase, lh::SeaPearl.LearnedHeuristic{SR, InspectReward, O}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where {
+    SR <: SeaPearl.AbstractStateRepresentation,
+    O <: SeaPearl.ActionOutput
 }
     if !isnothing(lh.search_metrics.current_best) && lh.search_metrics.current_best == 3
         lh.current_reward = 0
@@ -30,9 +30,9 @@ function CPRL.set_reward!(::CPRL.StepPhase, lh::CPRL.LearnedHeuristic{SR, Inspec
     nothing
 end
 
-function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{SR, InspectReward, O}, model::CPRL.CPModel) where {
-    SR <: CPRL.AbstractStateRepresentation,
-    O <: CPRL.ActionOutput
+function SeaPearl.set_reward!(::SeaPearl.DecisionPhase, lh::SeaPearl.LearnedHeuristic{SR, InspectReward, O}, model::SeaPearl.CPModel) where {
+    SR <: SeaPearl.AbstractStateRepresentation,
+    O <: SeaPearl.ActionOutput
 }
     if !isnothing(lh.search_metrics.current_best) && lh.search_metrics.current_best == 3
         lh.current_reward = 0
@@ -44,9 +44,9 @@ function CPRL.set_reward!(::CPRL.DecisionPhase, lh::CPRL.LearnedHeuristic{SR, In
     nothing
 end
 
-function CPRL.set_reward!(::CPRL.EndingPhase, env::CPRL.LearnedHeuristic{SR, InspectReward, O}, model::CPRL.CPModel, symbol::Union{Nothing, Symbol}) where { 
-    SR <: CPRL.AbstractStateRepresentation,
-    O <: CPRL.ActionOutput
+function SeaPearl.set_reward!(::SeaPearl.EndingPhase, env::SeaPearl.LearnedHeuristic{SR, InspectReward, O}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where { 
+    SR <: SeaPearl.AbstractStateRepresentation,
+    O <: SeaPearl.ActionOutput
 }
     #lh.current_reward = - 10 * model.statistics.numberOfNodes
     #lh.current_reward += - 30/(model.statistics.numberOfNodes)

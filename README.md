@@ -5,7 +5,7 @@ This project provides some examples of SeaPearl.jl's utilisation. One will find 
 ## Launch graph coloring learning 
 First, clone SeaPearl.jl locally:
 ```bash
-$ git clone git@github.com:ilancoulon/CPRL.jl.git
+$ git clone git@github.com:ilancoulon/SeaPearl.jl.git
 ```
 
 Then, clone SeaPearlZoo locally:

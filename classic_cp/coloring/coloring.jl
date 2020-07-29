@@ -1,4 +1,4 @@
-using CPRL
+using SeaPearl
 
 struct Edge
     vertex1     :: Int
@@ -20,7 +20,7 @@ end
 include("IOmanager.jl")
 
 
-function outputFromCPRL(sol::CPRL.Solution; optimality=false)
+function outputFromSeaPearl(sol::SeaPearl.Solution; optimality=false)
     numberOfColors = 0
     edgeColors = Int[]
 
@@ -40,45 +40,45 @@ end
 function solve_coloring(input_file; benchmark=false)
     input = getInputData(input_file)
 
-    trailer = CPRL.Trailer()
-    model = CPRL.CPModel(trailer)
+    trailer = SeaPearl.Trailer()
+    model = SeaPearl.CPModel(trailer)
 
     ### Variable declaration ###
-    x = CPRL.IntVar[]
+    x = SeaPearl.IntVar[]
     for i in 1:input.numberOfVertices
-        push!(x, CPRL.IntVar(1, input.numberOfVertices, string(i), trailer))
-        CPRL.addVariable!(model, last(x))
+        push!(x, SeaPearl.IntVar(1, input.numberOfVertices, string(i), trailer))
+        SeaPearl.addVariable!(model, last(x))
     end
 
     ### Constraints ###
     # Breaking some symmetries
-    push!(model.constraints, CPRL.EqualConstant(x[1], 1, trailer))
-    push!(model.constraints, CPRL.LessOrEqual(x[1], x[2], trailer))
+    push!(model.constraints, SeaPearl.EqualConstant(x[1], 1, trailer))
+    push!(model.constraints, SeaPearl.LessOrEqual(x[1], x[2], trailer))
 
     # Edge constraints
     degrees = zeros(Int, input.numberOfVertices)
     for e in input.edges
-        push!(model.constraints, CPRL.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
+        push!(model.constraints, SeaPearl.NotEqual(x[e.vertex1], x[e.vertex2], trailer))
         degrees[e.vertex1] += 1
         degrees[e.vertex2] += 1
     end
     sortedPermutation = sortperm(degrees; rev=true)
 
     ### Objective ###
-    numberOfColors = CPRL.IntVar(0, input.numberOfVertices, "numberOfColors", trailer)
-    CPRL.addVariable!(model, numberOfColors)
+    numberOfColors = SeaPearl.IntVar(0, input.numberOfVertices, "numberOfColors", trailer)
+    SeaPearl.addVariable!(model, numberOfColors)
     for var in x
-        push!(model.constraints, CPRL.LessOrEqual(var, numberOfColors, trailer))
+        push!(model.constraints, SeaPearl.LessOrEqual(var, numberOfColors, trailer))
     end
     model.objective = numberOfColors
 
 
     ### Variable selection heurstic ###
-    function selectVariable(model::CPRL.CPModel, sortedPermutation, degrees)
+    function selectVariable(model::SeaPearl.CPModel, sortedPermutation, degrees)
         maxDegree = 0
         toReturn = nothing
         for i in sortedPermutation
-            if !CPRL.isbound(model.variables[string(i)])
+            if !SeaPearl.isbound(model.variables[string(i)])
                 if isnothing(toReturn)
                     toReturn = model.variables[string(i)]
                     maxDegree = degrees[i]
@@ -98,10 +98,10 @@ function solve_coloring(input_file; benchmark=false)
     return model
 
 
-    status = CPRL.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
+    status = SeaPearl.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
     if !benchmark
         for oneSolution in model.solutions
-            output = outputFromCPRL(oneSolution)
+            output = outputFromSeaPearl(oneSolution)
             printSolution(output)
         end
     end
@@ -114,15 +114,15 @@ using GraphPlot
 
 function testGraph(input_file)
     model = solve_coloring(input_file)
-    g = CPRL.CPLayerGraph(model)
-    nodelabel = map((x) -> CPRL.labelOfVertex(g, x)[1], collect(1:nv(g)))
+    g = SeaPearl.CPLayerGraph(model)
+    nodelabel = map((x) -> SeaPearl.labelOfVertex(g, x)[1], collect(1:nv(g)))
 
     nlist = Vector{Int}[] # two shells
     push!(nlist, collect((g.numberOfConstraints+1):(g.numberOfConstraints+g.numberOfVariables))) # second shell
     push!(nlist, collect((g.numberOfConstraints+g.numberOfVariables+1):(g.numberOfConstraints+g.numberOfVariables+g.numberOfValues))) # second shell
     push!(nlist, collect(1:g.numberOfConstraints)) # first shell
 
-    membership = map((x) -> CPRL.labelOfVertex(g, x)[2], collect(1:nv(g)))
+    membership = map((x) -> SeaPearl.labelOfVertex(g, x)[2], collect(1:nv(g)))
     nodecolor = [colorant"red", colorant"purple", colorant"green"]
     # membership color
     nodefillc = nodecolor[membership]

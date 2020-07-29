@@ -1,5 +1,5 @@
 using JuMP
-using CPRL
+using SeaPearl
 
 struct Item
     id      :: Int
@@ -23,10 +23,10 @@ end
 
 include("IOmanager.jl")
 
-struct KnapsackVariableSelection <: CPRL.AbstractVariableSelection{true} end
-function (::KnapsackVariableSelection)(model::CPRL.CPModel)
+struct KnapsackVariableSelection <: SeaPearl.AbstractVariableSelection{true} end
+function (::KnapsackVariableSelection)(model::SeaPearl.CPModel)
     i = 1
-    while CPRL.isbound(model.variables[string(i)])
+    while SeaPearl.isbound(model.variables[string(i)])
         i += 1
     end
     return model.variables[string(i)]
@@ -39,7 +39,7 @@ function solve_knapsack_JuMP(filename::String; benchmark=false)
 
     n = input.numberOfItems
 
-    model = Model(CPRL.Optimizer)
+    model = Model(SeaPearl.Optimizer)
 
     ### Variable declaration ###
     @variable(model, 0 <= x[1:n] <= 1)
@@ -64,7 +64,7 @@ function solve_knapsack_JuMP(filename::String; benchmark=false)
 
     # define the heuristic used for variable selection
     variableheuristic = KnapsackVariableSelection()
-    MOI.set(model, CPRL.MOIVariableSelectionAttribute(), variableheuristic)
+    MOI.set(model, SeaPearl.MOIVariableSelectionAttribute(), variableheuristic)
 
     optimize!(model)
     status = MOI.get(model, MOI.TerminationStatus())
@@ -76,13 +76,13 @@ function solve_knapsack_JuMP(filename::String; benchmark=false)
     println(solutionFromJuMPWithoutDP(value.(x), input, permutation))
 end
 
-function solutionFromCPRL(cprlSol::CPRL.Solution, input::InputData, permutation::Array{Int})
+function solutionFromSeaPearl(SeaPearlSol::SeaPearl.Solution, input::InputData, permutation::Array{Int})
     taken = falses(input.numberOfItems)
     value = 0
     weight = 0
     for i in 1:input.numberOfItems
-        if haskey(cprlSol, "x_a[" * string(i) * "]")
-            taken[permutation[i]] = convert(Bool, cprlSol["x_a[" * string(i) * "]"])
+        if haskey(SeaPearlSol, "x_a[" * string(i) * "]")
+            taken[permutation[i]] = convert(Bool, SeaPearlSol["x_a[" * string(i) * "]"])
             if taken[permutation[i]]
                 value += input.items[permutation[i]].value
                 weight += input.items[permutation[i]].weight

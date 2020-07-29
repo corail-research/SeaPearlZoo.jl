@@ -1,4 +1,4 @@
-using CPRL
+using SeaPearl
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
@@ -9,7 +9,7 @@ gr()
 
 include("rewards.jl")
 
-knapsack_generator = CPRL.KnapsackGenerator(12, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(12, 10, 0.2)
 
 numberOfFeatures = 10
 numInFeatures = numberOfFeatures
@@ -22,14 +22,14 @@ println("state_size", state_size)
 
 include("agents.jl")
 
-learnedHeuristic = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation, IlanReward, CPRL.VariableOutput}(agent, maxNumberOfCPnodes)
+learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, IlanReward, SeaPearl.VariableOutput}(agent, maxNumberOfCPnodes)
 
-basicHeuristic = CPRL.BasicHeuristic((x) -> CPRL.maximum(x.domain))
+basicHeuristic = SeaPearl.BasicHeuristic((x) -> SeaPearl.maximum(x.domain))
 
-struct KnapsackVariableSelection <: CPRL.AbstractVariableSelection{true} end
-function (::KnapsackVariableSelection)(model::CPRL.CPModel)
+struct KnapsackVariableSelection <: SeaPearl.AbstractVariableSelection{true} end
+function (::KnapsackVariableSelection)(model::SeaPearl.CPModel)
     i = 1
-    while CPRL.isbound(model.variables["x[" * string(i) * "]"])
+    while SeaPearl.isbound(model.variables["x[" * string(i) * "]"])
         i += 1
     end
     return model.variables["x[" * string(i) * "]"]
@@ -75,11 +75,11 @@ end
 
 function trytrain(nepisodes::Int)
     
-    bestsolutions, nodevisited = CPRL.train!(
+    bestsolutions, nodevisited = SeaPearl.train!(
         valueSelectionArray=[learnedHeuristic, basicHeuristic], 
         generator=knapsack_generator,
         nb_episodes=nepisodes,
-        strategy=CPRL.DFSearch,
+        strategy=SeaPearl.DFSearch,
         variableHeuristic=KnapsackVariableSelection(),
         metricsFun=metricsFun,
         verbose=false

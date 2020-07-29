@@ -2,7 +2,7 @@
 
 This is inspired from the __Discrete optimization__ course of Coursera, and the DP formulation technique is from **REF to add**.
 
-To launch this example, you need to have the package `CPRL` added to your environment.
+To launch this example, you need to have the package `SeaPearl` added to your environment.
 
 Being inside that folder in the terminal (`examples/knapsack/`), you can launch:
 

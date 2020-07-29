@@ -1,4 +1,4 @@
-fixedGCNargs = CPRL.ArgsVariableOutputGCNLSTM( 
+fixedGCNargs = SeaPearl.ArgsVariableOutputGCNLSTM( 
     lastLayer = 20,
     numInFeatures = numberOfFeatures,
     firstHiddenGCN = 20,
@@ -10,13 +10,13 @@ fixedGCNargs = CPRL.ArgsVariableOutputGCNLSTM(
 
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
-        learner = CPRL.CPDQNLearner(
+        learner = SeaPearl.CPDQNLearner(
             approximator = RL.NeuralNetworkApproximator(
-                model = CPRL.build_model(CPRL.VariableOutputGCNLSTM, fixedGCNargs),
+                model = SeaPearl.build_model(SeaPearl.VariableOutputGCNLSTM, fixedGCNargs),
                 optimizer = ADAM(0.0005f0)
             ),
             target_approximator = RL.NeuralNetworkApproximator(
-                model = CPRL.build_model(CPRL.VariableOutputGCNLSTM, fixedGCNargs),
+                model = SeaPearl.build_model(SeaPearl.VariableOutputGCNLSTM, fixedGCNargs),
                 optimizer = ADAM(0.0005f0)
             ),
             loss_func = huber_loss,
@@ -29,8 +29,8 @@ agent = RL.Agent(
             target_update_freq = 200,
             seed = 22,
         ), 
-        # explorer = CPRL.DirectedExplorer(;
-            explorer = CPRL.CPEpsilonGreedyExplorer(
+        # explorer = SeaPearl.DirectedExplorer(;
+            explorer = SeaPearl.CPEpsilonGreedyExplorer(
                 ϵ_stable = 0.01,
                 kind = :linear,
                 ϵ_init = 1.0,

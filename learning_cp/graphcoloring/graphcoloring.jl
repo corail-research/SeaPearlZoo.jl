@@ -1,4 +1,4 @@
-using CPRL
+using SeaPearl
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
@@ -12,7 +12,7 @@ include("rewards.jl")
 include("features.jl")
 ####
 
-coloring_generator = CPRL.GraphColoringGenerator(10, 1.4)
+coloring_generator = SeaPearl.GraphColoringGenerator(10, 1.4)
 
 numInFeatures = 16
 numberOfCPNodes = 1 + floor(Int64, coloring_generator.nb_nodes * ( 3 + coloring_generator.density ))
@@ -21,20 +21,20 @@ numberOfCPNodes = 1 + floor(Int64, coloring_generator.nb_nodes * ( 3 + coloring_
 state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1, 1)
 
 include("agents.jl")
-learnedHeuristic = CPRL.LearnedHeuristic{CPRL.DefaultStateRepresentation{BetterFeaturization}, InspectReward, CPRL.FixedOutput}(agent)
+learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{BetterFeaturization}, InspectReward, SeaPearl.FixedOutput}(agent)
 
-selectMin(x::CPRL.IntVar) = CPRL.minimum(x.domain)
-heuristic_min = CPRL.BasicHeuristic(selectMin)
+selectMin(x::SeaPearl.IntVar) = SeaPearl.minimum(x.domain)
+heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 
-variableSelection = CPRL.RandomVariableSelection()
+variableSelection = SeaPearl.RandomVariableSelection()
 
 ############# TRAIN
 
-bestsolutions, nodevisited, timeneeded = CPRL.train!(
+bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     generator=coloring_generator,
     nb_episodes=400,
-    strategy=CPRL.DFSearch,
+    strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
     verbose = false
 )
@@ -47,11 +47,11 @@ p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", yl
 
 ############# BENCHMARK
 
-bestsolutions, nodevisited, timeneeded = CPRL.benchmark_solving(
+bestsolutions, nodevisited, timeneeded = SeaPearl.benchmark_solving(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     generator=coloring_generator,
     nb_episodes=200,
-    strategy=CPRL.DFSearch,
+    strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
     verbose = false
 )

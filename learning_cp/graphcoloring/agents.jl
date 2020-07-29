@@ -1,8 +1,8 @@
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
-        learner = CPRL.CPDQNLearner(
+        learner = SeaPearl.CPDQNLearner(
             approximator = RL.NeuralNetworkApproximator(
-                model = CPRL.FlexGNN(
+                model = SeaPearl.FlexGNN(
                     graphChain = Flux.Chain(
                         GeometricFlux.GCNConv(numInFeatures => 20),
                         GeometricFlux.GCNConv(20 => 20),
@@ -15,7 +15,7 @@ agent = RL.Agent(
                 optimizer = ADAM(0.0005f0)
             ),
             target_approximator = RL.NeuralNetworkApproximator(
-                model = CPRL.FlexGNN(
+                model = SeaPearl.FlexGNN(
                     graphChain = Flux.Chain(
                         GeometricFlux.GCNConv(numInFeatures => 20),
                         GeometricFlux.GCNConv(20 => 20),
@@ -37,7 +37,7 @@ agent = RL.Agent(
             target_update_freq = 200,
             seed = 22,
         ), 
-        explorer = CPRL.CPEpsilonGreedyExplorer(
+        explorer = SeaPearl.CPEpsilonGreedyExplorer(
             ϵ_stable = 0.001,
             kind = :exp,
             ϵ_init = 1.0,
