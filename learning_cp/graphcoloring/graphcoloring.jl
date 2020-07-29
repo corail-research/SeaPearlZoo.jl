@@ -12,13 +12,13 @@ include("rewards.jl")
 include("features.jl")
 ####
 
-coloring_generator = SeaPearl.GraphColoringGenerator(10, 1.4)
+coloring_generator = SeaPearl.LegacyGraphColoringGenerator(10, 1.4)
 
 numInFeatures = 16
 numberOfCPNodes = 1 + floor(Int64, coloring_generator.nb_nodes * ( 3 + coloring_generator.density ))
 #numberOfCPNodes = 141
 
-state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1, 1)
+state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1)
 
 include("agents.jl")
 learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{BetterFeaturization}, InspectReward, SeaPearl.FixedOutput}(agent)
@@ -47,14 +47,14 @@ p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", yl
 
 ############# BENCHMARK
 
-bestsolutions, nodevisited, timeneeded = SeaPearl.benchmark_solving(
+#= bestsolutions, nodevisited, timeneeded = SeaPearl.benchmark_solving(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     generator=coloring_generator,
     nb_episodes=200,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
     verbose = false
-)
+) =#
 
 # plot 
 a, b = size(nodevisited)
