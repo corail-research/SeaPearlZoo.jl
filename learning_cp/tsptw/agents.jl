@@ -2,28 +2,22 @@ agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = SeaPearl.CPDQNLearner(
             approximator = RL.NeuralNetworkApproximator(
-                model = SeaPearl.FlexGNN(
-                    graphChain = Flux.Chain(
-                        GeometricFlux.GCNConv(numInFeatures => 20),
-                        GeometricFlux.GCNConv(20 => 20),
-                    ),
-                    nodeChain = Flux.Chain(
-                        Flux.Dense(20, 20),
-                    ),
-                    outputLayer = Flux.Dense(20, n_city)
+                model = Flux.Chain(
+                    Flux.flatten,
+                    Flux.Dense(n_city*(n_city+4), n_city*3, Flux.relu),
+                    Flux.Dense(n_city*3, n_city*2, Flux.relu),
+                    Flux.Dense(n_city*2, n_city, Flux.relu),
+                    Flux.Dense(n_city, n_city)
                 ),
                 optimizer = ADAM(0.0005f0)
             ),
             target_approximator = RL.NeuralNetworkApproximator(
-                model = SeaPearl.FlexGNN(
-                    graphChain = Flux.Chain(
-                        GeometricFlux.GCNConv(numInFeatures => 20),
-                        GeometricFlux.GCNConv(20 => 20),
-                    ),
-                    nodeChain = Flux.Chain(
-                        Flux.Dense(20, 20),
-                    ),
-                    outputLayer = Flux.Dense(20, n_city)
+                model = Flux.Chain(
+                    Flux.flatten,
+                    Flux.Dense(n_city*(n_city+4), n_city*3, Flux.relu),
+                    Flux.Dense(n_city*3, n_city*2, Flux.relu),
+                    Flux.Dense(n_city*2, n_city, Flux.relu),
+                    Flux.Dense(n_city, n_city)
                 ),
                 optimizer = ADAM(0.0005f0)
             ),
@@ -33,8 +27,8 @@ agent = RL.Agent(
             batch_size = 1, #32,
             update_horizon = 100,
             min_replay_history = 1,
-            update_freq = 5,
-            target_update_freq = 60,
+            update_freq = 15,
+            target_update_freq = 150,
             seed = 22,
         ), 
         explorer = SeaPearl.CPEpsilonGreedyExplorer(

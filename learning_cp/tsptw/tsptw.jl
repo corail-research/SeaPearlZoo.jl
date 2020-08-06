@@ -9,25 +9,23 @@ gr()
 
 ####
 include("rewards.jl")
-include("features.jl")
+include("adhoc_representation.jl")
 ####
 
-n_city = 10
-grid_size = 40
+n_city = 21
+grid_size = 100
 max_tw_gap = 10
-max_tw = 20
+max_tw = 100
 
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
 
-numInFeatures = 27
 # numberOfCPNodes = 1 + floor(Int64, coloring_generator.nb_nodes * ( 3 + coloring_generator.density ))
 #numberOfCPNodes = 141
-maxNumberOfCPNodes = 1000
 
-state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 2 + 1)
+state_size = (n_city, n_city+4)
 
 include("agents.jl")
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{BetterFeaturization}, InspectReward, SeaPearl.FixedOutput}(agent, maxNumberOfCPNodes)
+learnedHeuristic = SeaPearl.LearnedHeuristic{TsptwRepresentation, InspectReward, SeaPearl.FixedOutput}(agent)
 
 selectMin(x::SeaPearl.IntVar) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
@@ -52,7 +50,7 @@ variableSelection = TsptwVariableSelection()
 bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     generator=tsptw_generator,
-    nb_episodes=200,
+    nb_episodes=500,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
     verbose = false
@@ -62,7 +60,7 @@ bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
 a, b = size(nodevisited)
 x = 1:a
 
-p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 200])
+p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 1000])
 
 ############# BENCHMARK
 
