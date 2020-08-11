@@ -1,25 +1,15 @@
+nn_args = SeaPearl.ArgsVariableOutputGCN(numInFeatures = 6)
+
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = SeaPearl.CPDQNLearner(
             approximator = RL.NeuralNetworkApproximator(
-                model = Flux.Chain(
-                    Flux.flatten,
-                    Flux.Dense(n_city*(n_city+4), n_city*3, Flux.relu),
-                    Flux.Dense(n_city*3, n_city*2, Flux.relu),
-                    Flux.Dense(n_city*2, n_city, Flux.relu),
-                    Flux.Dense(n_city, n_city)
-                ),
-                optimizer = ADAM(0.0005f0)
+                model = SeaPearl.build_model(SeaPearl.VariableOutputGCN, nn_args),
+                optimizer = ADAM(0.001f0)
             ),
             target_approximator = RL.NeuralNetworkApproximator(
-                model = Flux.Chain(
-                    Flux.flatten,
-                    Flux.Dense(n_city*(n_city+4), n_city*3, Flux.relu),
-                    Flux.Dense(n_city*3, n_city*2, Flux.relu),
-                    Flux.Dense(n_city*2, n_city, Flux.relu),
-                    Flux.Dense(n_city, n_city)
-                ),
-                optimizer = ADAM(0.0005f0)
+                model = SeaPearl.build_model(SeaPearl.VariableOutputGCN, nn_args),
+                optimizer = ADAM(0.001f0)
             ),
             loss_func = huber_loss,
             stack_size = nothing,

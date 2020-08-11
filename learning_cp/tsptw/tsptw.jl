@@ -26,7 +26,7 @@ tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
 state_size = (n_city, n_city+6+2)
 
 include("agents.jl")
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation, InspectReward, SeaPearl.FixedOutput}(agent)
+learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation, InspectReward, SeaPearl.VariableOutput}(agent)
 
 selectMin(x::SeaPearl.IntVar) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
