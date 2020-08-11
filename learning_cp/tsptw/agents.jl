@@ -27,7 +27,7 @@ agent = RL.Agent(
             batch_size = 1, #32,
             update_horizon = 100,
             min_replay_history = 1,
-            update_freq = 15,
+            update_freq = 40,
             target_update_freq = 150,
             seed = 22,
         ), 
@@ -44,7 +44,7 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularCompactSARTSATrajectory(
-        capacity = 500, 
+        capacity = 1000, 
         state_type = Float32, 
         state_size = state_size,#(46, 93, 1),
         action_type = Int,
