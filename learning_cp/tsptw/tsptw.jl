@@ -9,7 +9,6 @@ gr()
 
 ####
 include("rewards.jl")
-include("adhoc_representation.jl")
 ####
 
 n_city = 21
@@ -17,12 +16,14 @@ grid_size = 100
 max_tw_gap = 10
 max_tw = 100
 
+numInFeatures = 6
+
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
 
 # numberOfCPNodes = 1 + floor(Int64, coloring_generator.nb_nodes * ( 3 + coloring_generator.density ))
 #numberOfCPNodes = 141
 
-state_size = (n_city, n_city+4)
+state_size = (n_city, n_city+6+2)
 
 include("agents.jl")
 learnedHeuristic = SeaPearl.LearnedHeuristic{TsptwRepresentation, InspectReward, SeaPearl.FixedOutput}(agent)
@@ -47,10 +48,10 @@ variableSelection = TsptwVariableSelection()
 
 ############# TRAIN
 
-bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
+bestsolutions, nodevisited, timeneeded, eval_nodes, eval_tim = SeaPearl.train!(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     generator=tsptw_generator,
-    nb_episodes=500,
+    nb_episodes=300,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
     verbose = false
@@ -62,6 +63,9 @@ x = 1:a
 
 p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 1000])
 
+p5 = plot(1:(floor(Int64, a/50)), eval_nodes[1:floor(Int64, a/50), :], xlabel="Evaluation", ylabel="Number of nodes visited", ylims = [0, 2500])
+display(p5)
+
 ############# BENCHMARK
 
 #= bestsolutions, nodevisited, timeneeded = SeaPearl.benchmark_solving(
@@ -71,16 +75,16 @@ p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", yl
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
     verbose = false
-) =#
+# ) =#
 
-# plot 
-a, b = size(nodevisited)
-x = 1:a
+# # plot 
+# a, b = size(nodevisited)
+# x = 1:a
 
-p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 200])
-p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.01])
+# p2 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 200])
+# p3 = plot(x, timeneeded, xlabel="Episode", ylabel="Time needed", ylims = [0, 0.01])
 
 
-p = plot(p1, p2, p3, legend = false, layout = (3, 1))
+# p = plot(p1, p2, p3, legend = false, layout = (3, 1))
 
-display(p)
+# display(p)
