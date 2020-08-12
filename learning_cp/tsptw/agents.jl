@@ -1,4 +1,4 @@
-nn_args = SeaPearl.ArgsVariableOutputGCN(numInFeatures = 6)
+nn_args = SeaPearl.ArgsVariableOutputGCN(numInFeatures = 6, state_rep=SeaPearl.TsptwStateRepresentation)
 
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
