@@ -11,7 +11,7 @@ gr()
 include("rewards.jl")
 ####
 
-n_city = 21
+n_city = 41
 grid_size = 100
 max_tw_gap = 10
 max_tw = 100
@@ -26,7 +26,7 @@ tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
 state_size = (n_city, n_city+6+2)
 
 include("agents.jl")
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation, InspectReward, SeaPearl.VariableOutput}(agent)
+learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
 
 selectMin(x::SeaPearl.IntVar) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
@@ -48,13 +48,17 @@ variableSelection = TsptwVariableSelection()
 
 ############# TRAIN
 
+eval_freq = 1000
+
 bestsolutions, nodevisited, timeneeded, eval_nodes, eval_tim = SeaPearl.train!(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     generator=tsptw_generator,
-    nb_episodes=300,
+    nb_episodes=3000,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
-    verbose = false
+    verbose = false,
+    out_solver=true,
+    evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = eval_freq, nb_instances = 5)
 )
 
 # plot 
@@ -63,7 +67,7 @@ x = 1:a
 
 p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", ylims = [0, 1000])
 
-p5 = plot(1:(floor(Int64, a/50)), eval_nodes[1:floor(Int64, a/50), :], xlabel="Evaluation", ylabel="Number of nodes visited", ylims = [0, 2500])
+p5 = plot(1:(floor(Int64, a/eval_freq)), eval_nodes[1:floor(Int64, a/eval_freq), :], xlabel="Evaluation", ylabel="Number of nodes visited", ylims = [0, 20000])
 display(p5)
 
 ############# BENCHMARK
