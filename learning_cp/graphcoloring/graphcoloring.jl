@@ -26,7 +26,7 @@ learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation
 selectMin(x::SeaPearl.IntVar) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 
-variableSelection = SeaPearl.RandomVariableSelection()
+variableSelection = SeaPearl.RandomVariableSelection{false}()
 
 ############# TRAIN
 
@@ -36,7 +36,9 @@ bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
     nb_episodes=400,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
-    verbose = false
+    out_solver=true,
+    verbose = false,
+    evaluator=nothing
 )
 
 # plot 
@@ -47,14 +49,14 @@ p1 = plot(x, nodevisited, xlabel="Episode", ylabel="Number of nodes visited", yl
 
 ############# BENCHMARK
 
-#= bestsolutions, nodevisited, timeneeded = SeaPearl.benchmark_solving(
+bestsolutions, nodevisited, timeneeded = SeaPearl.benchmark_solving(
     valueSelectionArray=[learnedHeuristic, heuristic_min], 
     generator=coloring_generator,
     nb_episodes=200,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
     verbose = false
-) =#
+)
 
 # plot 
 a, b = size(nodevisited)
