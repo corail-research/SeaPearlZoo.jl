@@ -36,9 +36,9 @@ bestsolutions, nodevisited, timeneeded = SeaPearl.train!(
     nb_episodes=400,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
-    out_solver=true,
+    out_solver=false,
     verbose = false,
-    evaluator=nothing
+    #evaluator=nothing
 )
 
 # plot 
