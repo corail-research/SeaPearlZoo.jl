@@ -32,7 +32,7 @@ n_trainings = 20
 loss = zeros(n_episodes)
 struct TsptwVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
 TsptwVariableSelection(;take_objective=false) = TsptwVariableSelection{take_objective}()
-selectMin(x::SeaPearl.IntVar) = SeaPearl.minimum(x.domain)
+selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 
 # for _ in 1:n_trainings

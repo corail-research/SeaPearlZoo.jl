@@ -24,7 +24,7 @@ include("agents.jl")
 
 learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation, IlanReward, SeaPearl.VariableOutput}(agent, maxNumberOfCPnodes)
 
-basicHeuristic = SeaPearl.BasicHeuristic((x) -> SeaPearl.maximum(x.domain))
+basicHeuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> SeaPearl.maximum(x.domain))
 
 struct KnapsackVariableSelection <: SeaPearl.AbstractVariableSelection{true} end
 function (::KnapsackVariableSelection)(model::SeaPearl.CPModel)

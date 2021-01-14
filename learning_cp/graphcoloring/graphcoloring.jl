@@ -23,7 +23,7 @@ state_size = (numberOfCPNodes, numInFeatures + numberOfCPNodes + 2 + 1)
 include("agents.jl")
 learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{BetterFeaturization}, InspectReward, SeaPearl.FixedOutput}(agent)
 
-selectMin(x::SeaPearl.IntVar) = SeaPearl.minimum(x.domain)
+selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 
 variableSelection = SeaPearl.RandomVariableSelection{false}()

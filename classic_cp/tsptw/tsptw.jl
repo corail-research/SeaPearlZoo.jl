@@ -112,7 +112,7 @@ function solve_tsptw(n_city=21)
 
     variableheuristic = TsptwVariableSelection{false}()
     my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
-    valueheuristic = SeaPearl.BasicHeuristic((x) -> closer_city(x, dist, model))
+    valueheuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> closer_city(x, dist, model))
 
     SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
 
@@ -184,7 +184,7 @@ function solve_tsptw_known_instance()
 
     variableheuristic = TsptwVariableSelection{false}()
     my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
-    valueheuristic = SeaPearl.BasicHeuristic((x) -> closer_city(x, dist, model))
+    valueheuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> closer_city(x, dist, model))
 
     SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
 
