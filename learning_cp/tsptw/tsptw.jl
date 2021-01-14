@@ -12,7 +12,7 @@ gr()
 include("rewards.jl")
 ####
 
-n_city = 21
+n_city = 51
 # n_city = 11
 grid_size = 100
 max_tw_gap = 10
@@ -27,7 +27,7 @@ tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw,
 
 state_size = (n_city, n_city+6+2)
 
-n_episodes = 3000
+n_episodes = 5001
 n_trainings = 20
 loss = zeros(n_episodes)
 struct TsptwVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
@@ -78,10 +78,10 @@ end
 
 ############# TRAIN
 
-eval_freq = 500
+eval_freq = 250
 
 bestsolutions, nodevisited, timeneeded, eval_nodes, eval_tim = SeaPearl.train!(
-    valueSelectionArray=[learnedHeuristic], 
+    valueSelectionArray=[learnedHeuristic, heuristic_min], 
     generator=tsptw_generator,
     nb_episodes=n_episodes,
     strategy=SeaPearl.DFSearch,
@@ -107,7 +107,7 @@ for i in (mean_over+1):n_episodes
 end
 p1 = plot(x, [mean_nodevisited .- 2, mean_reward], xlabel="Episode", ylabel="Reward/Steps", ylims = [0, 11])
 display(p1)
-p5 = plot(1:(floor(Int64, n_episodes/eval_freq)), eval_nodes[1:floor(Int64, n_episodes/eval_freq), :], xlabel="Evaluation", ylabel="Number of nodes visited", ylims = [0, 800])
+p5 = plot(1:(floor(Int64, n_episodes/eval_freq)+1), eval_nodes[1:floor(Int64, n_episodes/eval_freq)+1, :], xlabel="Evaluation", ylabel="Number of nodes visited", ylims = [0, 800])
 display(p5)
 
 ############# BENCHMARK

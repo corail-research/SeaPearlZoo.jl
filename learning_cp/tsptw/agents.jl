@@ -8,16 +8,16 @@ agent = RL.Agent(
             approximator = RL.NeuralNetworkApproximator(
                 model = SeaPearl.FlexVariableOutputGNN(
                     graphChain = Flux.Chain(
-                        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 30, e_dim= 1 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=30 => 20, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=20 => 10, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
                     ),
                     nodeChain = Flux.Chain(
-                        Flux.Dense(10, 10, relu),
-                        Flux.Dense(10, 10, relu),
-                        Flux.Dense(10, 10, relu),
+                        Flux.Dense(32, 32, relu),
+                        Flux.Dense(32, 32, relu),
                     ),
-                    outputLayer = Flux.Dense(20, 1),
+                    outputLayer = Flux.Dense(64, 1),
                     state_rep=SeaPearl.TsptwStateRepresentation
                 ),
                 optimizer = ADAM(0.0001f0)
@@ -25,16 +25,16 @@ agent = RL.Agent(
             target_approximator = RL.NeuralNetworkApproximator(
                 model = SeaPearl.FlexVariableOutputGNN(
                     graphChain = Flux.Chain(
-                        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 30, e_dim= 1 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=30 => 20, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=20 => 10, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
                     ),
                     nodeChain = Flux.Chain(
-                        Flux.Dense(10, 10, relu),
-                        Flux.Dense(10, 10, relu),
-                        Flux.Dense(10, 10, relu),
+                        Flux.Dense(32, 32, relu),
+                        Flux.Dense(32, 32, relu),
                     ),
-                    outputLayer = Flux.Dense(20, 1),
+                    outputLayer = Flux.Dense(64, 1),
                     state_rep=SeaPearl.TsptwStateRepresentation
                 ),
                 optimizer = ADAM(0.0001f0)
@@ -53,7 +53,7 @@ agent = RL.Agent(
             kind = :exp,
             ϵ_init = 1.0,
             warmup_steps = 0,
-            decay_steps = 1000,
+            decay_steps = 2000,
             step = 1,
             is_break_tie = false, 
             #is_training = true,
@@ -61,7 +61,7 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularCompactSARTSATrajectory(
-        capacity = 2000, 
+        capacity = 4000, 
         state_type = Float32, 
         state_size = state_size,#(46, 93, 1),
         action_type = Int,
