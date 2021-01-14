@@ -12,7 +12,7 @@ gr()
 include("rewards.jl")
 ####
 
-n_city = 51
+n_city = 21
 # n_city = 11
 grid_size = 100
 max_tw_gap = 10
@@ -27,7 +27,7 @@ tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw,
 
 state_size = (n_city, n_city+6+2)
 
-n_episodes = 5001
+n_episodes = 3001
 n_trainings = 20
 loss = zeros(n_episodes)
 struct TsptwVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
@@ -35,6 +35,8 @@ TsptwVariableSelection(;take_objective=false) = TsptwVariableSelection{take_obje
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 
+include("nearest_heuristic.jl")
+nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor)
 # for _ in 1:n_trainings
 include("agents.jl")
 learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
@@ -81,7 +83,7 @@ end
 eval_freq = 250
 
 bestsolutions, nodevisited, timeneeded, eval_nodes, eval_tim = SeaPearl.train!(
-    valueSelectionArray=[learnedHeuristic, heuristic_min], 
+    valueSelectionArray=[learnedHeuristic, nearest_heuristic], 
     generator=tsptw_generator,
     nb_episodes=n_episodes,
     strategy=SeaPearl.DFSearch,
