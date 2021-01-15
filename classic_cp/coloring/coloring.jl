@@ -98,7 +98,7 @@ function solve_coloring(input_file; benchmark=false)
     return model
 
 
-    status = SeaPearl.solve!(model; variableHeuristic=((m) -> selectVariable(m, sortedPermutation, degrees)))
+    status = SeaPearl.solve!(model; variableHeuristic=((m; cpmodel=nothing) -> selectVariable(m, sortedPermutation, degrees)))
     if !benchmark
         for oneSolution in model.solutions
             output = outputFromSeaPearl(oneSolution)
