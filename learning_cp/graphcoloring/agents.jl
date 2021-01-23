@@ -15,7 +15,7 @@ agent = RL.Agent(
                         Flux.Dense(20, 20),
                         Flux.Dense(20, 20),
                     ),
-                    outputLayer = Flux.Dense(20, 30)
+                    outputLayer = Flux.Dense(20, coloring_generator.n)
                 ),
                 optimizer = ADAM(0.0005f0)
             ),
@@ -33,7 +33,7 @@ agent = RL.Agent(
                         Flux.Dense(20, 20),
                         Flux.Dense(20, 20),
                     ),
-                    outputLayer = Flux.Dense(20, 30)
+                    outputLayer = Flux.Dense(20, coloring_generator.n)
                 ),
                 optimizer = ADAM(0.0005f0)
             ),
@@ -68,7 +68,7 @@ agent = RL.Agent(
         reward_size = (),
         terminal_type = Bool,
         terminal_size = (),
-        legal_actions_mask_size = (30, ),
+        legal_actions_mask_size = (coloring_generator.n, ),
         legal_actions_mask_type = Bool,
 
     ),
