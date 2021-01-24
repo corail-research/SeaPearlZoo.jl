@@ -25,10 +25,9 @@ state_size = (n_city, n_city+6+2)
 # -------------------
 # Experience variables
 # -------------------
-n_episodes = 11
-eval_freq = 5
-
-
+n_episodes = 3001
+eval_freq = 250
+nb_instances = 5
 
 # -------------------
 # Agent definition
@@ -64,9 +63,8 @@ bestsolutions, nodevisited, timeneeded, eval_nodes, eval_tim = SeaPearl.train!(
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
     out_solver=true,
-    metricsFun=metricsFun,
     verbose = false,
-    evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = eval_freq, nb_instances = 2)
+    evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = eval_freq, nb_instances = nb_instances)
 )
 
 # -------------------
@@ -83,7 +81,7 @@ for i in 1:nb_instances
     df_training[!, string(i)*"_time_basic"] = eval_tim[:, 2, i]
 end
 
-CSV.write("training_tsptw_"*string(coloring_generator.n)*".csv", df_training)
+CSV.write("training_tsptw_"*string(n_city)*".csv", df_training)
 
 # -------------------
 # Benchmarking
@@ -95,7 +93,7 @@ benchmark_nodes, benchmark_time = SeaPearl.benchmark_solving(;
     variableHeuristic=variableSelection,
     out_solver=false,
     verbose = false,
-    evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = 0, nb_instances = 3)
+    evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = 0, nb_instances = 50)
 )
 
 df_benchmark = DataFrame()
@@ -103,6 +101,6 @@ df_benchmark.nodes_learned = benchmark_nodes[1, :]
 df_benchmark.time_learned = benchmark_time[1, :]
 df_benchmark.nodes_basic = benchmark_nodes[2, :]
 df_benchmark.time_basic = benchmark_time[2, :]
-CSV.write("benchmark_tsptw_"*string(coloring_generator.n)*".csv", df_benchmark)
+CSV.write("benchmark_tsptw_"*string(n_city)*".csv", df_benchmark)
 
 
