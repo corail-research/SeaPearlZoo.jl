@@ -29,3 +29,7 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{BetterFeatur
     end
     features
 end
+
+function SeaPearl.feature_length(gen::SeaPearl.ClusterizedGraphColoringGenerator, ::Type{SeaPearl.DefaultStateRepresentation{BetterFeaturization}})
+    return 6 + gen.n
+end

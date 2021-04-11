@@ -1,18 +1,13 @@
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
-        learner = SeaPearl.CPDQNLearner(
+        learner = RL.DQNLearner(
             approximator = RL.NeuralNetworkApproximator(
                 model = SeaPearl.FlexGNN(
                     graphChain = Flux.Chain(
                         GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-                        GeometricFlux.GATConv(20 => 10, heads=3, concat=true),
-                        GeometricFlux.GATConv(30 => 10, heads=3, concat=true),
-                        GeometricFlux.GATConv(30 => 20, heads=2, concat=false),
+                        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
                     ),
                     nodeChain = Flux.Chain(
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
                         Flux.Dense(20, 20),
                     ),
                     outputLayer = Flux.Dense(20, coloring_generator.n)
@@ -23,30 +18,25 @@ agent = RL.Agent(
                 model = SeaPearl.FlexGNN(
                     graphChain = Flux.Chain(
                         GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-                        GeometricFlux.GATConv(20 => 10, heads=3, concat=true),
-                        GeometricFlux.GATConv(30 => 10, heads=3, concat=true),
-                        GeometricFlux.GATConv(30 => 20, heads=2, concat=false),
+                        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
                     ),
                     nodeChain = Flux.Chain(
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
                         Flux.Dense(20, 20),
                     ),
                     outputLayer = Flux.Dense(20, coloring_generator.n)
                 ),
                 optimizer = ADAM(0.0005f0)
             ),
-            loss_func = huber_loss,
+            loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
             γ = 0.9999f0,
             batch_size = 1, #32,
-            update_horizon = 25,
+            update_horizon = 1, # TO CHANGE
             min_replay_history = 1,
             update_freq = 10,
             target_update_freq = 200,
         ), 
-        explorer = SeaPearl.CPEpsilonGreedyExplorer(
+        explorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.001,
             kind = :exp,
             ϵ_init = 1.0,
@@ -55,22 +45,12 @@ agent = RL.Agent(
             step = 1,
             is_break_tie = false, 
             #is_training = true,
-            seed = 33
+            rng = MersenneTwister(33)
         )
     ),
-    trajectory = RL.CircularCompactSALRTSALTrajectory(
-        capacity = 8000, 
-        state_type = Float32, 
-        state_size = state_size,
-        action_type = Int,
-        action_size = (),
-        reward_type = Float32,
-        reward_size = (),
-        terminal_type = Bool,
-        terminal_size = (),
-        legal_actions_mask_size = (coloring_generator.n, ),
-        legal_actions_mask_type = Bool,
-
-    ),
-    role = :DEFAULT_PLAYER
+    trajectory = RL.CircularArraySLARTTrajectory(
+        capacity = 500,
+        state = Matrix{Float32} => state_size,
+        legal_actions_mask = Vector{Bool} => (coloring_generator.n, ),
+    )
 )

@@ -3,6 +3,7 @@ using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
 using GeometricFlux
+using Random
 
 using Plots
 gr()
@@ -20,9 +21,9 @@ include("features.jl")
 # -------------------
 # Internal variables
 # -------------------
-numInFeatures = 6 + coloring_generator.n
-maxNumberOfCPNodes = 1 + floor(Int64, coloring_generator.n * ( 3 + coloring_generator.p ))*5
-state_size = (maxNumberOfCPNodes, numInFeatures + maxNumberOfCPNodes + 2 + 1)
+numInFeatures = SeaPearl.feature_length(coloring_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
+state_size = SeaPearl.arraybuffer_dims(coloring_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
+maxNumberOfCPNodes = state_size[1]
 
 # -------------------
 # Experience variables
