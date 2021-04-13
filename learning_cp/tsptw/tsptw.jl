@@ -4,6 +4,7 @@ const RL = ReinforcementLearning
 using Flux
 using GeometricFlux
 using Statistics
+using Random
 
 using Plots
 gr()
@@ -20,7 +21,8 @@ tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw,
 # -------------------
 # Internal variables
 # -------------------
-state_size = (n_city, n_city+6+2)
+state_size = SeaPearl.arraybuffer_dims(tsptw_generator, SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization})
+# state_size = (n_city, n_city+6+2)
 
 # -------------------
 # Experience variables

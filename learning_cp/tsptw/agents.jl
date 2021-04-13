@@ -4,17 +4,14 @@ numInFeatures = 6
 
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
-        learner = SeaPearl.CPDQNLearner(
+        learner = RL.DQNLearner(
             approximator = RL.NeuralNetworkApproximator(
                 model = SeaPearl.FlexVariableOutputGNN(
                     graphChain = Flux.Chain(
                         SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
                         SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
                     ),
                     nodeChain = Flux.Chain(
-                        Flux.Dense(32, 32, relu),
                         Flux.Dense(32, 32, relu),
                     ),
                     outputLayer = Flux.Dense(64, 1),
@@ -27,11 +24,8 @@ agent = RL.Agent(
                     graphChain = Flux.Chain(
                         SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
                         SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
                     ),
                     nodeChain = Flux.Chain(
-                        Flux.Dense(32, 32, relu),
                         Flux.Dense(32, 32, relu),
                     ),
                     outputLayer = Flux.Dense(64, 1),
@@ -39,7 +33,7 @@ agent = RL.Agent(
                 ),
                 optimizer = ADAM(0.0001f0)
             ),
-            loss_func = huber_loss,
+            loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
             γ = 0.99f0,
             batch_size = 1,#32,
@@ -48,7 +42,7 @@ agent = RL.Agent(
             update_freq = 1,
             target_update_freq = 100,
         ), 
-        explorer = SeaPearl.CPEpsilonGreedyExplorer(
+        explorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.01,
             kind = :exp,
             ϵ_init = 1.0,
@@ -57,19 +51,11 @@ agent = RL.Agent(
             step = 1,
             is_break_tie = false, 
             #is_training = true,
-            seed = 33
+            rng = MersenneTwister(33)
         )
     ),
-    trajectory = RL.CircularCompactSARTSATrajectory(
-        capacity = 4000, 
-        state_type = Float32, 
-        state_size = state_size,#(46, 93, 1),
-        action_type = Int,
-        action_size = (),
-        reward_type = Float32,
-        reward_size = (),
-        terminal_type = Bool,
-        terminal_size = ()
-    ),
-    role = :DEFAULT_PLAYER
+    trajectory = RL.CircularArraySARTTrajectory(
+        capacity = 1000, 
+        state = Matrix{Float32} => state_size
+    )
 )
