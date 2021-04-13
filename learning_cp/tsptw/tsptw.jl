@@ -27,9 +27,10 @@ state_size = SeaPearl.arraybuffer_dims(tsptw_generator, SeaPearl.TsptwStateRepre
 # -------------------
 # Experience variables
 # -------------------
-n_episodes = 3001
-eval_freq = 250
+n_episodes = 10#3001
+eval_freq = 5#250
 nb_instances = 5
+nb_random_heuristics = 2
 
 # -------------------
 # Agent definition
@@ -40,6 +41,23 @@ learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation, 
 # Basic value-selection heuristic
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor)
+
+function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
+    selected_number = rand(1:length(x.domain))
+    i = 1
+    for value in x.domain
+        if i == selected_number
+            return value
+        end
+        i += 1
+    end
+    @assert false "This should not happen"
+end
+
+randomHeuristics = []
+for i in 1:nb_random_heuristics
+    push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
+end
 
 # -------------------
 # Variable selection
@@ -58,8 +76,11 @@ variableSelection = TsptwVariableSelection()
 
 ############# TRAIN
 
+valueSelectionArray = [learnedHeuristic, nearest_heuristic]
+append!(valueSelectionArray, randomHeuristics)
+
 bestsolutions, nodevisited, timeneeded, eval_nodes, eval_tim = SeaPearl.train!(
-    valueSelectionArray=[learnedHeuristic, nearest_heuristic], 
+    valueSelectionArray = valueSelectionArray, 
     generator=tsptw_generator,
     nb_episodes=n_episodes,
     strategy=SeaPearl.DFSearch,
@@ -81,6 +102,10 @@ for i in 1:nb_instances
     df_training[!, string(i)*"_nodes_basic"] = eval_nodes[:, 2, i]
     df_training[!, string(i)*"_time_trained"] = eval_tim[:, 1, i]
     df_training[!, string(i)*"_time_basic"] = eval_tim[:, 2, i]
+    for k in 1:nb_random_heuristics
+        df_training[!, string(i)*"_nodes_random_"*string(k)] = eval_nodes[:, 2+k, i]
+        df_training[!, string(i)*"_time_basic_"*string(k)] = eval_tim[:, 2+k, i]
+    end
 end
 
 CSV.write("training_tsptw_"*string(n_city)*".csv", df_training)
@@ -89,7 +114,7 @@ CSV.write("training_tsptw_"*string(n_city)*".csv", df_training)
 # Benchmarking
 # -------------------
 benchmark_nodes, benchmark_time = SeaPearl.benchmark_solving(;
-    valueSelectionArray=[learnedHeuristic, nearest_heuristic], 
+    valueSelectionArray=valueSelectionArray, 
     generator=tsptw_generator,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
@@ -103,6 +128,10 @@ df_benchmark.nodes_learned = benchmark_nodes[1, :]
 df_benchmark.time_learned = benchmark_time[1, :]
 df_benchmark.nodes_basic = benchmark_nodes[2, :]
 df_benchmark.time_basic = benchmark_time[2, :]
+for k in 1:nb_random_heuristics
+    df_benchmark[!, "nodes_random_"*string(k)] = benchmark_nodes[2+k, :]
+    df_benchmark[!, "time_random_"*string(k)] = benchmark_time[2+k, :]
+end
 CSV.write("benchmark_tsptw_"*string(n_city)*".csv", df_benchmark)
 
 
