@@ -10,8 +10,11 @@ agent = RL.Agent(
                     graphChain = Flux.Chain(
                         SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
                         SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
                     ),
                     nodeChain = Flux.Chain(
+                        Flux.Dense(32, 32, relu),
                         Flux.Dense(32, 32, relu),
                     ),
                     outputLayer = Flux.Dense(64, 1),
@@ -24,8 +27,11 @@ agent = RL.Agent(
                     graphChain = Flux.Chain(
                         SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
                         SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
                     ),
                     nodeChain = Flux.Chain(
+                        Flux.Dense(32, 32, relu),
                         Flux.Dense(32, 32, relu),
                     ),
                     outputLayer = Flux.Dense(64, 1),
@@ -55,7 +61,7 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularArraySARTTrajectory(
-        capacity = 1000, 
+        capacity = 4000, 
         state = Matrix{Float32} => state_size
     )
 )
