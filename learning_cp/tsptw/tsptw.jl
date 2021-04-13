@@ -27,8 +27,8 @@ state_size = SeaPearl.arraybuffer_dims(tsptw_generator, SeaPearl.TsptwStateRepre
 # -------------------
 # Experience variables
 # -------------------
-n_episodes = 10#3001
-eval_freq = 5#250
+n_episodes = 3001
+eval_freq = 250
 nb_instances = 5
 nb_random_heuristics = 10
 
