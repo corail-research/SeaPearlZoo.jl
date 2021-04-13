@@ -30,7 +30,7 @@ state_size = SeaPearl.arraybuffer_dims(tsptw_generator, SeaPearl.TsptwStateRepre
 n_episodes = 10#3001
 eval_freq = 5#250
 nb_instances = 5
-nb_random_heuristics = 2
+nb_random_heuristics = 10
 
 # -------------------
 # Agent definition
