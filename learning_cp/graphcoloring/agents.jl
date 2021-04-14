@@ -5,9 +5,15 @@ agent = RL.Agent(
                 model = SeaPearl.FlexGNN(
                     graphChain = Flux.Chain(
                         GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
+                        GeometricFlux.GATConv(20 => 10, heads=3, concat=true),
+                        GeometricFlux.GATConv(30 => 10, heads=3, concat=true),
+                        GeometricFlux.GATConv(30 => 20, heads=2, concat=false),
                         GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
                     ),
                     nodeChain = Flux.Chain(
+                        Flux.Dense(20, 20),
+                        Flux.Dense(20, 20),
+                        Flux.Dense(20, 20),
                         Flux.Dense(20, 20),
                     ),
                     outputLayer = Flux.Dense(20, coloring_generator.n)
@@ -18,9 +24,15 @@ agent = RL.Agent(
                 model = SeaPearl.FlexGNN(
                     graphChain = Flux.Chain(
                         GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
+                        GeometricFlux.GATConv(20 => 10, heads=3, concat=true),
+                        GeometricFlux.GATConv(30 => 10, heads=3, concat=true),
+                        GeometricFlux.GATConv(30 => 20, heads=2, concat=false),
                         GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
                     ),
                     nodeChain = Flux.Chain(
+                        Flux.Dense(20, 20),
+                        Flux.Dense(20, 20),
+                        Flux.Dense(20, 20),
                         Flux.Dense(20, 20),
                     ),
                     outputLayer = Flux.Dense(20, coloring_generator.n)
@@ -49,7 +61,7 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularArraySLARTTrajectory(
-        capacity = 500,
+        capacity = 8000,
         state = Matrix{Float32} => state_size,
         legal_actions_mask = Vector{Bool} => (coloring_generator.n, ),
     )
