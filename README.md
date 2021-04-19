@@ -1,6 +1,6 @@
 # SeaPearlZoo
 
-This project provides some examples of SeaPearl.jl's utilisation. One will find good practices to run experiences with SeaPearl.jl.
+This project provides some examples of [SeaPearl.jl](https://github.com/corail-research/SeaPearl.jl)'s utilisation. One will find good practices to run experiences with SeaPearl.jl.
 
 ## Launch graph coloring learning 
 
