@@ -2,8 +2,10 @@ using SeaPearl
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
+using Zygote
 using GeometricFlux
 using Random
+using BSON: @save, @load
 
 using Plots
 gr()
@@ -12,7 +14,7 @@ gr()
 # -------------------
 # Generator
 # -------------------
-coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(20, 5, 0.5)
+coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(10, 5, 0.5)
 
 
 include("rewards.jl")
@@ -28,10 +30,10 @@ maxNumberOfCPNodes = state_size[1]
 # -------------------
 # Experience variables
 # -------------------
-nb_episodes = 600
+nb_episodes = 180
 eval_freq = 30
-nb_instances = 10
-nb_random_heuristics = 10
+nb_instances = 4
+nb_random_heuristics = 0
 
 # -------------------
 # Agent definition
@@ -85,6 +87,9 @@ bestsolutions, nodevisited, timeneeded, eval_nodes, eval_tim = SeaPearl.train!(
     verbose = false,
     evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = eval_freq, nb_instances = nb_instances)
 )
+
+trained_weights = params(approximator_model)
+@save "model_weights_gc"*string(coloring_generator.n)*".bson" trained_weights
 
 # -------------------
 # Storing training data

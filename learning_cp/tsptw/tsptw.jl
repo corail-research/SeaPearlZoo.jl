@@ -2,9 +2,11 @@ using SeaPearl
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
+using Zygote
 using GeometricFlux
 using Statistics
 using Random
+using BSON: @load, @save
 
 using Plots
 gr()
@@ -89,6 +91,10 @@ bestsolutions, nodevisited, timeneeded, eval_nodes, eval_tim = SeaPearl.train!(
     verbose = false,
     evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = eval_freq, nb_instances = nb_instances)
 )
+
+trained_weights = params(approximator_model)
+@save "model_weights_tsptw"*string(n_city)*".bson" trained_weights
+
 
 # -------------------
 # Storing training data

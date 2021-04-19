@@ -1,49 +1,49 @@
+# Model definition
+approximator_model = SeaPearl.FlexGNN(
+    graphChain = Flux.Chain(
+        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
+        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+    ),
+    nodeChain = Flux.Chain(
+        Flux.Dense(20, 20),
+    ),
+    outputLayer = Flux.Dense(20, coloring_generator.n)
+)
+target_approximator_model = SeaPearl.FlexGNN(
+    graphChain = Flux.Chain(
+        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
+        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+    ),
+    nodeChain = Flux.Chain(
+        Flux.Dense(20, 20),
+    ),
+    outputLayer = Flux.Dense(20, coloring_generator.n)
+)
+
+if isfile("model_weights_gc"*string(coloring_generator.n)*".bson")
+    println("Parameters loaded from ", "model_weights_gc"*string(coloring_generator.n)*".bson")
+    @load "model_weights_gc"*string(coloring_generator.n)*".bson" trained_weights
+    Flux.loadparams!(approximator_model, trained_weights)
+    Flux.loadparams!(target_approximator_model, trained_weights)
+end
+
+# Agent definition
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = RL.DQNLearner(
             approximator = RL.NeuralNetworkApproximator(
-                model = SeaPearl.FlexGNN(
-                    graphChain = Flux.Chain(
-                        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-                        GeometricFlux.GATConv(20 => 10, heads=3, concat=true),
-                        GeometricFlux.GATConv(30 => 10, heads=3, concat=true),
-                        GeometricFlux.GATConv(30 => 20, heads=2, concat=false),
-                        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
-                    ),
-                    nodeChain = Flux.Chain(
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
-                    ),
-                    outputLayer = Flux.Dense(20, coloring_generator.n)
-                ),
+                model = approximator_model,
                 optimizer = ADAM(0.0005f0)
             ),
             target_approximator = RL.NeuralNetworkApproximator(
-                model = SeaPearl.FlexGNN(
-                    graphChain = Flux.Chain(
-                        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-                        GeometricFlux.GATConv(20 => 10, heads=3, concat=true),
-                        GeometricFlux.GATConv(30 => 10, heads=3, concat=true),
-                        GeometricFlux.GATConv(30 => 20, heads=2, concat=false),
-                        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
-                    ),
-                    nodeChain = Flux.Chain(
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
-                        Flux.Dense(20, 20),
-                    ),
-                    outputLayer = Flux.Dense(20, coloring_generator.n)
-                ),
+                model = target_approximator_model,
                 optimizer = ADAM(0.0005f0)
             ),
             loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
             γ = 0.9999f0,
             batch_size = 1, #32,
-            update_horizon = 25, # TO CHANGE
+            update_horizon = 25,
             min_replay_history = 1,
             update_freq = 10,
             target_update_freq = 200,

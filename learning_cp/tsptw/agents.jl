@@ -1,42 +1,53 @@
-nn_args = SeaPearl.ArgsVariableOutputGCN(numInFeatures = 6, state_rep=SeaPearl.TsptwStateRepresentation)
-
 numInFeatures = 6
+
+# Model definition
+approximator_model = SeaPearl.FlexVariableOutputGNN(
+    graphChain = Flux.Chain(
+        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
+        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+    ),
+    nodeChain = Flux.Chain(
+        Flux.Dense(32, 32, relu),
+        Flux.Dense(32, 32, relu),
+    ),
+    outputLayer = Flux.Dense(64, 1),
+    state_rep=SeaPearl.TsptwStateRepresentation
+)
+target_approximator_model = SeaPearl.FlexVariableOutputGNN(
+    graphChain = Flux.Chain(
+        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
+        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+    ),
+    nodeChain = Flux.Chain(
+        Flux.Dense(32, 32, relu),
+        Flux.Dense(32, 32, relu),
+    ),
+    outputLayer = Flux.Dense(64, 1),
+    state_rep=SeaPearl.TsptwStateRepresentation
+)
+
+filename = "model_weights_tsptw"*string(n_city)*".bson"
+if isfile(filename)
+    println("Parameters loaded from ", filename)
+    @load filename trained_weights
+    Flux.loadparams!(approximator_model, trained_weights)
+    Flux.loadparams!(target_approximator_model, trained_weights)
+end
+
 
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = RL.DQNLearner(
             approximator = RL.NeuralNetworkApproximator(
-                model = SeaPearl.FlexVariableOutputGNN(
-                    graphChain = Flux.Chain(
-                        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                    ),
-                    nodeChain = Flux.Chain(
-                        Flux.Dense(32, 32, relu),
-                        Flux.Dense(32, 32, relu),
-                    ),
-                    outputLayer = Flux.Dense(64, 1),
-                    state_rep=SeaPearl.TsptwStateRepresentation
-                ),
+                model = approximator_model,
                 optimizer = ADAM(0.0001f0)
             ),
             target_approximator = RL.NeuralNetworkApproximator(
-                model = SeaPearl.FlexVariableOutputGNN(
-                    graphChain = Flux.Chain(
-                        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                    ),
-                    nodeChain = Flux.Chain(
-                        Flux.Dense(32, 32, relu),
-                        Flux.Dense(32, 32, relu),
-                    ),
-                    outputLayer = Flux.Dense(64, 1),
-                    state_rep=SeaPearl.TsptwStateRepresentation
-                ),
+                model = target_approximator_model,
                 optimizer = ADAM(0.0001f0)
             ),
             loss_func = Flux.Losses.huber_loss,
