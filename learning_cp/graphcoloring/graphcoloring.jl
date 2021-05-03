@@ -111,8 +111,11 @@ end
 
 CSV.write("training_gc_"*string(coloring_generator.n)*".csv", df_training)
 
+
+
 # -------------------
 # Benchmarking
+# One can compare the performance of different Heuristic, be it classic deterministic ones, or learned one using a specified agent and instance generator
 # -------------------
 benchmark_nodes, benchmark_time = SeaPearl.benchmark_solving(;
     valueSelectionArray=valueSelectionArray, 
