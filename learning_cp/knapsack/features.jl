@@ -1,3 +1,24 @@
+
+
+"""
+    SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization})
+
+The default featurise function from the SeaPearl Package is overwritten to fit the knapsack problem topology
+Here, a node feature encodes the following informations : 
+[
+    1 :   the node represents a VARIABLE
+    2 :    |__ the variable type is "OBJECTIVE FUNCTION" 
+    3 :    |__ the variable type is "IntVarViewOpposite"
+    4 :    |__ the variable type is "IntVarViewMul"
+    5 :          |__ encodes the multiplicative factor a
+    6 :   the node represents a CONSTRAINT
+    7 :    |__ the constraint type is "SumToZero"
+    8 :    |__ the constraint type is "LessOrEqualConstant"
+    9 :   the node represents a VARIABLE
+    10 :   |__ the variable value / 10
+]
+
+"""
 function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}) 
     g = sr.cplayergraph
     features = zeros(Float32, nv(g), numberOfFeatures) 
@@ -35,9 +56,5 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{SeaPearl.Def
         end 
     end 
     features 
-    # features = zeros(Float32, nv(g), nv(g)) 
-    # for i in 1:size(features)[1] 
-    #     features[i, i] = 1.0f0 
-    # end 
-    # features 
+
 end 
