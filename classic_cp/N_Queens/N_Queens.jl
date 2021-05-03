@@ -72,11 +72,10 @@ function outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
     solutions = model.solutions
     nb_sols = length(solutions)
     board_size = length(model.variables)
-    indices = Matrix{Int}(undef,nb_sols, board_size)
-    for key in keys(solutions)
-        sol = solutions[key]
+    indices = Matrix{Int}(undef, board_size, nb_sols)
+    for (key,sol) in solutions
         for i in 1:board_size
-            indices[key, i]= sol["row_"*string(i)]
+            indices[i, key]= sol["row_"*string(i)]
         end
     end
     return OutputDataQueens(nb_sols, indices)
