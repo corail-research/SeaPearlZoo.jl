@@ -18,7 +18,7 @@ struct MostCenteredVariableSelection{TakeObjective} <: SeaPearl.AbstractVariable
 ###constructor###
 MostCenteredVariableSelection(;take_objective = true) = MostCenteredVariableSelection{take_objective}()
 
-function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)
+function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
     selectedVar = nothing
     n = length(cpmodel.variables)
     #print(SeaPearl.branchable_variables(cpmodel))
@@ -36,7 +36,7 @@ function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)
 
 end
 
-function (::MostCenteredVariableSelection{true})(cpmodel::SeaPearl.CPModel)
+function (::MostCenteredVariableSelection{true})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
     selectedVar = nothing
     n = length(cpmodel.variables)
     sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> ceil(n/2.0)-parse(Int64,x[1][5]),rev=true)
@@ -50,7 +50,7 @@ function (::MostCenteredVariableSelection{true})(cpmodel::SeaPearl.CPModel)
 end
 
 
-function create_nqueens_model(n::Int)
+function create_nqueens_model(n::Int)::Tuple{SeaPearl.CPModel,SeaPearl.AbstractVariableSelection{false}}
 
 
     trailer = SeaPearl.Trailer()
@@ -78,10 +78,12 @@ function create_nqueens_model(n::Int)
     push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
     push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
 
-    variableSelection =  SeaPearl.MostCenteredVariableSelection{false}()
+    variableSelection =  MostCenteredVariableSelection{false}()
+    #variableSelection =  SeaPearl.MinDomainVariableSelection{false}()     #A basic heuristic
+
     return model, variableSelection
 end
 
-function solve(model::SeaPearl.CPModel, variableSelection::SeaPearl.AbstractVariableSelection{false} )
+function solve(model::SeaPearl.CPModel, variableSelection::SeaPearl.AbstractVariableSelection{false})
     status = @time SeaPearl.solve!(model; variableHeuristic = variableSelection)
 end
