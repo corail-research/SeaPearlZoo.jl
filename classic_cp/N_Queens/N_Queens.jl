@@ -61,6 +61,19 @@ function solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPea
 end
 
 """
+    solve_queens(model::SeaPearl.CPModel)
+
+Solve the SeaPearl model for to the N-Queens problem, using an existing model
+
+# Arguments
+- `model::SeaPearl.CPModel`: model (from model_queens)
+"""
+function solve_queens(model::SeaPearl.CPModel)
+    status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
+    return model
+end
+
+"""
     outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
 
 Shows the results of the N-Queens problem as type OutputDataQueens.
