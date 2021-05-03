@@ -1,5 +1,38 @@
 using SeaPearl
+using ReinforcementLearning
+const RL = ReinforcementLearning
+using Flux
+using Zygote
+using GeometricFlux
+using Random
+using BSON: @save, @load
 
+using Plots
+gr()
+
+# -------------------
+# Generator
+# -------------------
+
+nqueen_generator = 0
+
+include("rewards.jl")
+include("features.jl")
+
+# -------------------
+# Internal variables
+# -------------------
+
+
+
+
+
+
+
+
+
+
+"""
 struct Queen
     id::Int
     pos::Int
@@ -45,3 +78,5 @@ end
 function solve(model::SeaPearl.CPModel, variableSelection::SeaPearl.AbstractVariableSelection{false} )
     status = @time SeaPearl.solve!(model; variableHeuristic = variableSelection)
 end
+
+"""
