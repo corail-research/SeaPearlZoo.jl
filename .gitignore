@@ -23,4 +23,5 @@ docs/site/
 # environment.
 Manifest.toml
 
-.vscode
+*.vscode
+*.csv
