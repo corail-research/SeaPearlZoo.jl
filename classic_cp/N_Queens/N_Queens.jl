@@ -67,8 +67,10 @@ Solve the SeaPearl model for to the N-Queens problem, using an existing model
 
 # Arguments
 - `model::SeaPearl.CPModel`: model (from model_queens)
+- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
+- 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
-function solve_queens(model::SeaPearl.CPModel)
+function solve_queens(model::SeaPearl.CPModel; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
 end
