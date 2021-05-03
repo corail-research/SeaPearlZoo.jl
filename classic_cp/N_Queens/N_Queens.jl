@@ -1,18 +1,22 @@
 using SeaPearl
 
+struct OutputDataQueens
+    nb_sols ::Int
+    indices ::Matrix{Int}
+end
 
 """
-    solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+    model_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
 
 return the SeaPearl model for to the N-Queens problem, using SeaPearl.MinDomainVariableSelection heuristique
-and  SeaPearl.AllDifferent.
+and  SeaPearl.AllDifferent (without solving it)
 
 # Arguments
 - `board_size::Int`: dimension of the board
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
-function solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function model_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
 
@@ -36,9 +40,80 @@ function solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPea
     push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
     push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
 
-    status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
-
     return model
+end
+
+"""
+    solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+
+Solve the SeaPearl model for to the N-Queens problem, using SeaPearl.MinDomainVariableSelection heuristique
+and  SeaPearl.AllDifferent, and the function model_queens
+
+# Arguments
+- `board_size::Int`: dimension of the board
+- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
+- 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
+"""
+function solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+    model = model_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+    status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
+    return model
+end
+
+"""
+    outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
+
+Shows the results of the N-Queens problem as type OutputDataQueens.
+
+# Arguments
+- `model::SeaPearl.CPModel`: needs the model to be already solved (by solve_queens)
+"""
+function outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
+    solutions = model.solutions
+    nb_sols = length(solutions)
+    board_size = length(model.variables)
+    indices = Matrix{Int}(undef,nb_sols, board_size)
+    for key in keys(solutions)
+        sol = solutions[key]
+        for i in 1:board_size
+            indices[key, i]= sol["row_"*string(i)]
+        end
+    end
+    return OutputDataQueens(nb_sols, indices)
+end
+
+"""
+    print_queens(model::SeaPearl.CPModel; nb_sols=typemax(Int))
+
+Print at max nb_sols solutions to the N-queens problems.
+
+# Arguments
+- `model::SeaPearl.CPModel`: needs the model to be already solved (by solve_queens)
+- 'nb_sols::Int' : maximum number of solutions to print
+"""
+function print_queens(model::SeaPearl.CPModel; nb_sols=typemax(Int))
+    variables = model.variables
+    solutions = model.solutions
+    board_size = length(model.variables)
+    count = 0
+    println("The solver found "*string(length(solutions))*" solutions to the "*string(board_size)*"-queens problem. Let's show them.")
+    println()
+    for key in keys(solutions)
+        if(count >= nb_sols)
+            break
+        end
+        println("Solution "*string(count+1))
+        count +=1
+        sol = solutions[key]
+        for i in 1:board_size
+            ind_queen = sol["row_"*string(i)]
+            for j in 1:board_size
+                if (j==ind_queen) print("Q ") else print("_ ") end
+            end
+            println()
+        end
+        println()
+    end
 end
 
 """
