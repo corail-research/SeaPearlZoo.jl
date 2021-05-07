@@ -60,7 +60,7 @@ Solve the SeaPearl model for to the All-interval_Series (AIS) problem, using Sea
 and  SeaPearl.AllDifferent and SeaPearl.Absolute, and the function model_AIS
 
 # Arguments
-- `board_size::Int`: dimension of the board
+- `n::Int`: dimension
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
@@ -73,14 +73,13 @@ end
 """
     solve_AIS(model::SeaPearl.CPModel)
 
-Solve the SeaPearl model for to the AIS problem, using an existing model
+Solve the SeaPearl model for to the AIS problem, using an existing model (from model_AIS)
 
 # Arguments
 - `model::SeaPearl.CPModel`: model (from model_AIS)
 
 """
-function solve_AIS(n::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    model = model_AIS(n; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function solve_AIS(model::SeaPearl.CPModel)
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
 end
@@ -88,7 +87,7 @@ end
 """
     outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
 
-Shows the results of the AIS problem as type OutputDataAIS.
+Return the results of the AIS problem as type OutputDataAIS, taking the solved model (from solve_AIS) as argument
 
 # Arguments
 - `model::SeaPearl.CPModel`: needs the model to be already solved (by solve_AIS)
@@ -106,4 +105,19 @@ function outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
         end
     end
     return OutputDataAIS(nb_sols, indices, diffs)
+end
+
+"""
+outputFromSeaPearl(n::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+
+Shows the results of the AIS problem as type OutputDataAIS, taking dimension as argument
+
+# Arguments
+- `n::Int`: dimension
+- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
+- 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
+"""
+function outputFromSeaPearl(n::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+    model = solve_AIS(n::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+    return outputFromSeaPearl(model)    
 end
