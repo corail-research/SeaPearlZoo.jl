@@ -14,7 +14,7 @@ gr()
 # -------------------
 # Generator
 # -------------------
-n_city = 21
+n_city = 20
 grid_size = 100
 max_tw_gap = 10
 max_tw = 100
@@ -32,7 +32,7 @@ state_size = SeaPearl.arraybuffer_dims(tsptw_generator, SeaPearl.TsptwStateRepre
 n_episodes = 3001
 eval_freq = 250
 nb_instances = 5
-nb_random_heuristics = 10
+nb_random_heuristics = 5
 
 # -------------------
 # Agent definition
@@ -87,7 +87,7 @@ bestsolutions, nodevisited, timeneeded, eval_nodes, eval_tim = SeaPearl.train!(
     nb_episodes=n_episodes,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
-    out_solver=true,
+    out_solver=false,    #need to verify this line
     verbose = false,
     evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = eval_freq, nb_instances = nb_instances)
 )
