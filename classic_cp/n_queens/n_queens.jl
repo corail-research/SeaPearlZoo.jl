@@ -6,6 +6,46 @@ struct OutputDataQueens
 end
 
 """
+    struct MostCenteredVariableSelection{TakeObjective} 
+
+New variableSelection heuristic that selects the legal (ie. among the not bounded ones) most centered Queen 
+"""
+struct MostCenteredVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
+###constructor###
+MostCenteredVariableSelection(;take_objective = true) = MostCenteredVariableSelection{take_objective}()
+
+function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
+    selectedVar = nothing
+    n = length(cpmodel.variables)
+    #print(SeaPearl.branchable_variables(cpmodel))
+    #print(values(cpmodel.variables))
+    sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> ceil(n/2.0)-parse(Int64,x[1][5]),rev=true)
+    while !isempty(sorted_dict)
+        selectedVar= pop!(sorted_dict)[2]
+        selectedVar == cpmodel.objective || SeaPearl.isbound(selectedVar) || break
+    end
+
+    if SeaPearl.isnothing(selectedVar) && !SeaPearl.isbound(cpmodel.objective)
+        return cpmodel.objective
+    end
+    return selectedVar
+
+end
+
+function (::MostCenteredVariableSelection{true})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
+    selectedVar = nothing
+    n = length(cpmodel.variables)
+    sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> ceil(n/2.0)-parse(Int64,x[1][5]),rev=true)
+    while true
+        selectedVar= pop!(sorted_dict)[2]
+        !SeaPearl.isbound(selectedVar) || break
+    end
+
+    return selectedVar
+
+end
+
+"""
     model_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
 
 return the SeaPearl model for to the N-Queens problem, using SeaPearl.MinDomainVariableSelection heuristique
@@ -13,7 +53,7 @@ and  SeaPearl.AllDifferent (without solving it)
 
 # Arguments
 - `board_size::Int`: dimension of the board
-- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
+- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}() can be set to MostCenteredVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
 function model_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
