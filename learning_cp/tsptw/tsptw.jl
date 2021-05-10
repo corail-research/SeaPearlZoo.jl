@@ -126,8 +126,11 @@ function metricsFun(;kwargs...)
     end
 end
 
-############# TRAIN
-
+# -------------------
+# -------------------
+# Core function
+# -------------------
+# -------------------
 function trytrain(nb_episodes::Int)
 
     bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded  = SeaPearl.train!(
