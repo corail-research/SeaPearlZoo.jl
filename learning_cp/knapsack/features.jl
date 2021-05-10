@@ -1,7 +1,9 @@
 
+struct KnapsackFeaturization <: SeaPearl.AbstractFeaturization end
 
+numberOfFeatures =10
 """
-    SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization})
+    SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
 
 The default featurise function from the SeaPearl Package is overwritten to fit the knapsack problem topology
 Here, a node feature encodes the following informations : 
@@ -17,9 +19,8 @@ Here, a node feature encodes the following informations :
     9 :   the node represents a VARIABLE
     10 :   |__ the variable value / 10
 ]
-
 """
-function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization}) 
+function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{KnapsackFeaturization}) 
     g = sr.cplayergraph
     features = zeros(Float32, nv(g), numberOfFeatures) 
     for i in 1:nv(g) 
