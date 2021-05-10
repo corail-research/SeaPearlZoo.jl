@@ -1,6 +1,4 @@
-  
-
-using Revise
+  using Revise
 using SeaPearl
 using ReinforcementLearning
 const RL = ReinforcementLearning
@@ -31,7 +29,7 @@ maxNumberOfCPNodes = state_size[1]
 # -------------------
 # Experience variables
 # -------------------
-nb_episodes = 2000
+nb_episodes = 3000
 eval_freq = 100
 nb_instances = 10
 nb_random_heuristics = 0
@@ -133,7 +131,7 @@ function trytrain(nepisodes::Int)
             ylims = (-50,max_y)
             )
     display(p)
-    
+    savefig(p,"node_visited_knapsack_$(knapsack_generator.nb_items).png")
     #return bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded
 end
 
