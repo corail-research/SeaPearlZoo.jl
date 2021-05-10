@@ -12,6 +12,9 @@ using BSON: @save, @load
 using Plots
 gr()
 
+include("rewards.jl")
+include("features.jl")
+
 # -------------------
 # Generator
 # -------------------
@@ -20,8 +23,6 @@ knapsack_generator = SeaPearl.KnapsackGenerator(15, 10, 0.2)
 # -------------------
 # Internal variables
 # -------------------
-include("rewards.jl")
-include("features.jl")
 numInFeatures = SeaPearl.feature_length(knapsack_generator, SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
 state_size = SeaPearl.arraybuffer_dims(knapsack_generator, SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
 maxNumberOfCPNodes = state_size[1]
@@ -29,7 +30,7 @@ maxNumberOfCPNodes = state_size[1]
 # -------------------
 # Experience variables
 # -------------------
-nb_episodes = 3000
+nb_episodes = 10
 eval_freq = 100
 nb_instances = 10
 nb_random_heuristics = 0
@@ -41,11 +42,14 @@ include("agents.jl")
 
 
 # -------------------
-# Variable/Value Heuristic definition
+# Value Heuristic definition
 # -------------------
 learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{KnapsackFeaturization}, knapsackReward, SeaPearl.FixedOutput}(agent, maxNumberOfCPNodes)
 basicHeuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> SeaPearl.maximum(x.domain)) # Basic value-selection heuristic
 
+# -------------------
+# Variable Heuristic definition
+# ------------------- 
 struct KnapsackVariableSelection <: SeaPearl.AbstractVariableSelection{false} end
 function (::KnapsackVariableSelection)(model::SeaPearl.CPModel)
     i = 1
@@ -58,11 +62,11 @@ end
 # -------------------
 # Metrics definition
 # -------------------
-function GenerateMetricsArray(nepisodes::Int)
-    global meanNodeVisited = Array{Float32}(undef, nepisodes)
-    global meanNodeVisitedBasic = Array{Float32}(undef, nepisodes)
-    global nodeVisitedBasic = Array{Int64}(undef, nepisodes)
-    global nodeVisitedLearned = Array{Int64}(undef, nepisodes)
+function GenerateMetricsArray(nb_episodes::Int)
+    global meanNodeVisited = Array{Float32}(undef, nb_episodes)
+    global meanNodeVisitedBasic = Array{Float32}(undef, nb_episodes)
+    global nodeVisitedBasic = Array{Int64}(undef, nb_episodes)
+    global nodeVisitedLearned = Array{Int64}(undef, nb_episodes)
     global meanOver = 10 #range of the shifting mean
 end
 
@@ -100,14 +104,16 @@ function metricsFun(;kwargs...)
 end
 
 # -------------------
+# -------------------
 # Core function
 # -------------------
-function trytrain(nepisodes::Int)
+# -------------------
+function trytrain(nb_episodes::Int)
 
     bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded = SeaPearl.train!(
         valueSelectionArray=[learnedHeuristic, basicHeuristic], 
         generator=knapsack_generator,
-        nb_episodes=nepisodes,
+        nb_episodes=nb_episodes,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=KnapsackVariableSelection(),
         metricsFun=metricsFun,
@@ -120,11 +126,18 @@ function trytrain(nepisodes::Int)
     #saving model weights
     trained_weights = params(approximator_model)
     @save "model_weights_knapsack"*string(knapsack_generator.nb_items)*".bson" trained_weights
+    
+    return bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded
+end
 
-    # plot 
+
+# -------------------
+# Plotting function
+# -------------------
+function plot_result()
     max_y =1.1*maximum([maximum(nodeVisitedLearned),maximum(nodeVisitedBasic)])
-    p = plot(1:nepisodes, 
-            [nodeVisitedLearned[1:nepisodes] meanNodeVisited[1:nepisodes] nodeVisitedBasic[1:nepisodes] meanNodeVisitedBasic[1:nepisodes] (nodeVisitedLearned-nodeVisitedBasic)[1:nepisodes] (meanNodeVisited-meanNodeVisitedBasic)[1:nepisodes]], 
+    p = plot(1:nb_episodes, 
+            [nodeVisitedLearned[1:nb_episodes] meanNodeVisited[1:nb_episodes] nodeVisitedBasic[1:nb_episodes] meanNodeVisitedBasic[1:nb_episodes] (nodeVisitedLearned-nodeVisitedBasic)[1:nb_episodes] (meanNodeVisited-meanNodeVisitedBasic)[1:nb_episodes]], 
             xlabel="Episode", 
             ylabel="Number of nodes visited", 
             label = ["Learned" "mean/$meanOver Learned" "Basic" "mean/$meanOver Basic" "Delta" "Mean Delta"],
@@ -132,17 +145,34 @@ function trytrain(nepisodes::Int)
             )
     display(p)
     savefig(p,"node_visited_knapsack_$(knapsack_generator.nb_items).png")
-    #return bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded
+end
+
+# -------------------
+# Storing training data
+# -------------------
+function store_training_data(eval_nodevisited::Array{Float64,3}, eval_timeneeded::Array{Float64,3})
+    df_training = DataFrame()
+    df_basic = DataFrame()
+    for i in 1:nb_instances
+        df_training[!, string(i)*"_nodes_trained"] = eval_nodevisited[:, 1, i]
+        df_training[!, string(i)*"_nodes_basic"] = eval_nodevisited[:, 2, i]
+        df_training[!, string(i)*"_time_trained"] = eval_timeneeded[:, 1, i]
+        df_training[!, string(i)*"_time_basic"] = eval_timeneeded[:, 2, i]
+        for k in 1:nb_random_heuristics
+            df_training[!, string(i)*"_nodes_random_"*string(k)] = eval_nodevisited[:, 2+k, i]
+            df_training[!, string(i)*"_time_basic_"*string(k)] = eval_timeneeded[:, 2+k, i]
+        end
+    end
+    CSV.write("training_knapsack_"*string(knapsack_generator.nb_items)*".csv", df_training)
 end
 
 
 # -------------------
-# Main() definition
 # -------------------
-function main() 
-    GenerateMetricsArray(nb_episodes)
-    trytrain(nb_episodes)
- end
- 
- main()
+
+GenerateMetricsArray(nb_episodes)
+bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded=trytrain(nb_episodes)
+store_training_data(eval_nodevisited, eval_timeneeded)
+plot_result()
+
 
