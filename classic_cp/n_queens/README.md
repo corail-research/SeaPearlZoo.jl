@@ -3,7 +3,8 @@
 The nqueens problem is the generalization of the well known 8 queens problem on a n\*n chess board. The eight queens puzzle is the problem of placing eight chess queens on an 8×8 chessboard so that no two queens threaten each other; thus, a solution requires that no two queens share the same row, column, or diagonal.
 
 
-This version is a classic version of the nqueens problem ( meaning that heuristics used are fully deterministic ). One can use predefined different heuristic for variable or value selection, or can even define its own variable or value selection heuristics.  
+This version is a classic version of the nqueens problem ( meaning that heuristics used are fully deterministic ). One can use predefined different heuristic for variable or value selection, or can even define its own variable or value selection heuristics. 
+ 
 ## Installation
 
 To launch this example, you need to have the package `SeaPearl` added to your environment.

@@ -125,7 +125,7 @@ end
 # -------------------
 function trytrain(nb_episodes::Int)
 
-        bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded  = SeaPearl.train!(
+    bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded  = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray, 
         generator=coloring_generator,
         nb_episodes=nb_episodes,
@@ -185,13 +185,13 @@ end
 # -------------------
 function benchmark()
     benchmark_nodes, benchmark_time = SeaPearl.benchmark_solving(;
-    valueSelectionArray=valueSelectionArray, 
-    generator=coloring_generator,
-    strategy=SeaPearl.DFSearch,
-    variableHeuristic=variableSelection,
-    out_solver=false,
-    verbose = false,
-    evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = eval_freq, nb_instances = nb_instances)
+        valueSelectionArray=valueSelectionArray, 
+        generator=coloring_generator,
+        strategy=SeaPearl.DFSearch,
+        variableHeuristic=variableSelection,
+        out_solver=false,
+        verbose = false,
+        evaluator=SeaPearl.SameInstancesEvaluator(; eval_freq = eval_freq, nb_instances = nb_instances)
     )
 
     df_benchmark = DataFrame()

@@ -136,13 +136,14 @@ end
 # -------------------
 function plot_result()
     max_y =1.1*maximum([maximum(nodeVisitedLearned),maximum(nodeVisitedBasic)])
-    p = plot(1:nb_episodes, 
-            [nodeVisitedLearned[1:nb_episodes] meanNodeVisited[1:nb_episodes] nodeVisitedBasic[1:nb_episodes] meanNodeVisitedBasic[1:nb_episodes] (nodeVisitedLearned-nodeVisitedBasic)[1:nb_episodes] (meanNodeVisited-meanNodeVisitedBasic)[1:nb_episodes]], 
-            xlabel="Episode", 
-            ylabel="Number of nodes visited", 
-            label = ["Learned" "mean/$meanOver Learned" "Basic" "mean/$meanOver Basic" "Delta" "Mean Delta"],
-            ylims = (-50,max_y)
-            )
+    p = plot(
+        1:nb_episodes, 
+        [nodeVisitedLearned[1:nb_episodes] meanNodeVisited[1:nb_episodes] nodeVisitedBasic[1:nb_episodes] meanNodeVisitedBasic[1:nb_episodes] (nodeVisitedLearned-nodeVisitedBasic)[1:nb_episodes] (meanNodeVisited-meanNodeVisitedBasic)[1:nb_episodes]], 
+        xlabel="Episode", 
+        ylabel="Number of nodes visited", 
+        label = ["Learned" "mean/$meanOver Learned" "Basic" "mean/$meanOver Basic" "Delta" "Mean Delta"],
+        ylims = (-50,max_y)
+    )
     display(p)
     savefig(p,"node_visited_knapsack_$(knapsack_generator.nb_items).png")
 end
