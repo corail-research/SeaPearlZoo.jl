@@ -8,7 +8,7 @@ end
 """
     struct MostCenteredVariableSelection{TakeObjective} 
 
-New variableSelection heuristic that selects the legal (ie. among the not bounded ones) most centered Queen 
+VariableSelection heuristic that selects the legal (ie. among the not bounded ones) most centered Queen.
 """
 struct MostCenteredVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
 ###constructor###
@@ -17,32 +17,32 @@ MostCenteredVariableSelection(;take_objective = true) = MostCenteredVariableSele
 function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
     selectedVar = nothing
     n = length(cpmodel.variables)
-    #print(SeaPearl.branchable_variables(cpmodel))
-    #print(values(cpmodel.variables))
-    sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> ceil(n/2.0)-parse(Int64,x[1][5]),rev=true)
+    sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> abs(n/2-parse(Int, match(r"[0-9]*$", x[1]).match)),rev=true)
     while !isempty(sorted_dict)
-        selectedVar= pop!(sorted_dict)[2]
-        selectedVar == cpmodel.objective || SeaPearl.isbound(selectedVar) || break
+        selectedVar = pop!(sorted_dict)[2]
+        if !(selectedVar == cpmodel.objective) && !SeaPearl.isbound(selectedVar)
+            break
+        end
     end
 
     if SeaPearl.isnothing(selectedVar) && !SeaPearl.isbound(cpmodel.objective)
         return cpmodel.objective
     end
     return selectedVar
-
 end
 
 function (::MostCenteredVariableSelection{true})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
     selectedVar = nothing
     n = length(cpmodel.variables)
-    sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> ceil(n/2.0)-parse(Int64,x[1][5]),rev=true)
+    sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> abs(n/2-parse(Int, match(r"[0-9]*$", x[1]).match)),rev=true)
     while true
         selectedVar= pop!(sorted_dict)[2]
-        !SeaPearl.isbound(selectedVar) || break
+        if !SeaPearl.isbound(selectedVar)
+            break
+        end
     end
 
     return selectedVar
-
 end
 
 """
