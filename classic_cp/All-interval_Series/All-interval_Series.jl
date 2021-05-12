@@ -1,5 +1,11 @@
 using SeaPearl
 
+"""
+Proposition for using SeaPearl CP solver for the all interval series problem
+Reference https://www.csplib.org/Problems/prob007/
+"""
+
+
 struct OutputDataAIS
     nb_sols ::Int
     indices ::Matrix{Int}
@@ -25,15 +31,14 @@ function model_AIS(n::Int; benchmark=false, variableSelection=SeaPearl.MinDomain
     series[1] = SeaPearl.IntVar(0, n-1, "s_"*string(1), trailer)
     SeaPearl.addVariable!(model, series[1]; branchable=true)
 
-    interval_vector = Vector{SeaPearl.AbstractIntVar}(undef, n-1)
-    interval_vector2 = Vector{SeaPearl.AbstractIntVar}(undef, n-1)
+    interval_vector = Vector{SeaPearl.AbstractIntVar}(undef, n-1) #differences
+    interval_vector2 = Vector{SeaPearl.AbstractIntVar}(undef, n-1) #Absolute of the differences
 
     for i = 1:n-1
         series[i+1] = SeaPearl.IntVar(0, n-1, "s_"*string(i+1), trailer)
         SeaPearl.addVariable!(model, series[i+1]; branchable=true)
 
         interval_vector[i] = SeaPearl.IntVar(-n+1, n-1, "v1_"*string(i), trailer)
-        #SeaPearl.addVariable!(model, interval_vector[i]; branchable=false)
 
         minus = SeaPearl.IntVarViewOpposite(series[i+1], "-s["*string(i+1)*"]")
         vars = SeaPearl.AbstractIntVar[interval_vector[i], minus, series[i]]
@@ -41,7 +46,7 @@ function model_AIS(n::Int; benchmark=false, variableSelection=SeaPearl.MinDomain
         push!(model.constraints, transition)
 
         interval_vector2[i] = SeaPearl.IntVar(1, n-1, "v2_"*string(i), trailer)
-        #SeaPearl.addVariable!(model, interval_vector2[i]; branchable=false)
+
         abs_constraint = SeaPearl.Absolute(interval_vector[i], interval_vector2[i], trailer)
         push!(model.constraints, abs_constraint)
     end
@@ -119,5 +124,5 @@ Shows the results of the AIS problem as type OutputDataAIS, taking dimension as 
 """
 function outputFromSeaPearl(n::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     model = solve_AIS(n::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    return outputFromSeaPearl(model)    
+    return outputFromSeaPearl(model)
 end
