@@ -1,25 +1,29 @@
 
-struct IlanReward <: SeaPearl.AbstractReward end  
+mutable struct knapsackReward <: SeaPearl.AbstractReward  
+    value::Float32
+end
 
-function SeaPearl.set_reward!(::SeaPearl.StepPhase, lh::SeaPearl.LearnedHeuristic{SR, IlanReward, O}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where {
+knapsackReward(model::SeaPearl.CPModel) = knapsackReward(0)
+
+function SeaPearl.set_reward!(::SeaPearl.StepPhase, lh::SeaPearl.LearnedHeuristic{SR, knapsackReward, O}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: SeaPearl.AbstractStateRepresentation,
     O <: SeaPearl.ActionOutput
 }
+    lh.reward.value += -1
     nothing
 end
 
-function SeaPearl.set_reward!(::SeaPearl.DecisionPhase, lh::SeaPearl.LearnedHeuristic{SR, IlanReward, O}, model::SeaPearl.CPModel) where {
+function SeaPearl.set_reward!(::SeaPearl.DecisionPhase, lh::SeaPearl.LearnedHeuristic{SR, knapsackReward, O}, model::SeaPearl.CPModel) where {
     SR <: SeaPearl.AbstractStateRepresentation,
     O <: SeaPearl.ActionOutput
 }
-    lh.current_reward -= 1/40
+    lh.reward.value += -1
     nothing  
 end  
     
-function SeaPearl.set_reward!(::SeaPearl.EndingPhase, lh::SeaPearl.LearnedHeuristic{SR, IlanReward, O}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where { 
+function SeaPearl.set_reward!(::SeaPearl.EndingPhase, lh::SeaPearl.LearnedHeuristic{SR, knapsackReward, O}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where { 
     SR <: SeaPearl.AbstractStateRepresentation,
     O <: SeaPearl.ActionOutput
 }
-    lh.current_reward += 100/model.statistics.numberOfNodes + 10 
     nothing  
 end  
