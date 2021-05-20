@@ -13,7 +13,7 @@ struct InputData
     pieces ::Matrix{Int}
 end
 
-struct OutputDataEternity
+struct OutputDataEternityII
     nb_sols ::Int
     orientation::Array{Int, 4}# dims = (nb_sols, n, m, 5) where five corresponds to (id, u,r, d, l)
 end
@@ -29,12 +29,13 @@ and  SeaPearl.AllDifferent  and SeaPearl.TableConstraint (without solving it)
 - `input_file`: file containing the pieces of the game as well as the dimensions
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
+-'order' : Vector
 """
-function model_eternity2(input_file; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function model_eternity2(input_file; order=[1,2,3,4], variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
 
-    inputData = getInputData(input_file)
+    inputData = getInputData(input_file;order=order)
     n = inputData.n
     m = inputData.m
     pieces = inputData.pieces
@@ -99,8 +100,8 @@ and  SeaPearl.AllDifferent and SeaPearl.TableConstraint, and the function model_
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
-function solve_eternity2(input_file; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    model = model_eternity2(input_file; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function solve_eternity2(input_file; order=[1,2,3,4], variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+    model = model_eternity2(input_file; order=order,variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
 end
@@ -116,8 +117,8 @@ Solve the SeaPearl model for to the eternity2 problem, using an existing model (
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 
 """
-function solve_eternity2(model::SeaPearl.CPModel;benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
+function solve_eternity2(model::SeaPearl.CPModel; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic(),out_solver=false)
+    status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection, out_solver=out_solver)
     return model
 end
 
@@ -144,5 +145,5 @@ function outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
             orientation[ind, i, j, 5] = sol["l_"*string(i)*string(j)]
         end
     end
-    return OutputDataEternity(nb_sols, orientation)
+    return OutputDataEternityII(nb_sols, orientation)
 end

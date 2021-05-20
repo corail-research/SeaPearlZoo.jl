@@ -5,7 +5,7 @@ struct InputData
 end
 
 
-function parseInput(raw_input)
+function parseInput(raw_input; order=[1,2,3,4])
     lines = split(raw_input, '\n')
 
     firstLine = split(lines[1], ' ')
@@ -15,9 +15,11 @@ function parseInput(raw_input)
 
     pieces = Matrix{Int}(undef, n*m, 4)
 
-    for i = 2:n*m+1, j=1:4
+    for i = 2:n*m+1
         line = split(lines[i],' ')
-        pieces[i-1,j] = parse(Int, line[j])
+        for j =1:4
+            pieces[i-1,j] = parse(Int, line[order[j]])
+        end
     end
 
     return InputData(n, m, pieces)
@@ -25,12 +27,12 @@ end
 
 
 
-function getInputData(filename)
+function getInputData(filename;order=[1,2,3,4])
 
     inputData = nothing
 
     open(filename, "r") do openedFile
-        inputData = parseInput(read(openedFile, String))
+        inputData = parseInput(read(openedFile, String);order=order)
     end
 
     return inputData
