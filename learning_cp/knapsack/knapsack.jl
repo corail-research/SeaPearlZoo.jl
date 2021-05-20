@@ -67,6 +67,7 @@ function GenerateMetricsArray(nb_episodes::Int)
     global meanNodeVisitedBasic = Array{Float32}(undef, nb_episodes)
     global nodeVisitedBasic = Array{Int64}(undef, nb_episodes)
     global nodeVisitedLearned = Array{Int64}(undef, nb_episodes)
+    global objectiveScore = Array{Int64}(undef,  nb_episodes)   #nb_points, nb_heuristic, nb_episodes
     global meanOver = 10 #range of the shifting mean
 end
 
@@ -78,6 +79,7 @@ and compute a slidding mean over episodes.
 """
 function metricsFun(;kwargs...)
     i = kwargs[:episode]
+    j = kwargs[:heuristic_index]
     if kwargs[:heuristic] == learnedHeuristic
         currentNodeVisited = kwargs[:nodeVisited]
         nodeVisitedLearned[i] = currentNodeVisited
@@ -101,6 +103,7 @@ function metricsFun(;kwargs...)
         end
         meanNodeVisitedBasic[i] = currentMean
     end
+
 end
 
 # -------------------

@@ -124,7 +124,7 @@ Shows the results of the N-Queens problem as type OutputDataQueens.
 - `model::SeaPearl.CPModel`: needs the model to be already solved (by solve_queens)
 """
 function outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
-    solutions = model.solutions
+    solutions = model.statistics.solutions
     nb_sols = length(solutions)
     board_size = length(model.variables)
     indices = Matrix{Int}(undef, board_size, nb_sols)
@@ -147,7 +147,7 @@ Print at max nb_sols solutions to the N-queens problems.
 """
 function print_queens(model::SeaPearl.CPModel; nb_sols=typemax(Int))
     variables = model.variables
-    solutions = model.solutions
+    solutions = model.statistics.solutions
     board_size = length(model.variables)
     count = 0
     println("The solver found "*string(length(solutions))*" solutions to the "*string(board_size)*"-queens problem. Let's show them.")
@@ -184,7 +184,7 @@ Print at max nb_sols solutions to the N-queens problems, N givern as the board_s
 function print_queens(board_size::Int; nb_sols=typemax(Int), benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     model = solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection)
     variables = model.variables
-    solutions = model.solutions
+    solutions = model.statistics.solutions
     count = 0
     println("The solver found "*string(length(solutions))*" solutions to the "*string(board_size)*"-queens problem. Let's show them.")
     println()
@@ -218,5 +218,5 @@ and  SeaPearl.AllDifferent.
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
 function nb_solutions_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())::Int
-    return(length(solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection).solutions))
+    return(length(solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection).statistics.solutions))
 end
