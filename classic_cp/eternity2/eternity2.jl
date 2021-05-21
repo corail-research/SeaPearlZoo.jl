@@ -31,10 +31,10 @@ and  SeaPearl.AllDifferent  and SeaPearl.TableConstraint (without solving it)
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 -'order' : Vector
 """
-function model_eternity2(input_file; order=[1,2,3,4], variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function model_eternity2(input_file; order=[1,2,3,4], variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic(), limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
-
+    model.limit.numberOfSolutions = limit
     inputData = getInputData(input_file;order=order)
     n = inputData.n
     m = inputData.m
@@ -84,6 +84,16 @@ function model_eternity2(input_file; order=[1,2,3,4], variableSelection=SeaPearl
         if (j<m) push!(model.constraints, SeaPearl.Equal(r[i,j], l[i,j+1], trailer)) end
         if (i<n) push!(model.constraints, SeaPearl.Equal(d[i,j], u[i+1,j], trailer)) end
     end
+
+    #breaking some symmetries
+"""
+    if count(==(2),count(==(0),pieces,dims=2))==4
+        index = findfirst(==(2),vec(count(==(0),pieces,dims=2)))
+        #push!(model.constraints,SeaPearl.EqualConstant(id[1,1], index, trailer))
+        SeaPearl.assign!(id[1,1].domain, index)
+    end
+"""
+
     push!(model.constraints, SeaPearl.AllDifferent(id, trailer))
     model.adhocInfo = Dict([("n", n), ("m", m)])
     return model
@@ -146,4 +156,42 @@ function outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
         end
     end
     return OutputDataEternityII(nb_sols, orientation)
+end
+
+function print_eternity2(sol::Array{Int,3}, n::Int, m::Int)
+    id = sol[:,:,1]
+    u = sol[:,:,2]
+    r = sol[:,:,3]
+    d = sol[:,:,4]
+    l = sol[:,:,5]
+    for k in 1:9*m
+        print("-")
+    end
+    println()
+    for i in 1:n
+        print("|")
+        for j in 1:m
+            printstyled("   "*string(u[i,j],pad=2)*"   ", color=u[i,j])
+            print("|")
+        end
+        println()
+        print("|")
+        for j in 1:m
+            printstyled(string(l[i,j],pad=2),color=l[i,j])
+            printstyled(" "*string(id[i,j],pad=2)*" ")
+            printstyled(string(r[i,j],pad=2),color=r[i,j])
+            print("|")
+        end
+        println()
+        print("|")
+        for j in 1:m
+            printstyled("   "*string(d[i,j],pad=2)*"   ", color=d[i,j])
+            print("|")
+        end
+        println()
+        for k in 1:9*m
+            print("-")
+        end
+        println()
+    end
 end

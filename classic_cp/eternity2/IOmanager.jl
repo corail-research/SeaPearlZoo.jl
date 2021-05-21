@@ -5,6 +5,7 @@ struct InputData
 end
 
 
+
 function parseInput(raw_input; order=[1,2,3,4])
     lines = split(raw_input, '\n')
 
