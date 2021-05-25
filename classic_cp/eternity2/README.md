@@ -17,7 +17,8 @@ Being inside that folder in the terminal (`examples/eternity2/`), you can launch
 
 ```julia
 julia> include("eternity2.jl.jl")
-julia> solve_coloring("data/eternity3x3")
+julia> model_solved = solve_eternity2("data/eternity3x3")
+julia> print_eternity2_v2(model_solved)
 ```
 
 ## Contributing
