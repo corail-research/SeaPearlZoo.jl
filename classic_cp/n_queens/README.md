@@ -15,7 +15,8 @@ Being inside that folder in the terminal (`examples/nqueens/`), you can launch:
 
 ```julia
 julia> include("nqueens.jl")
-julia> #TODO complete readME.md
+julia> model_solved = solve_queens(8)
+julia> print_queens(model_solved;nb_sols=5)
 ```
 
 ## Contributing
