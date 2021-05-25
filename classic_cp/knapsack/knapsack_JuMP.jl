@@ -23,8 +23,8 @@ end
 
 include("IOmanager.jl")
 
-struct KnapsackVariableSelection <: SeaPearl.AbstractVariableSelection{true} end
-function (::KnapsackVariableSelection)(model::SeaPearl.CPModel)
+struct KnapsackVariableSelectionJuMP <: SeaPearl.AbstractVariableSelection{true} end
+function (::KnapsackVariableSelectionJuMP)(model::SeaPearl.CPModel)
     i = 1
     while SeaPearl.isbound(model.variables[string(i)])
         i += 1
@@ -63,7 +63,7 @@ function solve_knapsack_JuMP(filename::String; benchmark=false)
 
 
     # define the heuristic used for variable selection
-    variableheuristic = KnapsackVariableSelection()
+    variableheuristic = KnapsackVariableSelectionJuMP()
     MOI.set(model, SeaPearl.MOIVariableSelectionAttribute(), variableheuristic)
 
     optimize!(model)
