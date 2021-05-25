@@ -87,7 +87,7 @@ end
     solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
 
 Solve the SeaPearl model for to the N-Queens problem, using SeaPearl.MinDomainVariableSelection heuristique
-and  SeaPearl.AllDifferent, and the function model_queens
+and  SeaPearl.AllDifferent, and the function model_queens.
 
 # Arguments
 - `board_size::Int`: dimension of the board
@@ -107,8 +107,8 @@ Solve the SeaPearl model for to the N-Queens problem, using an existing model
 
 # Arguments
 - `model::SeaPearl.CPModel`: model (from model_queens)
-- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
-- 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
+- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}().
+- 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic().
 """
 function solve_queens(model::SeaPearl.CPModel; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
@@ -126,10 +126,10 @@ Shows the results of the N-Queens problem as type OutputDataQueens.
 function outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
     solutions = model.solutions
     nb_sols = length(solutions)
-    board_size = length(model.variables)
-    indices = Matrix{Int}(undef, board_size, nb_sols)
+    n = length(model.variables)
+    indices = Matrix{Int}(undef, n, nb_sols)
     for (key,sol) in solutions
-        for i in 1:board_size
+        for i in 1:n
             indices[i, key]= sol["row_"*string(i)]
         end
     end
