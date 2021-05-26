@@ -6,9 +6,9 @@ The Eternity 2 puzzle is an edge matching problem. It involves placing square pu
 This version is a classic version of the eternity problem (meaning that heuristics used are fully deterministic). One can use predefined different heuristic for variable or value selection, or can even define its own variable or value selection heuristics.
 
 Here, we developed three different kinds of modeling to compare the performances.
-The first model uses a natural modeling. 
+The first model uses a natural modeling.
 The second one uses less constraints: it uses directly the edges as variables.
-The third one is an extension of the second one, where we branch on the id of each pieace as well as its orientation. It is slower, but it has the advantage of being more easily understandable, if the aim is to learn a good heuristique. 
+The third one is an extension of the second one, where we branch on the id of each pieace as well as its orientation. It is slower, but it has the advantage of being more easily understandable, if the aim is to learn a good heuristique.
 
 ## Installation
 
@@ -19,7 +19,7 @@ To launch this example, you need to have the package `SeaPearl` added to your en
 Being inside that folder in the terminal (`examples/eternity2/`), you can launch:
 
 ```julia
-julia> include("eternity2.jl.jl")
+julia> include("eternity2.jl")
 julia> model_solved = solve_eternity2("data/eternity3x3")
 julia> print_eternity2_v2(model_solved)
 ```
