@@ -107,7 +107,7 @@ return the SeaPearl model for to the solve_eternity2 problem, using SeaPearl.All
 - 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
 - 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will lookk for all the solutions
 """
-function model_eternity2_v2(input_file; order=[1,2,3,4], variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic(), limit=nothing)
+function model_eternity2_v2(input_file; order=[1,2,3,4], limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
@@ -195,7 +195,7 @@ return the SeaPearl model for to the solve_eternity2 problem, using SeaPearl.All
 - 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
 - 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will lookk for all the solutions
 """
-function model_eternity2_v3(input_file; order=[1,2,3,4], variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic(), limit=nothing)
+function model_eternity2_v3(input_file; order=[1,2,3,4], limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
