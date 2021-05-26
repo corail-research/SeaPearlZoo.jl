@@ -8,7 +8,7 @@ This version is a classic version of the eternity problem (meaning that heuristi
 Here, we developed three different kinds of modeling to compare the performances.
 The first model uses a natural modeling.
 The second one uses less constraints: it uses directly the edges as variables.
-The third one is an extension of the second one, where we branch on the id of each pieace as well as its orientation. It is slower, but it has the advantage of being more easily understandable, if the aim is to learn a good heuristique.
+The third one is an extension of the second one, where we branch on the id of each piece as well as its orientation. It is slower, but it has the advantage of being more easily understandable, if the aim is to learn a good heuristique.
 
 ## Installation
 

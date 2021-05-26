@@ -98,16 +98,16 @@ function model_eternity2(input_file; order=[1,2,3,4], limit=nothing)
 end
 
 """
-    model_eternity2_v2(input_file; order=[1,2,3,4], limit=nothing)
+    model_eternity2_fast(input_file; order=[1,2,3,4], limit=nothing)
 
-return the SeaPearl model for to the solve_eternity2 problem, using SeaPearl.AllDifferent  and SeaPearl.TableConstraint (without solving it). It uses less variables than v1. To be used with print_v2
+return the SeaPearl model for to the solve_eternity2 problem, using SeaPearl.AllDifferent  and SeaPearl.TableConstraint (without solving it). It uses less variables than v1. To be used with print_fast
 
 # Arguments
 - `input_file`: file containing the pieces of the game as well as the dimensions
 - 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
 - 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will lookk for all the solutions
 """
-function model_eternity2_v2(input_file; order=[1,2,3,4], limit=nothing)
+function model_eternity2_fast(input_file; order=[1,2,3,4], limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
@@ -186,7 +186,7 @@ function model_eternity2_v2(input_file; order=[1,2,3,4], limit=nothing)
 end
 
 """
-    model_eternity2_v3(input_file; order=[1,2,3,4], limit=nothing)
+    model_eternity2_rotation(input_file; order=[1,2,3,4], limit=nothing)
 
 return the SeaPearl model for to the solve_eternity2 problem, using SeaPearl.AllDifferent  and SeaPearl.TableConstraint (without solving it). This time, it branches on id+orientation, which could be more conveninent for learning, but it adds variables.
 
@@ -195,7 +195,7 @@ return the SeaPearl model for to the solve_eternity2 problem, using SeaPearl.All
 - 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
 - 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will lookk for all the solutions
 """
-function model_eternity2_v3(input_file; order=[1,2,3,4], limit=nothing)
+function model_eternity2_rotation(input_file; order=[1,2,3,4], limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
@@ -290,9 +290,9 @@ and  SeaPearl.AllDifferent and SeaPearl.TableConstraint, and the function model_
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 - 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
 - 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will lookk for all the solutions
-- 'modeling' : modeling funciton, v2 by default
+- 'modeling' : modeling funciton, fast by default
 """
-function solve_eternity2(input_file; order=[1,2,3,4], variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic(), limit=1,modeling=model_eternity2_v2)
+function solve_eternity2(input_file; order=[1,2,3,4], variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic(), limit=1,modeling=model_eternity2_fast)
     model = modeling(input_file; order=order,variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
@@ -339,7 +339,7 @@ function outputFromSeaPearl(model::SeaPearl.CPModel)
     return OutputDataEternityII(nb_sols, orientation)
 end
 
-function outputFromSeaPearl_v2(model::SeaPearl.CPModel; optimality=false)
+function outputFromSeaPearl_fast(model::SeaPearl.CPModel; optimality=false)
     solutions = model.solutions
     nb_sols = length(solutions)
     n = model.adhocInfo["n"]
@@ -438,7 +438,7 @@ function print_eternity2(model::SeaPearl.CPModel;limit=1)
     print_eternity2(output;limit=limit)
 end
 
-function print_eternity2_v2(model::SeaPearl.CPModel;limit=1)
-    output = outputFromSeaPearl_v2(model)
+function print_eternity2_fast(model::SeaPearl.CPModel;limit=1)
+    output = outputFromSeaPearl_fast(model)
     print_eternity2(output;limit=limit)
 end
