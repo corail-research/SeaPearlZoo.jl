@@ -20,9 +20,9 @@ target_approximator_model = SeaPearl.FlexGNN(
     outputLayer = Flux.Dense(20, nqueens_generator.board_size)
 )
 
-if isfile("model_weights_gc"*string(coloring_generator.n)*".bson")
-    println("Parameters loaded from ", "model_weights_gc"*string(coloring_generator.n)*".bson")
-    @load "model_weights_gc"*string(coloring_generator.n)*".bson" trained_weights
+if isfile("model_weights_gc"*string(nqueens_generatorn.board_size)*".bson")
+    println("Parameters loaded from ", "model_weights_gc"*string(nqueens_generatorn.board_size)*".bson")
+    @load "model_weights_gc"*string(nqueens_generatorn.board_size)*".bson" trained_weights
     Flux.loadparams!(approximator_model, trained_weights)
     Flux.loadparams!(target_approximator_model, trained_weights)
 end
