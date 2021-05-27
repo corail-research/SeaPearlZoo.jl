@@ -70,7 +70,7 @@ function solve_coloring(input_file; benchmark=false)
     for var in x
         push!(model.constraints, SeaPearl.LessOrEqual(var, numberOfColors, trailer))
     end
-    model.objective = numberOfColors
+    SeaPearl.addObjective!(model, numberOfColors)
 
 
     ### Variable selection heurstic ###
@@ -100,7 +100,7 @@ function solve_coloring(input_file; benchmark=false)
 
     status = SeaPearl.solve!(model; variableHeuristic=((m; cpmodel=nothing) -> selectVariable(m, sortedPermutation, degrees)))
     if !benchmark
-        for oneSolution in model.solutions
+        for oneSolution in model.statistics.solution
             output = outputFromSeaPearl(oneSolution)
             printSolution(output)
         end
