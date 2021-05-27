@@ -30,10 +30,10 @@ maxNumberOfCPNodes = state_size[1]
 # -------------------
 # Experience variables
 # -------------------
-nb_episodes = 300
-eval_freq = 50
-nb_instances = 1
-nb_random_heuristics = 0
+nbEpisodes = 2
+evalFreq = 50
+nbInstances = 1
+nbRandomHeuristics = 0
 
 # -------------------
 # Agent definition
@@ -66,18 +66,19 @@ valueSelectionArray = [learnedHeuristic, basicHeuristic]
 # Core function
 # -------------------
 # -------------------
-function trytrain(nb_episodes::Int)
+function trytrain(nbEpisodes::Int)
 
-    metricsArray, eval_metricsArray = SeaPearl.train!(
+    metricsArray, eval_metricsArray = SeaPearl.train!(;
         valueSelectionArray= valueSelectionArray, 
         generator=knapsack_generator,
-        nb_episodes=nb_episodes,
+        nbEpisodes=nbEpisodes,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=KnapsackVariableSelection(),
         out_solver=false,
         verbose=true, #true to print processus
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,knapsack_generator, ;eval_freq=eval_freq, nb_instances=nb_instances)
-    )
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,knapsack_generator; evalFreq=evalFreq, nbInstances=nbInstances),
+        metrics=nothing
+        )
 
     #saving model weights
     trained_weights = params(approximator_model)
@@ -87,7 +88,7 @@ function trytrain(nb_episodes::Int)
 end
 
 
-metricsArray, eval_metricsArray = trytrain(nb_episodes)
+metricsArray, eval_metricsArray = trytrain(nbEpisodes)
 
 
 

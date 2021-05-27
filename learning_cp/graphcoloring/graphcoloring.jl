@@ -30,10 +30,10 @@ maxNumberOfCPNodes = state_size[1]
 # -------------------
 # Experience variables
 # -------------------
-nb_episodes = 100
-eval_freq = 10
-nb_instances = 1
-nb_random_heuristics = 0
+nbEpisodes = 100
+evalFreq = 10
+nbInstances = 1
+nbRandomHeuristics = 0
 
 # -------------------
 # Agent definition
@@ -62,7 +62,7 @@ function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
 end
 
 randomHeuristics = []
-for i in 1:nb_random_heuristics
+for i in 1:nbRandomHeuristics
     push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
@@ -79,18 +79,18 @@ variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 # Core function
 # -------------------
 # -------------------
-function trytrain(nb_episodes::Int)
+function trytrain(nbEpisodes::Int)
 
  
     metricsArray, eval_metricsArray  = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray, 
         generator=coloring_generator,
-        nb_episodes=nb_episodes,
+        nbEpisodes=nbEpisodes,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=variableSelection,
         out_solver=false,
         verbose = true,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,coloring_generator; eval_freq = eval_freq, nb_instances = nb_instances)
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,coloring_generator; evalFreq = evalFreq, nbInstances = nbInstances)
     )
 
     #saving model weights
@@ -105,7 +105,7 @@ end
 # -------------------
 # -------------------
 
-metricsArray, eval_metricsArray = trytrain(nb_episodes)
+metricsArray, eval_metricsArray = trytrain(nbEpisodes)
 
 
 
