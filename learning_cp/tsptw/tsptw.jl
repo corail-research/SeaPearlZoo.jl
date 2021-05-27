@@ -31,10 +31,10 @@ maxNumberOfCPNodes = state_size[1]
 # -------------------
 # Experience variables
 # -------------------
-nb_episodes = 4000
-eval_freq = 200
-nb_instances = 1
-nb_random_heuristics = 1
+nbEpisodes = 4000
+evalFreq = 200
+nbInstances = 1
+nbRandomHeuristics = 1
 
 # -------------------
 # Agent definition
@@ -61,7 +61,7 @@ function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
 end
 
 randomHeuristics = []
-for i in 1:nb_random_heuristics
+for i in 1:nbRandomHeuristics
     push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
@@ -87,17 +87,17 @@ variableSelection = TsptwVariableSelection()
 # Core function
 # -------------------
 # -------------------
-function trytrain(nb_episodes::Int)
+function trytrain(nbEpisodes::Int)
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
     valueSelectionArray=valueSelectionArray,
     generator=tsptw_generator,
-    nb_episodes=nb_episodes,
+    nbEpisodes=nbEpisodes,
     strategy=SeaPearl.DFSearch,
     variableHeuristic=variableSelection,
     out_solver=false,
     verbose = false,
-    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; eval_freq = eval_freq, nb_instances = nb_instances)
+    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances)
 )
 
     trained_weights = params(approximator_model)
@@ -106,5 +106,5 @@ function trytrain(nb_episodes::Int)
     return metricsArray, eval_metricsArray
 end
 
-metricsArray, eval_metricsArray = trytrain(nb_episodes)
+metricsArray, eval_metricsArray = trytrain(nbEpisodes)
 SeaPearl.plotNodeVisited(metricsArray[1])
