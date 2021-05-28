@@ -16,11 +16,11 @@ Here, a node feature encodes the following informations :
     6 :   the node represents a CONSTRAINT
     7 :    |__ the constraint type is "SumToZero"
     8 :    |__ the constraint type is "LessOrEqualConstant"
-    9 :   the node represents a VALUE
+    9 :   the node represents a VARIABLE
     10 :   |__ the variable value / 10
 ]
 """
-function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
+function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{KnapsackFeaturization}) 
     g = sr.cplayergraph
     features = zeros(Float32, nv(g), numberOfFeatures)
     for i in 1:nv(g)

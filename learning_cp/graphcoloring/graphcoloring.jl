@@ -70,11 +70,6 @@ valueSelectionArray = [learnedHeuristic, heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
 
 # -------------------
-# Variable Heuristic definition
-# -------------------
-variableSelection = SeaPearl.MinDomainVariableSelection{false}()
-
-# -------------------
 # -------------------
 # Core function
 # -------------------
@@ -82,7 +77,7 @@ variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 function trytrain(nbEpisodes::Int)
 
 
-    metricsArray, eval_metricsArray  = SeaPearl.train!(
+    metricsArray, eval_metricsArray  = SeaPearl.train!(;
         valueSelectionArray=valueSelectionArray,
         generator=coloring_generator,
         nbEpisodes=nbEpisodes,
