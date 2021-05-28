@@ -68,7 +68,6 @@ end
 
 valueSelectionArray = [learnedHeuristic, heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
-
 # -------------------
 # Variable Heuristic definition
 # ------------------- 
