@@ -19,6 +19,9 @@ include("features.jl")
 # Generator
 # -------------------
 nqueens_generator = SeaPearl.NQueensGenerator(8)
+#model = model_queens(4)
+#SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization}(model)
+#gplot(SR.cplayergraph)
 
 # -------------------
 # Internal variables
@@ -30,10 +33,10 @@ maxNumberOfCPNodes = state_size[1]
 # -------------------
 # Experience variables
 # -------------------
-nb_episodes = 100
-eval_freq = 30
-nb_instances = 4
-nb_random_heuristics = 0
+nbEpisodes = 5000
+evalFreq = 300
+nbInstances = 1
+nbRandomHeuristics = 1
 
 # -------------------
 # Agent definition
@@ -62,7 +65,7 @@ function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
 end
 
 randomHeuristics = []
-for i in 1:nb_random_heuristics
+for i in 1:nbRandomHeuristics
     push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
@@ -79,18 +82,18 @@ variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 # -------------------
 # -------------------
 
-function trytrain(nb_episodes::Int)
+function trytrain(nbEpisodes::Int)
 
 
-    metricsArray, eval_metricsArray  = SeaPearl.train!(
+    metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
         generator=nqueens_generator,
-        nb_episodes=nb_episodes,
+        nbEpisodes=nbEpisodes,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=variableSelection,
         out_solver=false,
         verbose = true,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; eval_freq = eval_freq, nb_instances = nb_instances)
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances)
     )
 
     #saving model weights
@@ -105,4 +108,4 @@ end
 # -------------------
 # -------------------
 
-metricsArray, eval_metricsArray = trytrain(nb_episodes)
+metricsArray, eval_metricsArray = trytrain(nbEpisodes)

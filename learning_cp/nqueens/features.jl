@@ -20,6 +20,10 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{BetterFeatur
     features
 end
 
+#initializing phase
+#update_with_cp_model
+#
+
 function SeaPearl.feature_length(gen::SeaPearl.NQueensGenerator, ::Type{SeaPearl.DefaultStateRepresentation{BetterFeaturization}})
     return 3 + gen.board_size
 end

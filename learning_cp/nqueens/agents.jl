@@ -20,9 +20,9 @@ target_approximator_model = SeaPearl.FlexGNN(
     outputLayer = Flux.Dense(20, nqueens_generator.board_size)
 )
 
-if isfile("model_weights_gc"*string(nqueens_generatorn.board_size)*".bson")
-    println("Parameters loaded from ", "model_weights_gc"*string(nqueens_generatorn.board_size)*".bson")
-    @load "model_weights_gc"*string(nqueens_generatorn.board_size)*".bson" trained_weights
+if isfile("model_weights_gc"*string(nqueens_generator.board_size)*".bson")
+    println("Parameters loaded from ", "model_weights_gc"*string(nqueens_generator.board_size)*".bson")
+    @load "model_weights_gc"*string(nqueens_generator.board_size)*".bson" trained_weights
     Flux.loadparams!(approximator_model, trained_weights)
     Flux.loadparams!(target_approximator_model, trained_weights)
 end
@@ -49,9 +49,9 @@ agent = RL.Agent(
             target_update_freq = 200,
         ),
         explorer = RL.EpsilonGreedyExplorer(
-            ϵ_stable = 0.001,
+            ϵ_stable = 0,#0.001,
             kind = :exp,
-            ϵ_init = 1.0,
+            ϵ_init = 0,#1.0,
             warmup_steps = 0,
             decay_steps = 5000,
             step = 1,
