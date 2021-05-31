@@ -77,7 +77,7 @@ function solve_knapsack(filename::String; benchmark=false)
     push!(vars, y)
     objective = SeaPearl.SumToZero(vars, trailer)
     push!(model.constraints, objective)
-    model.objective = y
+    SeaPearl.addObjective!(model, y)
 
 
 
@@ -85,7 +85,7 @@ function solve_knapsack(filename::String; benchmark=false)
 
     if !benchmark
         print(status)
-        for oneSolution in model.solutions
+        for oneSolution in model.statistics.solutions
             output = solutionFromSeaPearl(oneSolution, input, permutation)
             printSolution(output)
         end
@@ -152,7 +152,7 @@ function solve_knapsack_without_dp(filename::String; benchmark=false)
     push!(model.constraints, valueEquality)
 
     # Setting it as the objective
-    model.objective = totalValue
+    SeaPearl.addObjective!(model, totalValue)
 
 
 
@@ -160,7 +160,7 @@ function solve_knapsack_without_dp(filename::String; benchmark=false)
 
     if !benchmark
         print(status)
-        for oneSolution in model.solutions
+        for oneSolution in model.statistics.solutions
             output = solutionFromSeaPearlWithoutDP(oneSolution, input, permutation)
             printSolution(output)
         end
