@@ -1,8 +1,11 @@
-  using Revise
+using Revise
 using SeaPearl
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
+using CUDA
+using DataFrames
+using CSV
 using Statistics
 using Zygote
 using GeometricFlux
@@ -18,7 +21,7 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-knapsack_generator = SeaPearl.KnapsackGenerator(15, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(5, 10, 0.2)
 
 # -------------------
 # Internal variables
@@ -171,6 +174,7 @@ end
 # -------------------
 # -------------------
 
+CUDA.allowscalar(true)
 GenerateMetricsArray(nb_episodes)
 bestsolutions, nodevisited,timeneeded, eval_nodevisited, eval_timeneeded=trytrain(nb_episodes)
 store_training_data(eval_nodevisited, eval_timeneeded)

@@ -1,4 +1,5 @@
 # Model definition
+enableGPU = false
 
 approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
@@ -8,7 +9,8 @@ approximator_model = SeaPearl.FlexGNN(
     nodeChain = Flux.Chain(
         Flux.Dense(20, 20),
     ),
-    outputLayer = Flux.Dense(20, 2)
+    outputLayer = Flux.Dense(20, 2),
+    enableGPU = enableGPU
 )
 target_approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
@@ -18,7 +20,8 @@ target_approximator_model = SeaPearl.FlexGNN(
     nodeChain = Flux.Chain(
         Flux.Dense(20, 20),
     ),
-    outputLayer = Flux.Dense(20,  2)
+    outputLayer = Flux.Dense(20,  2),
+    enableGPU = enableGPU
 )
 
 filename = "model_weights_knapsack"*string(knapsack_generator.nb_items)*".bson"
