@@ -21,7 +21,7 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-knapsack_generator = SeaPearl.KnapsackGenerator(5, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(15, 10, 0.2)
 
 # -------------------
 # Internal variables
@@ -33,9 +33,9 @@ maxNumberOfCPNodes = state_size[1]
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 2
-evalFreq = 50
-nbInstances = 1
+nbEpisodes = 30
+evalFreq = 10
+nbInstances = 3
 nbRandomHeuristics = 0
 
 # -------------------
@@ -90,8 +90,8 @@ function trytrain(nbEpisodes::Int)
     return metricsArray, eval_metricsArray
 end
 
-
+CUDA.allowscalar(false)
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
-
+nothing
 
 

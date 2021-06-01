@@ -3,27 +3,24 @@ enableGPU = false
 
 approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+        GeometricFlux.GCNConv(numInFeatures => 20, Flux.leakyrelu),
+        GeometricFlux.GCNConv(20 => 20, Flux.leakyrelu),
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(20, 20, Flux.leakyrelu),
     ),
     outputLayer = Flux.Dense(20, 2),
-    enableGPU = enableGPU
-)
+) |> gpu
 target_approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+        GeometricFlux.GCNConv(numInFeatures => 20, Flux.leakyrelu),
+        GeometricFlux.GCNConv(20 => 20, Flux.leakyrelu),
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(20, 20, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(20,  2),
-    enableGPU = enableGPU
-)
-
+    outputLayer = Flux.Dense(20, 2),
+) |> gpu
 filename = "model_weights_knapsack"*string(knapsack_generator.nb_items)*".bson"
 if isfile(filename)
     println("Parameters loaded from ", filename)
@@ -47,9 +44,9 @@ agent = RL.Agent(
             loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
             γ = 0.9999f0,
-            batch_size = 1, #32,
+            batch_size = 32,
             update_horizon = 25,
-            min_replay_history = 1,
+            min_replay_history = 32,
             update_freq = 10,
             target_update_freq = 200,
         ), 
