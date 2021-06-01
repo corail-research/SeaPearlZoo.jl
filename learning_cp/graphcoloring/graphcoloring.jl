@@ -68,10 +68,6 @@ end
 
 valueSelectionArray = [learnedHeuristic, heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
-# -------------------
-# Variable Heuristic definition
-# ------------------- 
-variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 
 # -------------------
 # -------------------
@@ -80,9 +76,9 @@ variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 # -------------------
 function trytrain(nbEpisodes::Int)
 
- 
+
     metricsArray, eval_metricsArray  = SeaPearl.train!(;
-        valueSelectionArray=valueSelectionArray, 
+        valueSelectionArray=valueSelectionArray,
         generator=coloring_generator,
         nbEpisodes=nbEpisodes,
         strategy=SeaPearl.DFSearch,
@@ -95,7 +91,7 @@ function trytrain(nbEpisodes::Int)
     #saving model weights
     trained_weights = params(approximator_model)
     @save "model_weights_gc"*string(coloring_generator.n)*".bson" trained_weights
-    
+
     return metricsArray, eval_metricsArray
 end
 
@@ -105,6 +101,3 @@ end
 # -------------------
 
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
-
-
-

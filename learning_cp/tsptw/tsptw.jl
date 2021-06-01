@@ -70,7 +70,7 @@ append!(valueSelectionArray, randomHeuristics)
 
 # -------------------
 # Variable Heuristic definition
-# ------------------- 
+# -------------------
 struct TsptwVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
 TsptwVariableSelection(;take_objective=false) = TsptwVariableSelection{take_objective}()
 function (::TsptwVariableSelection{false})(cpmodel::SeaPearl.CPModel; rng=nothing)
@@ -90,7 +90,7 @@ variableSelection = TsptwVariableSelection()
 function trytrain(nbEpisodes::Int)
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
-    valueSelectionArray=valueSelectionArray, 
+    valueSelectionArray=valueSelectionArray,
     generator=tsptw_generator,
     nbEpisodes=nbEpisodes,
     strategy=SeaPearl.DFSearch,
@@ -102,16 +102,9 @@ function trytrain(nbEpisodes::Int)
 
     trained_weights = params(approximator_model)
     @save "model_weights_tsptw"*string(n_city)*".bson" trained_weights
-    
+
     return metricsArray, eval_metricsArray
 end
 
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
 SeaPearl.plotNodeVisited(metricsArray[1])
-
-
-
-
-
-
-

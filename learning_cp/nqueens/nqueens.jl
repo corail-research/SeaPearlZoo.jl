@@ -6,77 +6,106 @@ using Zygote
 using GeometricFlux
 using Random
 using BSON: @save, @load
-
+using DataFrames
+using CSV
 using Plots
+using Statistics
 gr()
-
-# -------------------
-# Generator
-# -------------------
-
-nqueen_generator = 0
 
 include("rewards.jl")
 include("features.jl")
 
 # -------------------
+# Generator
+# -------------------
+nqueens_generator = SeaPearl.NQueensGenerator(8)
+#model = model_queens(4)
+#SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization}(model)
+#gplot(SR.cplayergraph)
+
+# -------------------
 # Internal variables
 # -------------------
+numInFeatures = SeaPearl.feature_length(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
+state_size = SeaPearl.arraybuffer_dims(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
+maxNumberOfCPNodes = state_size[1]
 
+# -------------------
+# Experience variables
+# -------------------
+nbEpisodes = 5000
+evalFreq = 300
+nbInstances = 1
+nbRandomHeuristics = 1
 
+# -------------------
+# Agent definition
+# -------------------
+include("agents.jl")
 
+# -------------------
+# Value Heuristic definition
+# -------------------
+learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{BetterFeaturization}, InspectReward, SeaPearl.FixedOutput}(agent, maxNumberOfCPNodes)
 
+# Basic value-selection heuristic
+selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 
-
-
-
-
-
-"""
-struct Queen
-    id::Int
-    pos::Int
-end
-
-struct Problem
-    Queens::AbstractArray{Queen}
-end
-
-
-function create_nqueens_model(n::Int)
-
-
-    trailer = SeaPearl.Trailer()
-    model = SeaPearl.CPModel(trailer)
-
-    rows = Vector{SeaPearl.AbstractIntVar}(undef, n)
-    for i in 1:n
-        rows[i] = SeaPearl.IntVar(1, n, "row_" * string(i), trailer)
-        SeaPearl.addVariable!(model, rows[i]; branchable = true)
+function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
+    selected_number = rand(1:length(x.domain))
+    i = 1
+    for value in x.domain
+        if i == selected_number
+            return value
+        end
+        i += 1
     end
-
-    rows_plus = Vector{SeaPearl.AbstractIntVar}(undef, n)
-    for i in 1:n
-        rows_plus[i] = SeaPearl.IntVarViewOffset(rows[i], i, rows[i].id * "+" * string(i))
-        # SeaPearl.addVariable!(model, rows_plus[i]; branchable=false)
-    end
-
-    rows_minus = Vector{SeaPearl.AbstractIntVar}(undef, n)
-    for i in 1:n
-        rows_minus[i] = SeaPearl.IntVarViewOffset(rows[i], -i, rows[i].id * "-" * string(i))
-        # SeaPearl.addVariable!(model, rows_minus[i]; branchable=false)
-    end
-
-    push!(model.constraints, SeaPearl.AllDifferent(rows, trailer))
-    push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
-    push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
-
-    variableSelection =  SeaPearl.MostCenteredVariableSelection{false}()
-    return model, variableSelection
+    @assert false "This should not happen"
 end
 
-function solve(model::SeaPearl.CPModel, variableSelection::SeaPearl.AbstractVariableSelection{false} )
-    status = @time SeaPearl.solve!(model; variableHeuristic = variableSelection)
+randomHeuristics = []
+for i in 1:nbRandomHeuristics
+    push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
-"""
+valueSelectionArray = [learnedHeuristic, heuristic_min]
+append!(valueSelectionArray, randomHeuristics)
+# -------------------
+# Variable Heuristic definition
+# -------------------
+variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+
+# -------------------
+# -------------------
+# Core function
+# -------------------
+# -------------------
+
+function trytrain(nbEpisodes::Int)
+
+
+    metricsArray, eval_metricsArray = SeaPearl.train!(
+        valueSelectionArray=valueSelectionArray,
+        generator=nqueens_generator,
+        nbEpisodes=nbEpisodes,
+        strategy=SeaPearl.DFSearch,
+        variableHeuristic=variableSelection,
+        out_solver=false,
+        verbose = true,
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances)
+    )
+
+    #saving model weights
+    trained_weights = params(approximator_model)
+    @save "model_weights_gc"*string(nqueens_generator.board_size)*".bson" trained_weights
+
+    return metricsArray, eval_metricsArray
+end
+
+
+
+# -------------------
+# -------------------
+
+metricsArray, eval_metricsArray = trytrain(nbEpisodes)
