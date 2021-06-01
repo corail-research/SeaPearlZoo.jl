@@ -6,7 +6,7 @@ approximator_model = SeaPearl.FlexGNN(
         GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(20, 20,Flux.leakyrelu),
     ),
     outputLayer = Flux.Dense(20, 2)
 )
@@ -16,7 +16,7 @@ target_approximator_model = SeaPearl.FlexGNN(
         GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(20, 20,Flux.leakyrelu),
     ),
     outputLayer = Flux.Dense(20,  2)
 )
@@ -44,7 +44,7 @@ agent = RL.Agent(
             loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
             γ = 0.9999f0,
-            batch_size = 1, #32,
+            batch_size =1, #32,
             update_horizon = 25,
             min_replay_history = 1,
             update_freq = 10,

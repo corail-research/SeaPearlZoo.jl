@@ -16,11 +16,7 @@ Here, a node feature encodes the following informations :
     6 :   the node represents a CONSTRAINT
     7 :    |__ the constraint type is "SumToZero"
     8 :    |__ the constraint type is "LessOrEqualConstant"
-<<<<<<< HEAD
     9 :   the node represents a VALUE
-=======
-    9 :   the node represents a VARIABLE
->>>>>>> origin/master
     10 :   |__ the variable value / 10
 ]
 """
