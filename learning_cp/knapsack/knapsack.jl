@@ -21,7 +21,7 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-knapsack_generator = SeaPearl.KnapsackGenerator(5, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(15, 10, 0.2)
 
 # -------------------
 # Internal variables
@@ -84,7 +84,7 @@ function trytrain(nbEpisodes::Int)
 
     #saving model weights
     trained_weights = params(approximator_model)
-    @save "model_weights_knapsack"*string(knapsack_generator.nb_items)*".bson" trained_weights
+    #@save "model_weights_knapsack"*string(knapsack_generator.nb_items)*".bson" trained_weights
     
     return metricsArray, eval_metricsArray
 end
