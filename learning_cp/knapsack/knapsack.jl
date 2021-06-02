@@ -21,14 +21,13 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-knapsack_generator = SeaPearl.KnapsackGenerator(15, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(5, 10, 0.2)
 
 # -------------------
 # Internal variables
 # -------------------
-numInFeatures = SeaPearl.feature_length(knapsack_generator, SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
-state_size = SeaPearl.arraybuffer_dims(knapsack_generator, SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
-maxNumberOfCPNodes = state_size[1]
+const StateRepresentation = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
+numInFeatures = SeaPearl.feature_length(knapsack_generator, StateRepresentation)
 
 # -------------------
 # Experience variables
@@ -46,7 +45,7 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{KnapsackFeaturization}, knapsackReward, SeaPearl.FixedOutput}(agent, maxNumberOfCPNodes)
+learnedHeuristic = SeaPearl.LearnedHeuristic{StateRepresentation, knapsackReward, SeaPearl.FixedOutput}(agent)
 basicHeuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> SeaPearl.maximum(x.domain)) # Basic value-selection heuristic
 
 # -------------------

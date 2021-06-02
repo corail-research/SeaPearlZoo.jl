@@ -1,10 +1,10 @@
 # Model definition
-enableGPU = false
 
 approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
         GeometricFlux.GCNConv(numInFeatures => 20, Flux.leakyrelu),
         GeometricFlux.GCNConv(20 => 20, Flux.leakyrelu),
+        GeometricFlux.FeatureSelector(:node)
     ),
     nodeChain = Flux.Chain(
         Flux.Dense(20, 20, Flux.leakyrelu),
@@ -15,12 +15,15 @@ target_approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
         GeometricFlux.GCNConv(numInFeatures => 20, Flux.leakyrelu),
         GeometricFlux.GCNConv(20 => 20, Flux.leakyrelu),
+        GeometricFlux.FeatureSelector(:node)
     ),
     nodeChain = Flux.Chain(
         Flux.Dense(20, 20, Flux.leakyrelu),
     ),
     outputLayer = Flux.Dense(20, 2),
 ) |> gpu
+
+
 filename = "model_weights_knapsack"*string(knapsack_generator.nb_items)*".bson"
 if isfile(filename)
     println("Parameters loaded from ", filename)
@@ -44,9 +47,9 @@ agent = RL.Agent(
             loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
             γ = 0.9999f0,
-            batch_size = 32,
-            update_horizon = 25,
-            min_replay_history = 32,
+            batch_size = 1,
+            update_horizon = 4,
+            min_replay_history = 4,
             update_freq = 10,
             target_update_freq = 200,
         ), 
@@ -64,6 +67,6 @@ agent = RL.Agent(
     ),
     trajectory = RL.CircularArraySARTTrajectory(
         capacity = 8000,
-        state = Matrix{Float32} => state_size,
-    )   
+        state = SeaPearl.DefaultTrajectoryState[] => (),
+    )
 )
