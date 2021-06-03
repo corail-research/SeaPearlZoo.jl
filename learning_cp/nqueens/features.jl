@@ -6,7 +6,12 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{BetterFeatur
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, SeaPearl.VariableVertex)
-            features[i, 1] = 1
+            if isa(cp_vertex.variable, SeaPearl.IntVarViewOffset)
+                features[i, 1] =0
+            else
+                id = cp_vertex.variable.id
+                features[i, 1] = string_to_queen(id)/nqueens_generator.board_size
+            end
         end
         if isa(cp_vertex, SeaPearl.ConstraintVertex)
             features[i, 2] = 1
@@ -18,6 +23,10 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{BetterFeatur
         end
     end
     features
+end
+
+function string_to_queen(id::String)::Int
+    parse(Int, split(id,"_")[end])
 end
 
 #initializing phase

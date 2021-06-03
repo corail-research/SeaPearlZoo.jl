@@ -135,14 +135,16 @@ function model_eternity2_fast(input_file; order=[1,2,3,4], limit=nothing)
     r = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)#right
     d = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)#down
     l = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)#left
-    src_h = Matrix{SeaPearl.AbstractIntVar}(undef,n,m+1) #horizontal edges
-    src_v = Matrix{SeaPearl.AbstractIntVar}(undef,n+1,m) #vertical edges
+    src_v = Matrix{SeaPearl.AbstractIntVar}(undef,n,m+1) #horizontal edges
+    src_h = Matrix{SeaPearl.AbstractIntVar}(undef,n+1,m) #vertical edges
 
     for i = 1:n
-        src_h[i,m+1] = SeaPearl.IntVar(0, maxi, "src_h"*string(i)*string(m+1), trailer)
-        SeaPearl.addVariable!(model, src_h[i,m+1]; branchable=false)
-        src_v[n+1,i] = SeaPearl.IntVar(0, maxi, "src_v"*string(n+1)*string(i), trailer)
-        SeaPearl.addVariable!(model, src_v[n+1,i]; branchable=false)
+        src_v[i,m+1] = SeaPearl.IntVar(0, maxi, "src_v"*string(i)*string(m+1), trailer)
+        SeaPearl.addVariable!(model, src_v[i,m+1]; branchable=false)
+    end
+    for j =1:m
+        src_h[n+1,j] = SeaPearl.IntVar(0, maxi, "src_h"*string(n+1)*string(j), trailer)
+        SeaPearl.addVariable!(model, src_h[n+1,j]; branchable=false)
     end
 
 
@@ -150,17 +152,17 @@ function model_eternity2_fast(input_file; order=[1,2,3,4], limit=nothing)
         id[i,j] = SeaPearl.IntVar(1, n*m, "id_"*string(i)*string(j), trailer)
         SeaPearl.addVariable!(model, id[i,j]; branchable=true)
 
-        src_h[i,j] = SeaPearl.IntVar(0, maxi, "src_h"*string(i)*string(j), trailer)
-        SeaPearl.addVariable!(model, src_h[i,j]; branchable=false)
         src_v[i,j] = SeaPearl.IntVar(0, maxi, "src_v"*string(i)*string(j), trailer)
         SeaPearl.addVariable!(model, src_v[i,j]; branchable=false)
+        src_h[i,j] = SeaPearl.IntVar(0, maxi, "src_h"*string(i)*string(j), trailer)
+        SeaPearl.addVariable!(model, src_h[i,j]; branchable=false)
     end
 
     for i = 1:n, j=1:m
-        u[i,j] = src_v[i,j]
-        d[i,j] = src_v[i+1,j]
-        l[i,j] = src_h[i,j]
-        r[i,j] = src_h[i,j+1]
+        u[i,j] = src_h[i,j]
+        d[i,j] = src_h[i+1,j]
+        l[i,j] = src_v[i,j]
+        r[i,j] = src_v[i,j+1]
 
         vars = SeaPearl.AbstractIntVar[id[i,j], u[i,j], r[i,j],d[i,j], l[i,j]]
         push!(model.constraints, SeaPearl.TableConstraint(vars, table, trailer))
@@ -204,7 +206,7 @@ function model_eternity2_rotation(input_file; order=[1,2,3,4], limit=nothing)
     m = inputData.m
     pieces = inputData.pieces
 
-    table = Matrix{Int}(undef, 6, 4*n*m)
+    table = Matrix{Int}(undef, 6, 4*n*m) #n*m pieces with for different orientation, 6 for orientation + id + u + r + d +
 
     maxi = maximum(pieces)
     orientation = Matrix{SeaPearl.AbstractIntVar}(undef, n,m)
@@ -227,14 +229,16 @@ function model_eternity2_rotation(input_file; order=[1,2,3,4], limit=nothing)
     d = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)#down
     l = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)#left
 
-    src_h = Matrix{SeaPearl.AbstractIntVar}(undef,n,m+1) #horizontal edges
-    src_v = Matrix{SeaPearl.AbstractIntVar}(undef,n+1,m) #vertical edges
+    src_v = Matrix{SeaPearl.AbstractIntVar}(undef,n,m+1) #vertical edges
+    src_h = Matrix{SeaPearl.AbstractIntVar}(undef,n+1,m) #horizontal edges
 
     for i = 1:n
-        src_h[i,m+1] = SeaPearl.IntVar(0, maxi, "src_h"*string(i)*string(m+1), trailer)
-        SeaPearl.addVariable!(model, src_h[i,m+1]; branchable=false)
-        src_v[n+1,i] = SeaPearl.IntVar(0, maxi, "src_v"*string(n+1)*string(i), trailer)
-        SeaPearl.addVariable!(model, src_v[n+1,i]; branchable=false)
+        src_v[i,m+1] = SeaPearl.IntVar(0, maxi, "src_v"*string(i)*string(m+1), trailer)
+        SeaPearl.addVariable!(model, src_v[i,m+1]; branchable=false)
+    end
+    for j =1:m
+        src_h[n+1,j] = SeaPearl.IntVar(0, maxi, "src_h"*string(n+1)*string(j), trailer)
+        SeaPearl.addVariable!(model, src_h[n+1,j]; branchable=false)
     end
 
 
@@ -243,17 +247,17 @@ function model_eternity2_rotation(input_file; order=[1,2,3,4], limit=nothing)
         SeaPearl.addVariable!(model, orientation[i,j]; branchable=true)
         id[i,j] = SeaPearl.IntVar(1, n*m, "id_"*string(i)*string(j), trailer)
         SeaPearl.addVariable!(model, id[i,j]; branchable=false)
-        src_h[i,j] = SeaPearl.IntVar(0, maxi, "src_h"*string(i)*string(j), trailer)
-        SeaPearl.addVariable!(model, src_h[i,j]; branchable=false)
         src_v[i,j] = SeaPearl.IntVar(0, maxi, "src_v"*string(i)*string(j), trailer)
         SeaPearl.addVariable!(model, src_v[i,j]; branchable=false)
+        src_h[i,j] = SeaPearl.IntVar(0, maxi, "src_h"*string(i)*string(j), trailer)
+        SeaPearl.addVariable!(model, src_h[i,j]; branchable=false)
     end
 
     for i = 1:n, j=1:m
-        u[i,j] = src_v[i,j]
-        d[i,j] = src_v[i+1,j]
-        l[i,j] = src_h[i,j]
-        r[i,j] = src_h[i,j+1]
+        u[i,j] = src_h[i,j]
+        d[i,j] = src_h[i+1,j]
+        l[i,j] = src_v[i,j]
+        r[i,j] = src_v[i,j+1]
 
         vars = SeaPearl.AbstractIntVar[id[i,j], u[i,j], r[i,j],d[i,j], l[i,j], orientation[i,j]]
         push!(model.constraints, SeaPearl.TableConstraint(vars, table, trailer))
@@ -322,7 +326,7 @@ Return the results of the eternity2 problem as type OutputDataEternity, taking t
 - `model::SeaPearl.CPModel`: needs the model to be already solved (by solve_eternity2)
 """
 function outputFromSeaPearl(model::SeaPearl.CPModel)
-    solutions = model.solutions
+    solutions = model.statistics.solutions
     nb_sols = length(solutions)
     n = model.adhocInfo["n"]
     m = model.adhocInfo["m"]
@@ -339,8 +343,8 @@ function outputFromSeaPearl(model::SeaPearl.CPModel)
     return OutputDataEternityII(nb_sols, orientation)
 end
 
-function outputFromSeaPearl_fast(model::SeaPearl.CPModel; optimality=false)
-    solutions = model.solutions
+function outputFromSeaPearl_fast_orientation(model::SeaPearl.CPModel; optimality=false)
+    solutions = model.statistics.solutions
     nb_sols = length(solutions)
     n = model.adhocInfo["n"]
     m = model.adhocInfo["m"]
@@ -348,10 +352,10 @@ function outputFromSeaPearl_fast(model::SeaPearl.CPModel; optimality=false)
     for (ind,sol) in enumerate(solutions)
         for i in 1:n, j in 1:m
             orientation[ind, i, j,1]= sol["id_"*string(i)*string(j)]
-            orientation[ind, i, j, 2] = sol["src_v"*string(i)*string(j)]
-            orientation[ind, i, j, 3] = sol["src_h"*string(i)*string(j+1)]
-            orientation[ind, i, j, 4] = sol["src_v"*string(i+1)*string(j)]
-            orientation[ind, i, j, 5] = sol["src_h"*string(i)*string(j)]
+            orientation[ind, i, j, 2] = sol["src_h"*string(i)*string(j)]
+            orientation[ind, i, j, 3] = sol["src_v"*string(i)*string(j+1)]
+            orientation[ind, i, j, 4] = sol["src_h"*string(i+1)*string(j)]
+            orientation[ind, i, j, 5] = sol["src_v"*string(i)*string(j)]
         end
     end
     return OutputDataEternityII(nb_sols, orientation)
@@ -438,7 +442,7 @@ function print_eternity2(model::SeaPearl.CPModel;limit=1)
     print_eternity2(output;limit=limit)
 end
 
-function print_eternity2_fast(model::SeaPearl.CPModel;limit=1)
-    output = outputFromSeaPearl_fast(model)
+function print_eternity2_fast_orientation(model::SeaPearl.CPModel;limit=1)
+    output = outputFromSeaPearl_fast_orientation(model)
     print_eternity2(output;limit=limit)
 end

@@ -1,23 +1,17 @@
 # Model definition
 approximator_model = SeaPearl.FlexGNN(
-    graphChain = Flux.Chain(
-        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
-    ),
+    graphChain = Flux.Chain(),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(numInFeatures, 5, Flux.relu),
     ),
-    outputLayer = Flux.Dense(20, nqueens_generator.board_size)
+    outputLayer = Flux.Dense(5, nqueens_generator.board_size, Flux.relu)
 )
 target_approximator_model = SeaPearl.FlexGNN(
-    graphChain = Flux.Chain(
-        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
-    ),
+    graphChain = Flux.Chain(),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(numInFeatures, 5, Flux.relu)
     ),
-    outputLayer = Flux.Dense(20, nqueens_generator.board_size)
+    outputLayer = Flux.Dense(5, nqueens_generator.board_size, Flux.relu)
 )
 
 if isfile("model_weights_gc"*string(nqueens_generator.board_size)*".bson")
@@ -43,16 +37,16 @@ agent = RL.Agent(
             stack_size = nothing,
             γ = 0.9999f0,
             batch_size = 1, #32,
-            update_horizon = 25,
+            update_horizon = 3, #what if the number of nodes in a episode is smaller
             min_replay_history = 1,
             update_freq = 10,
             target_update_freq = 200,
         ),
         explorer = RL.EpsilonGreedyExplorer(
-            ϵ_stable = 0,#0.001,
+            ϵ_stable = 0.001,
             kind = :exp,
-            ϵ_init = 0,#1.0,
-            warmup_steps = 0,
+            ϵ_init = 1.0,
+            warmup_steps = 50,
             decay_steps = 5000,
             step = 1,
             is_break_tie = false,
