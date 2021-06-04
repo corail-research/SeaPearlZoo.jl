@@ -1,26 +1,31 @@
 # Model definition
+approximator_GNN = GeometricFlux.GraphConv(16 => 16, Flux.leakyrelu)
+target_approximator_GNN = GeometricFlux.GraphConv(16 => 16, Flux.leakyrelu)
+gnnlayers = 10
 
 approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GCNConv(numInFeatures => 20, Flux.leakyrelu),
-        GeometricFlux.GCNConv(20 => 20, Flux.leakyrelu),
-        GeometricFlux.FeatureSelector(:node)
+        GeometricFlux.GraphConv(numInFeatures => 16, Flux.leakyrelu),
+        [approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20, Flux.leakyrelu),
+        Flux.Dense(16, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(20, 2),
+    outputLayer = Flux.Dense(16, 2),
 ) |> gpu
 target_approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GCNConv(numInFeatures => 20, Flux.leakyrelu),
-        GeometricFlux.GCNConv(20 => 20, Flux.leakyrelu),
-        GeometricFlux.FeatureSelector(:node)
+        GeometricFlux.GraphConv(numInFeatures => 16, Flux.leakyrelu),
+        [target_approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20, Flux.leakyrelu),
+        Flux.Dense(16, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(20, 2),
+    outputLayer = Flux.Dense(16, 2),
 ) |> gpu
 
 
@@ -46,12 +51,12 @@ agent = RL.Agent(
             ),
             loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
-            γ = 0.9999f0,
+            γ = 0.99f0,
             batch_size = 8,
             update_horizon = 4,
-            min_replay_history = 4,
-            update_freq = 10,
-            target_update_freq = 200,
+            min_replay_history = 8,
+            update_freq = 4,
+            target_update_freq = 100,
         ), 
         explorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.001,
@@ -66,7 +71,7 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularArraySARTTrajectory(
-        capacity = 8000,
+        capacity = 800,
         state = SeaPearl.DefaultTrajectoryState[] => (),
     )
 )
