@@ -18,7 +18,7 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-knapsack_generator = SeaPearl.KnapsackGenerator(15, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(25, 10, 0.2)
 
 # -------------------
 # Internal variables

@@ -25,5 +25,6 @@ function SeaPearl.set_reward!(::Type{SeaPearl.EndingPhase}, lh::SeaPearl.Learned
     SR <: SeaPearl.AbstractStateRepresentation,
     O <: SeaPearl.ActionOutput
 }
-    nothing  
+    lh.reward.value += 0
+    nothing
 end  
