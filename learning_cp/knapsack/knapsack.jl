@@ -21,18 +21,18 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-knapsack_generator = SeaPearl.KnapsackGenerator(15, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(10, 10, 0.2)
 
 # -------------------
 # Internal variables
 # -------------------
 const StateRepresentation = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
-numInFeatures = SeaPearl.feature_length(knapsack_generator, StateRepresentation)
+numInFeatures = SeaPearl.feature_length(StateRepresentation)
 
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 300
+nbEpisodes = 100
 evalFreq = 30
 nbInstances = 3
 nbRandomHeuristics = 0
@@ -78,7 +78,7 @@ function trytrain(nbEpisodes::Int)
         variableHeuristic=KnapsackVariableSelection(),
         out_solver=false,
         verbose=true, #true to print processus
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,knapsack_generator; seed=0, evalFreq=evalFreq, nbInstances=nbInstances),
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,knapsack_generator; evalFreq=evalFreq, nbInstances=nbInstances),
         metrics=nothing
         )
 
