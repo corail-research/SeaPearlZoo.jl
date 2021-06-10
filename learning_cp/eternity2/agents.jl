@@ -18,7 +18,7 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-nqueens_generator = SeaPearl.NQueensGenerator(8)
+eternity2_generator = SeaPearl.Eternity2Generator(4,4,5)
 #model = model_queens(4)
 #SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization}(model)
 #gplot(SR.cplayergraph)

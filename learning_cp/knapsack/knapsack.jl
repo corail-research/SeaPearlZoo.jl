@@ -50,7 +50,7 @@ basicHeuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> SeaPearl.maximu
 
 # -------------------
 # Variable Heuristic definition
-# ------------------- 
+# -------------------
 struct KnapsackVariableSelection <: SeaPearl.AbstractVariableSelection{false} end
 
 function (::KnapsackVariableSelection)(model::SeaPearl.CPModel)
@@ -71,7 +71,7 @@ valueSelectionArray = [learnedHeuristic, basicHeuristic]
 function trytrain(nbEpisodes::Int)
 
     metricsArray, eval_metricsArray = SeaPearl.train!(;
-        valueSelectionArray= valueSelectionArray, 
+        valueSelectionArray= valueSelectionArray,
         generator=knapsack_generator,
         nbEpisodes=nbEpisodes,
         strategy=SeaPearl.DFSearch,
@@ -92,5 +92,3 @@ end
 CUDA.allowscalar(false)
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
 nothing
-
-

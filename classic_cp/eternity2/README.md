@@ -28,3 +28,8 @@ julia> print_eternity2_v2(model_solved)
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 Please make sure to update tests as appropriate.
+
+## Example of plot
+
+Using model 2, a solution for data/eternity8x8 was found in 2 hours. An example of the plotting :
+![picture](assets/eternity8x8.04.15.png)

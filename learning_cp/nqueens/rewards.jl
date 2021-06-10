@@ -1,7 +1,8 @@
 
-mutable struct InspectReward <: SeaPearl.AbstractReward 
+
+mutable struct InspectReward <: SeaPearl.AbstractReward
     value::Float32
-end 
+end
 
 InspectReward(model::SeaPearl.CPModel) = InspectReward(0)
 
@@ -21,9 +22,10 @@ function SeaPearl.set_reward!(::Type{SeaPearl.DecisionPhase}, lh::SeaPearl.Learn
     nothing
 end
 
-function SeaPearl.set_reward!(::Type{SeaPearl.EndingPhase}, lh::SeaPearl.LearnedHeuristic{SR, InspectReward, O}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where { 
+function SeaPearl.set_reward!(::Type{SeaPearl.EndingPhase}, lh::SeaPearl.LearnedHeuristic{SR, InspectReward, O}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where {
     SR <: SeaPearl.AbstractStateRepresentation,
     O <: SeaPearl.ActionOutput
 }
+    lh.reward.value += 10
     nothing
 end

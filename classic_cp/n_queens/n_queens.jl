@@ -6,7 +6,7 @@ struct OutputDataQueens
 end
 
 """
-    struct MostCenteredVariableSelection{TakeObjective} 
+    struct MostCenteredVariableSelection{TakeObjective}
 
 VariableSelection heuristic that selects the legal (ie. among the not bounded ones) most centered Queen.
 """
