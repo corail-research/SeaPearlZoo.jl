@@ -21,15 +21,13 @@ include("features.jl")
 # -------------------
 nqueens_generator = SeaPearl.NQueensGenerator(25)
 #model = model_queens(4)
-SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization, SeaPearl.DefaultTrajectoryState}
+SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
 #gplot(SR.cplayergraph)
 
 # -------------------
 # Internal variables
 # -------------------
-numInFeatures = SeaPearl.feature_length(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
-state_size = SeaPearl.arraybuffer_dims(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
-maxNumberOfCPNodes = state_size[1]
+numInFeatures = SeaPearl.feature_length(SR)
 
 # -------------------
 # Experience variables

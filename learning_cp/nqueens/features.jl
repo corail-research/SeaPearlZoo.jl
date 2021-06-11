@@ -33,6 +33,6 @@ end
 #update_with_cp_model
 #
 
-function SeaPearl.feature_length(gen::SeaPearl.NQueensGenerator, ::Type{SeaPearl.DefaultStateRepresentation{BetterFeaturization}})
+function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{BetterFeaturization, TS}}) where TS
     return 3 + gen.board_size
 end

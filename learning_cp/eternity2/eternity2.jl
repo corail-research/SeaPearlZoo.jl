@@ -19,32 +19,30 @@ include("features.jl")
 # Generator
 # -------------------
 eternity2_generator = SeaPearl.Eternity2Generator(4,4,5)
-
 # -------------------
 # Internal variables
 # -------------------
-numInFeatures = SeaPearl.feature_length(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
-state_size = SeaPearl.arraybuffer_dims(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
-maxNumberOfCPNodes = state_size[1]
 
+SR = SeaPearl.DefaultStateRepresentation{EternityFeaturization, SeaPearl.DefaultTrajectoryState}
+numInFeatures = SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 5000
-evalFreq = 300
+nbEpisodes = 3000
+evalFreq = 30
 nbInstances = 1
 nbRandomHeuristics = 1
 
 # -------------------
 # Agent definition
 # -------------------
+
 include("agents.jl")
 
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{BetterFeaturization}, InspectReward, SeaPearl.FixedOutput}(agent, maxNumberOfCPNodes)
-
+learnedHeuristic=SeaPearl.LearnedHeuristic{SR, InspectReward, SeaPearl.FixedOutput}(agent)
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
@@ -84,18 +82,18 @@ function trytrain(nbEpisodes::Int)
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
-        generator=nqueens_generator,
+        generator=eternity2_generator,
         nbEpisodes=nbEpisodes,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=variableSelection,
         out_solver=false,
         verbose = true,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances)
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,eternity2_generator; evalFreq = evalFreq, nbInstances = nbInstances)
     )
 
     #saving model weights
     trained_weights = params(approximator_model)
-    @save "model_weights_gc"*string(nqueens_generator.board_size)*".bson" trained_weights
+    @save "model_weights_gc"*string(eternity2_generator.n)*".bson" trained_weights
 
     return metricsArray, eval_metricsArray
 end
