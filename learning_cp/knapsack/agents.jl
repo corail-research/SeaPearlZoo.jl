@@ -1,12 +1,12 @@
 # Model definition
-approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
-target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
-gnnlayers = 10
+approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.σ)
+target_approximator_GNN = GeometricFlux.GraphConv(64 => 64)
+gnnlayers = 5
 
 approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
         GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
-        [approximator_GNN for i = 1:gnnlayers]...
+        vcat([[approximator_GNN, SeaPearl.GraphNorm(64, Flux.leakyrelu)] for i = 1:gnnlayers]...)...
     ),
     nodeChain = Flux.Chain(
         Flux.Dense(64, 32, Flux.leakyrelu),
@@ -18,7 +18,7 @@ approximator_model = SeaPearl.FlexGNN(
 target_approximator_model = SeaPearl.FlexGNN(
     graphChain = Flux.Chain(
         GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
-        [target_approximator_GNN for i = 1:gnnlayers]...
+        vcat([[approximator_GNN, SeaPearl.GraphNorm(64, Flux.leakyrelu)] for i = 1:gnnlayers]...)...
     ),
     nodeChain = Flux.Chain(
         Flux.Dense(64, 32, Flux.leakyrelu),
@@ -53,10 +53,10 @@ agent = RL.Agent(
             stack_size = nothing,
             γ = 0.99f0,
             batch_size = 32,
-            update_horizon = 4,
+            update_horizon = 15,
             min_replay_history = 32,
-            update_freq = 4,
-            target_update_freq = 20,
+            update_freq = 8,
+            target_update_freq = 128,
         ), 
         explorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.001,
@@ -71,7 +71,7 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularArraySARTTrajectory(
-        capacity = 800,
+        capacity = 128,
         state = SeaPearl.DefaultTrajectoryState[] => (),
     )
 )

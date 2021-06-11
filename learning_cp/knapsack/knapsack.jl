@@ -21,7 +21,7 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-knapsack_generator = SeaPearl.KnapsackGenerator(10, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(20, 10, 0.2)
 
 # -------------------
 # Internal variables
@@ -32,8 +32,8 @@ numInFeatures = SeaPearl.feature_length(StateRepresentation)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 100
-evalFreq = 30
+nbEpisodes = 1000
+evalFreq = 100
 nbInstances = 3
 nbRandomHeuristics = 0
 
