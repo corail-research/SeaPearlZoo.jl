@@ -9,6 +9,7 @@ using BSON: @save, @load
 using DataFrames
 using CSV
 using Plots
+using CUDA
 using Statistics
 gr()
 
@@ -18,9 +19,9 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-nqueens_generator = SeaPearl.NQueensGenerator(8)
+nqueens_generator = SeaPearl.NQueensGenerator(25)
 #model = model_queens(4)
-#SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization}(model)
+SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization, SeaPearl.DefaultTrajectoryState}
 #gplot(SR.cplayergraph)
 
 # -------------------
@@ -33,10 +34,10 @@ maxNumberOfCPNodes = state_size[1]
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 5000
+nbEpisodes = 100
 evalFreq = 300
 nbInstances = 1
-nbRandomHeuristics = 1
+nbRandomHeuristics = 0
 
 # -------------------
 # Agent definition
@@ -46,7 +47,7 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{BetterFeaturization}, InspectReward, SeaPearl.FixedOutput}(agent, maxNumberOfCPNodes)
+learnedHeuristic = SeaPearl.LearnedHeuristic{SR, InspectReward, SeaPearl.FixedOutput}(agent)
 
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -92,7 +93,7 @@ function trytrain(nbEpisodes::Int)
         strategy=SeaPearl.DFSearch,
         variableHeuristic=variableSelection,
         out_solver=false,
-        verbose = true,
+        verbose = false,
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances)
     )
 
@@ -109,3 +110,4 @@ end
 # -------------------
 
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
+nothing

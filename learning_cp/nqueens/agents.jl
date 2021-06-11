@@ -1,18 +1,28 @@
 # Model definition
+approximator_GNN = GeometricFlux.GraphConv(32 => 32, Flux.σ)
+target_approximator_GNN = GeometricFlux.GraphConv(32 => 32)
+gnnlayers = 5
+
 approximator_model = SeaPearl.FlexGNN(
-    graphChain = Flux.Chain(),
-    nodeChain = Flux.Chain(
-        Flux.Dense(numInFeatures, 5, Flux.relu),
+    graphChain = Flux.Chain(
+        GeometricFlux.GraphConv(numInFeatures => 32, Flux.leakyrelu),
+        SeaPearl.GraphNorm(32, Flux.leakyrelu),
+        #vcat([[approximator_GNN, SeaPearl.GraphNorm(32, Flux.leakyrelu)] for i = 1:gnnlayers]...)...
+    ),    nodeChain = Flux.Chain(
+        Flux.Dense(32, 5, Flux.relu),
     ),
     outputLayer = Flux.Dense(5, nqueens_generator.board_size, Flux.relu)
-)
+) |> gpu
 target_approximator_model = SeaPearl.FlexGNN(
-    graphChain = Flux.Chain(),
-    nodeChain = Flux.Chain(
-        Flux.Dense(numInFeatures, 5, Flux.relu)
+    graphChain = Flux.Chain(
+        GeometricFlux.GraphConv(numInFeatures => 32, Flux.leakyrelu),
+        SeaPearl.GraphNorm(32, Flux.leakyrelu),
+        #vcat([[approximator_GNN, SeaPearl.GraphNorm(32, Flux.leakyrelu)] for i = 1:gnnlayers]...)...
+    ),    nodeChain = Flux.Chain(
+        Flux.Dense(32, 5, Flux.relu),
     ),
     outputLayer = Flux.Dense(5, nqueens_generator.board_size, Flux.relu)
-)
+) |> gpu
 
 if isfile("model_weights_gc"*string(nqueens_generator.board_size)*".bson")
     println("Parameters loaded from ", "model_weights_gc"*string(nqueens_generator.board_size)*".bson")
@@ -35,12 +45,12 @@ agent = RL.Agent(
             ),
             loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
-            γ = 0.9999f0,
-            batch_size = 1, #32,
-            update_horizon = 3, #what if the number of nodes in a episode is smaller
-            min_replay_history = 1,
-            update_freq = 10,
-            target_update_freq = 200,
+            γ = 0.99f0,
+            batch_size = 16,
+            update_horizon = 6, #what if the number of nodes in a episode is smaller
+            min_replay_history = 16,
+            update_freq = 8,
+            target_update_freq = 128,
         ),
         explorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.001,
@@ -55,8 +65,8 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularArraySLARTTrajectory(
-        capacity = 8000,
-        state = Matrix{Float32} => state_size,
+        capacity = 128,
+        state = SeaPearl.DefaultTrajectoryState[] => (),
         legal_actions_mask = Vector{Bool} => (nqueens_generator.board_size, ),
     )
 )
