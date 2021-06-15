@@ -10,7 +10,7 @@ m = eternity2_generator.m
      nodeChain = Flux.Chain(
          Flux.Dense(10, 20, Flux.leakyrelu),
      ),
-     outputLayer = Flux.Dense(20, n*m*4, Flux.relu)
+     outputLayer = Flux.Dense(20, n*m*4)
  )
  target_approximator_model = SeaPearl.FlexGNN(
      graphChain = Flux.Chain(
@@ -20,7 +20,7 @@ m = eternity2_generator.m
      nodeChain = Flux.Chain(
          Flux.Dense(10, 20, Flux.leakyrelu),
      ),
-     outputLayer = Flux.Dense(20, n*m*4, Flux.relu)
+     outputLayer = Flux.Dense(20, n*m*4)
  )
 
 
@@ -30,7 +30,7 @@ m = eternity2_generator.m
          Flux.Dense(numInFeatures, 10, Flux.relu),
          Flux.Dense(10, 10, Flux.relu)
      ),
-     outputLayer = Flux.Dense(10, n*m*4, Flux.relu)
+     outputLayer = Flux.Dense(10, n*m*4)
  )
 
 
@@ -40,7 +40,7 @@ m = eternity2_generator.m
          Flux.Dense(numInFeatures, 10, Flux.relu),
          Flux.Dense(10, 10, Flux.relu)
      ),
-     outputLayer = Flux.Dense(10, n*m*4, Flux.relu)
+     outputLayer = Flux.Dense(10, n*m*4)
  )
 
 """
@@ -57,18 +57,17 @@ agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = RL.DQNLearner(
             approximator = RL.NeuralNetworkApproximator(
-                model = approximator_model,
+                model = approximator_model2,
                 optimizer = ADAM(0.0005f0)
             ),
             target_approximator = RL.NeuralNetworkApproximator(
-                model = target_approximator_model,
+                model = target_approximator_model2,
                 optimizer = ADAM(0.0005f0)
             ),
             loss_func = Flux.Losses.huber_loss,
-            stack_size = nothing,
             batch_size = 8, #32,
             update_horizon = 3, #what if the number of nodes in a episode is smaller
-            min_replay_history = 100,
+            min_replay_history = 10,
             update_freq = 4,
             target_update_freq = 100,
             rng = rng,
