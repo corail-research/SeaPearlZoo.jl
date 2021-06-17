@@ -18,13 +18,14 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-eternity2_generator = SeaPearl.Eternity2Generator(4,4,5)
+eternity2_generator = SeaPearl.Eternity2Generator(6,6,6)
 # -------------------
 # Internal variables
 # -------------------
 
-SR = SeaPearl.DefaultStateRepresentation{EternityFeaturization, SeaPearl.DefaultTrajectoryState}
+SR = SeaPearl.DefaultStateRepresentation{EternityFeaturization3, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
+numGlobalFeature = SeaPearl.globalFeature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
@@ -92,8 +93,8 @@ function trytrain(nbEpisodes::Int)
     )
 
     #saving model weights
-    trained_weights = params(approximator_model)
-    @save "model_weights_gc"*string(eternity2_generator.n)*".bson" trained_weights
+    #trained_weights = params(approximator_model)
+    #@save "model_weights_gc"*string(eternity2_generator.n)*".bson" trained_weights
 
     return metricsArray, eval_metricsArray
 end
