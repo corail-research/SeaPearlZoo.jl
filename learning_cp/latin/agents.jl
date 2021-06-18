@@ -1,56 +1,69 @@
 # Model definition
 N = latin_generator.N
 p = latin_generator.p
-# Model definition
- approximator_model = SeaPearl.CPNN(
-     graphChain = Flux.Chain(
-         GeometricFlux.GraphConv(numInFeatures=>10, relu),
-         GeometricFlux.GraphConv(10=>10, relu),
-     ),
-     nodeChain = Flux.Chain(
-         Flux.Dense(10, 20, Flux.leakyrelu),
-     ),
-     globalChain = Flux.Chain(
-         Flux.Dense(numGlobalFeature, 20, Flux.leakyrelu),
-         Flux.Dense(20, 20, Flux.leakyrelu),
-     ),
-     outputLayer = Flux.Dense(40, N)
- )
- target_approximator_model = SeaPearl.CPNN(
-     graphChain = Flux.Chain(
-         GeometricFlux.GraphConv(numInFeatures=>10, relu),
-         GeometricFlux.GraphConv(10=>10, relu),
-     ),
-     nodeChain = Flux.Chain(
-         Flux.Dense(10, 20, Flux.leakyrelu),
-     ),
-     globalChain = Flux.Chain(
-         Flux.Dense(numGlobalFeature, 20, Flux.leakyrelu),
-         Flux.Dense(20, 20, Flux.leakyrelu),
-     ),
+approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
+gnnlayers = 4
 
-     outputLayer = Flux.Dense(40, N)
- )
+approximator_model = SeaPearl.CPNN(
+    graphChain = Flux.Chain(
+        GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        [approximator_GNN for i = 1:gnnlayers]...
+    ),
+    nodeChain = Flux.Chain(
+        Flux.Dense(64, 64, Flux.leakyrelu),
+        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
+    ),
+    globalChain = Flux.Chain(
+        Flux.Dense(numGlobalFeature, 64, Flux.leakyrelu),
+        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
+    ),
+    outputChain = Flux.Chain(
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, N),
+    )) |> gpu
+target_approximator_model = SeaPearl.CPNN(
+    graphChain = Flux.Chain(
+        GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        [approximator_GNN for i = 1:gnnlayers]...
+    ),
+    nodeChain = Flux.Chain(
+        Flux.Dense(64, 64, Flux.leakyrelu),
+        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
+    ),
+    globalChain = Flux.Chain(
+        Flux.Dense(numGlobalFeature, 64, Flux.leakyrelu),
+        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
+    ),
+    outputChain = Flux.Chain(
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, N),
+    )
+) |> gpu
 
 
- approximator_model2 = SeaPearl.CPNN(
-     graphChain = Flux.Chain(),
-     nodeChain = Flux.Chain(
-         Flux.Dense(numInFeatures, 10, Flux.relu),
-         Flux.Dense(10, 10, Flux.relu)
-     ),
-     outputLayer = Flux.Dense(10, N)
- )
+approximator_model2 = SeaPearl.CPNN(
+    graphChain = Flux.Chain(),
+    nodeChain = Flux.Chain(
+        Flux.Dense(numInFeatures, 10, Flux.relu),
+        Flux.Dense(10, 10, Flux.relu)
+    ),
+    outputChain = Flux.Dense(10, N)
+)
 
 
- target_approximator_model2 = SeaPearl.CPNN(
-     graphChain = Flux.Chain(),
-     nodeChain = Flux.Chain(
-         Flux.Dense(numInFeatures, 10, Flux.relu),
-         Flux.Dense(10, 10, Flux.relu)
-     ),
-     outputLayer = Flux.Dense(10, N)
- )
+target_approximator_model2 = SeaPearl.CPNN(
+    graphChain = Flux.Chain(),
+    nodeChain = Flux.Chain(
+        Flux.Dense(numInFeatures, 10, Flux.relu),
+        Flux.Dense(10, 10, Flux.relu)
+    ),
+    outputChain = Flux.Dense(10, N)
+)
 
 """
 if isfile("model_weights_gc"*string(nqueens_generator.board_size)*".bson")
@@ -74,7 +87,7 @@ agent = RL.Agent(
                 optimizer = ADAM()
             ),
             loss_func = Flux.Losses.huber_loss,
-            batch_size = 8, #32,
+            batch_size = 16, #32,
             update_horizon = 3, #what if the number of nodes in a episode is smaller
             min_replay_history = 10,
             update_freq = 8,

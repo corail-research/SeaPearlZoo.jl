@@ -35,7 +35,7 @@ function model_latin(input::InputData; limit=1)
     return model
 end
 
-function solve_latin(model::SeaPearl.CPModel; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function solve_latin!(model::SeaPearl.CPModel; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
 end

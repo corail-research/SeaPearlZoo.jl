@@ -18,18 +18,18 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-latin_generator = SeaPearl.LatinGenerator(4,0.7)
+latin_generator = SeaPearl.LatinGenerator(9,0.7)
 # -------------------
 # Internal variables
 # -------------------
 
 SR = SeaPearl.DefaultStateRepresentation{LatinFeaturization, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
-numGlobalFeature = SeaPearl.globalFeature_length(SR)
+numGlobalFeature = SeaPearl.global_feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 3
+nbEpisodes = 1000
 evalFreq = 30
 nbInstances = 1
 nbRandomHeuristics = 1
@@ -83,12 +83,12 @@ function trytrain(nbEpisodes::Int)
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
-        generator=Latin2_generator,
+        generator=latin_generator,
         nbEpisodes=nbEpisodes,
         strategy=SeaPearl.DFSearch,
         variableHeuristic=variableSelection,
         out_solver=false,
-        verbose = true,
+        verbose = false,
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,latin_generator; evalFreq = evalFreq, nbInstances = nbInstances)
     )
 
@@ -105,3 +105,4 @@ end
 # -------------------
 
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
+nothing
