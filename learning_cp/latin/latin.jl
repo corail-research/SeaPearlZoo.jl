@@ -18,7 +18,7 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-latin_generator = SeaPearl.LatinGenerator(9,0.7)
+latin_generator = SeaPearl.LatinGenerator(11,0.6)
 # -------------------
 # Internal variables
 # -------------------
@@ -29,10 +29,10 @@ numGlobalFeature = SeaPearl.global_feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 1000
+nbEpisodes = 10000
 evalFreq = 30
 nbInstances = 1
-nbRandomHeuristics = 1
+nbRandomHeuristics = 0
 
 # -------------------
 # Agent definition
@@ -65,7 +65,7 @@ for i in 1:nbRandomHeuristics
     push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
-valueSelectionArray = [learnedHeuristic, heuristic_min]
+valueSelectionArray = [learnedHeuristic,heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
 # -------------------
 # Variable Heuristic definition
@@ -93,8 +93,8 @@ function trytrain(nbEpisodes::Int)
     )
 
     #saving model weights
-    #trained_weights = params(approximator_model)
-    #@save "model_weights_gc"*string(eternity2_generator.n)*".bson" trained_weights
+    trained_weights = params(approximator_model)
+    @save "model_weights_gc"*string(eternity2_generator.n)*".bson" trained_weights
 
     return metricsArray, eval_metricsArray
 end
@@ -106,3 +106,5 @@ end
 
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
 nothing
+trained_weights = params(approximator_model)
+@save "model_weights_gc"*string(latin_generator.N)*".bson" trained_weights
