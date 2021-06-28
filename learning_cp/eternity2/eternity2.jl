@@ -1,19 +1,19 @@
 using SeaPearl
+using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
+using LightGraphs
 using Flux
-using Zygote
 using GeometricFlux
 using Random
 using BSON: @save, @load
 using DataFrames
 using CSV
 using Plots
-using Statistics
 gr()
 
 include("rewards.jl")
-include("features.jl")
+include("features2.jl")
 
 # -------------------
 # Generator
@@ -23,13 +23,13 @@ eternity2_generator = SeaPearl.Eternity2Generator(6,6,6)
 # Internal variables
 # -------------------
 
-SR = SeaPearl.DefaultStateRepresentation{EternityFeaturization3, SeaPearl.DefaultTrajectoryState}
+SR = SeaPearl.DefaultStateRepresentation{EternityFeaturization, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
-numGlobalFeature = SeaPearl.globalFeature_length(SR)
+numGlobalFeature = SeaPearl.global_feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 3000
+nbEpisodes = 100
 evalFreq = 30
 nbInstances = 1
 nbRandomHeuristics = 1
@@ -38,7 +38,7 @@ nbRandomHeuristics = 1
 # Agent definition
 # -------------------
 
-include("agents.jl")
+include("agents2.jl")
 
 # -------------------
 # Value Heuristic definition
@@ -85,11 +85,12 @@ function trytrain(nbEpisodes::Int)
         valueSelectionArray=valueSelectionArray,
         generator=eternity2_generator,
         nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch,
+        strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=false,
         verbose = true,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,eternity2_generator; evalFreq = evalFreq, nbInstances = nbInstances)
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,eternity2_generator; evalFreq = evalFreq, nbInstances = nbInstances),
+        seed=123
     )
 
     #saving model weights
@@ -104,4 +105,5 @@ end
 # -------------------
 # -------------------
 
-metricsArray, eval_metricsArray = trytrain(nbEpisodes)
+metricsArray, eval_metricsArray = @profiler trytrain(nbEpisodes)
+nothing
