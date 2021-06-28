@@ -23,7 +23,7 @@ approximator_model = SeaPearl.CPNN(
     outputChain = Flux.Chain(
         Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, N),
-    )) |> gpu
+    )) #|> gpu
 target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
         GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
@@ -43,7 +43,7 @@ target_approximator_model = SeaPearl.CPNN(
         Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, N),
     )
-) |> gpu
+) #|> gpu
 
 
 approximator_model2 = SeaPearl.CPNN(
