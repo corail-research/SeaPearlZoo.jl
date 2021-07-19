@@ -1,18 +1,20 @@
 using SeaPearl
 
+#
+
 struct InputData
     A::Matrix{Int} #number of lines
 end
 
 """
-    model_eternity2(input_file; order=[1,2,3,4], limit=nothing)
+    model_latin(input_file; limit=1)
 
-return the SeaPearl model for to the solve_eternity2 problem using SeaPearl.AllDifferent  and SeaPearl.TableConstraint (without solving it)
+return the SeaPearl model for to the Latin completion problem using SeaPearl.AllDifferent
+The input file can come from the Latin DataGen in SeaPearl.
 
 # Arguments
-- `input_file`: file containing the pieces of the game as well as the dimensions
-- 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
-- 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will lookk for all the solutions
+- `InputData`: Matrix containting the uncompleted game
+- 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will looks for all the solutions
 """
 function model_latin(input::InputData; limit=1)
     trailer = SeaPearl.Trailer()
@@ -35,11 +37,29 @@ function model_latin(input::InputData; limit=1)
     return model
 end
 
+"""
+    solve_latin!(model::SeaPearl.CPModel; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+
+Solve the SeaPearl model for to the Latin Completion problem, using an existing model
+
+# Arguments
+- `model::SeaPearl.CPModel`: model (from model_latin)
+- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}().
+- 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic().
+"""
 function solve_latin!(model::SeaPearl.CPModel; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
 end
 
+"""
+    print_latin(model::SeaPearl.CPModel)
+
+Nice print the latin game when solved
+
+# Arguments
+- `model::SeaPearl.CPModel`: model (from model_latin)
+"""
 function print_latin(model)
     sol= model.statistics.solutions[1]
     n = oftype(1,sqrt(length(sol)))

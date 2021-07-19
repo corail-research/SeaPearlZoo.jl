@@ -1,3 +1,5 @@
+#this file contains a few attempts to featurize the Eternity2 problem for learning using FullFeaturedCPNN
+
 struct EternityFeaturization <: SeaPearl.AbstractFeaturization end
 struct EternityFeaturization2 <: SeaPearl.AbstractFeaturization end
 struct EternityFeaturization3 <: SeaPearl.AbstractFeaturization end

@@ -1,4 +1,4 @@
-
+#An inspect Reward to find a solution in a few number of steps, in the case when one episode corresponds to finind a solution.
 
 mutable struct InspectReward <: SeaPearl.AbstractReward
     value::Float32
