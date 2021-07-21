@@ -17,6 +17,8 @@ global features:
 None
 """
 
+
+
 function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{EternityFeaturization,TS}) where TS
     n = eternity2_generator.n
     m = eternity2_generator.m
@@ -32,11 +34,9 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{EternityFeat
             if prefix=="id"
                 features[1,i] = 1
             elseif prefix=="srch"
-                features[2,i] = 1 
+                features[2,i] = 1
             elseif prefix=="srcv"
                 features[3,i] = 1 
-            else
-                println("WTF ??")
             end
             features[4,i] = parse(Int, suffix[1])
             features[5,i] = parse(Int, suffix[2])

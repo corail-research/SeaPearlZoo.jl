@@ -4,6 +4,15 @@ struct EternityFeaturization <: SeaPearl.AbstractFeaturization end
 struct EternityFeaturization2 <: SeaPearl.AbstractFeaturization end
 struct EternityFeaturization3 <: SeaPearl.AbstractFeaturization end
 
+#EternityFeaturization is to be used with the model of eternity2 using the orientation of the pieces
+#it gives as first features the colors of the edges corresponding to each orientation. The update will give the neighboors at each step.
+#it has no global feature
+
+ #EternityFeaturization2 is also for orientation
+ #EternityFeaturization3 is for the model without orientation
+
+ #Note: those featurizations were tested but did not work since we are trying to select ids which can't be learned since it is independant of the pieces' edges.
+
 function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{EternityFeaturization,TS}) where TS
     n = eternity2_generator.n
     m = eternity2_generator.m
