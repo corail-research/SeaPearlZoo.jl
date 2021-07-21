@@ -62,12 +62,11 @@ function SeaPearl.update_features!(sr::SeaPearl.DefaultStateRepresentation{Etern
         end
     end
 end
-"""
+
 function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{EternityFeaturization, TS}}) where TS
-    return 11
+    return 6
 end
 
 function SeaPearl.global_feature_length(::Type{SeaPearl.DefaultStateRepresentation{EternityFeaturization, TS}}) where TS
     return 0
 end
-"""

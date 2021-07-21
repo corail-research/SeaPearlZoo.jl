@@ -13,7 +13,7 @@ using Plots
 gr()
 
 include("rewards.jl")
-include("features2.jl")
+include("features3.jl")
 
 # -------------------
 # Generator
