@@ -6,8 +6,7 @@ using LightGraphs
 using Flux
 using GeometricFlux
 using Random
-using BSON: @save, @load
-gr()
+
 
 include("rewards.jl")
 include("features.jl")
@@ -87,7 +86,7 @@ function trytrain(nbEpisodes::Int)
         out_solver=false,
         verbose = true,
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,eternity2_generator; evalFreq = evalFreq, nbInstances = nbInstances),
-        seed=123
+        restartPerInstances = 1
     )
 
     return metricsArray, eval_metricsArray
@@ -98,5 +97,5 @@ end
 # -------------------
 # -------------------
 
-metricsArray, eval_metricsArray = @profiler trytrain(nbEpisodes)
+metricsArray, eval_metricsArray = trytrain(nbEpisodes)
 nothing

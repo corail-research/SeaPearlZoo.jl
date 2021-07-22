@@ -18,10 +18,11 @@ approximator_model = SeaPearl.FullFeaturedCPNN(
         Flux.Dense(24, 32, activation),
         Flux.Dense(32, 1),
     ),
-) |> gpu
+) #|> gpu
 target_approximator_model = SeaPearl.FullFeaturedCPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GraphConv(numInFeatures=>12, activation),GeometricFlux.GraphConv(12=>12, activation)
+        GeometricFlux.GraphConv(numInFeatures=>12, activation),
+        GeometricFlux.GraphConv(12=>12, activation)
     ),
     nodeChain = Flux.Chain(
     Flux.Dense(12, 12, activation),
@@ -30,7 +31,7 @@ target_approximator_model = SeaPearl.FullFeaturedCPNN(
         Flux.Dense(24, 32, activation),
         Flux.Dense(32, 1),
     ),
-) |> gpu
+) #|> gpu
 
 #rng = MersenneTwister(33)
 
@@ -46,9 +47,9 @@ agent = RL.Agent(
                 optimizer = ADAM()
             ),
             loss_func = Flux.Losses.huber_loss,
-            batch_size = 8, #32,
+            batch_size = 1, #32,
             update_horizon = 4,
-            min_replay_history = 8,
+            min_replay_history = 1,
             update_freq = 8,
             target_update_freq = 100,
             #rng = rng,
@@ -56,7 +57,7 @@ agent = RL.Agent(
         explorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.1,
             #kind = :exp,
-            decay_steps = nbEpisodes - 100,
+            decay_steps = nbEpisodes,
             step = 1,
         )
     ),
