@@ -1,3 +1,4 @@
+using SeaPearlExtras
 using SeaPearl
 using ReinforcementLearning
 const RL = ReinforcementLearning
@@ -5,13 +6,8 @@ using Flux
 using Zygote
 using GeometricFlux
 using Random
-using BSON: @save, @load
-using DataFrames
-using CSV
-using Plots
-using CUDA
+#using CUDA
 using Statistics
-gr()
 
 include("rewards.jl")
 include("features.jl")
@@ -88,16 +84,15 @@ function trytrain(nbEpisodes::Int)
         valueSelectionArray=valueSelectionArray,
         generator=nqueens_generator,
         nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch,
+        strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=false,
         verbose = false,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances)
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances),
+        restartPerInstances = 1
     )
 
     #saving model weights
-    trained_weights = params(approximator_model)
-    @save "model_weights_gc"*string(nqueens_generator.board_size)*".bson" trained_weights
 
     return metricsArray, eval_metricsArray
 end
