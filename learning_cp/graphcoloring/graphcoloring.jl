@@ -41,12 +41,12 @@ include("features.jl")
 # -------------------
 SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
-numGlobalFeature = SeaPearl.global_feature_length(SR)
+#numGlobalFeature = SeaPearl.global_feature_length(SR)
 
 # -------------------
 # Agent definition
 # -------------------
-include("agents2.jl")
+include("agents.jl")
 
 # -------------------
 # Value Heuristic definition
