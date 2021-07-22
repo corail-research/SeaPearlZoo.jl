@@ -1,16 +1,11 @@
 using SeaPearl
+using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
+using LightGraphs
 using Flux
-using Zygote
 using GeometricFlux
 using Random
-using BSON: @save, @load
-using DataFrames
-using CSV
-using Plots
-using Statistics
-gr()
 
 include("rewards.jl")
 include("features.jl")
@@ -85,16 +80,13 @@ function trytrain(nbEpisodes::Int)
         valueSelectionArray=valueSelectionArray,
         generator=latin_generator,
         nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch,
+        strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=false,
-        verbose = false,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,latin_generator; evalFreq = evalFreq, nbInstances = nbInstances)
+        verbose = true,
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,latin_generator; evalFreq = evalFreq, nbInstances = nbInstances),
+        restartPerInstances = 1
     )
-
-    #saving model weights
-    trained_weights = params(approximator_model)
-    @save "model_weights_gc"*string(eternity2_generator.n)*".bson" trained_weights
 
     return metricsArray, eval_metricsArray
 end
@@ -106,5 +98,3 @@ end
 
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
 nothing
-trained_weights = params(approximator_model)
-@save "model_weights_gc"*string(latin_generator.N)*".bson" trained_weights

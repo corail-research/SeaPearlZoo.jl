@@ -1,5 +1,9 @@
 struct LatinFeaturization <: SeaPearl.AbstractFeaturization end
 
+#Proposition of featurization for the latin square problem
+#the global feature completes the state of completion of the board at each step
+#it also adds the value given to a variable when it changes
+
 function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{LatinFeaturization,TS}) where TS
     N = latin_generator.N
     p = latin_generator.p
@@ -11,7 +15,7 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{LatinFeaturi
             features[1,i]=1
             id = cp_vertex.variable.id
             t = split(id,['_'])[2]
-            a,b = parse(Int, split(t,",")[1]), parse(Int, split(t,",")[2])
+            a,b = parse(Int, split(t,",")[1]), parse(Int, split(t,",")[2]) #coordinates on the board
             features[2,i],features[3,i] = a,b
         elseif isa(cp_vertex, SeaPearl.ConstraintVertex)
             if isa(cp_vertex.constraint, SeaPearl.EqualConstant)
@@ -26,7 +30,7 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{LatinFeaturi
     features
 end
 
-function SeaPearl.globalFeaturize(sr::SeaPearl.DefaultStateRepresentation{LatinFeaturization,TS}) where TS
+function SeaPearl.global_featurize(sr::SeaPearl.DefaultStateRepresentation{LatinFeaturization,TS}) where TS
     N = latin_generator.N
     p = latin_generator.p
     g = sr.cplayergraph

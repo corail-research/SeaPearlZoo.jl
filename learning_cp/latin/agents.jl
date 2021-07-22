@@ -1,42 +1,44 @@
 # Model definition
 N = latin_generator.N
 p = latin_generator.p
-approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
-target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, Flux.leakyrelu)
-gnnlayers = 4
+approximator_GNN = GeometricFlux.GraphConv(32 => 32, Flux.leakyrelu)
+target_approximator_GNN = GeometricFlux.GraphConv(32 => 32, Flux.leakyrelu)
+gnnlayers = 2
 
 approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        GeometricFlux.GraphConv(numInFeatures => 32, Flux.leakyrelu),
         [approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(64, 64, Flux.leakyrelu),
-        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
     globalChain = Flux.Chain(
-        Flux.Dense(numGlobalFeature, 64, Flux.leakyrelu),
-        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(numGlobalFeature, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
     outputChain = Flux.Chain(
         Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, N),
-    )) #|> gpu
+    )
+)
+ #|> gpu
 target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GraphConv(numInFeatures => 64, Flux.leakyrelu),
+        GeometricFlux.GraphConv(numInFeatures => 32, Flux.leakyrelu),
         [approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(64, 64, Flux.leakyrelu),
-        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
     globalChain = Flux.Chain(
-        Flux.Dense(numGlobalFeature, 64, Flux.leakyrelu),
-        Flux.Dense(64, 32, Flux.leakyrelu),
+        Flux.Dense(numGlobalFeature, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
     outputChain = Flux.Chain(
@@ -44,36 +46,6 @@ target_approximator_model = SeaPearl.CPNN(
         Flux.Dense(32, N),
     )
 ) #|> gpu
-
-
-approximator_model2 = SeaPearl.CPNN(
-    graphChain = Flux.Chain(),
-    nodeChain = Flux.Chain(
-        Flux.Dense(numInFeatures, 10, Flux.relu),
-        Flux.Dense(10, 10, Flux.relu)
-    ),
-    outputChain = Flux.Dense(10, N)
-)
-
-
-target_approximator_model2 = SeaPearl.CPNN(
-    graphChain = Flux.Chain(),
-    nodeChain = Flux.Chain(
-        Flux.Dense(numInFeatures, 10, Flux.relu),
-        Flux.Dense(10, 10, Flux.relu)
-    ),
-    outputChain = Flux.Dense(10, N)
-)
-
-"""
-if isfile("model_weights_gc"*string(nqueens_generator.board_size)*".bson")
-    println("Parameters loaded from ", "model_weights_gc"*string(nqueens_generator.board_size)*".bson")
-    @load "model_weights_gc"*string(nqueens_generator.board_size)*".bson" trained_weights
-    Flux.loadparams!(approximator_model, trained_weights)
-    Flux.loadparams!(target_approximator_model, trained_weights)
-end
-"""
-#rng = MersenneTwister(33)
 
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
