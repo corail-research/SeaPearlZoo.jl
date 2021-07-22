@@ -41,13 +41,13 @@ agent = RL.Agent(
             ),
             loss_func = Flux.Losses.huber_loss,
             stack_size = nothing,
-            γ = 0.9999f0,
+            γ = 0.9f0,
             batch_size = 1, #32,
             update_horizon = 25,
             min_replay_history = 1,
             update_freq = 10,
             target_update_freq = 200,
-        ), 
+        ),
         explorer = RL.EpsilonGreedyExplorer(
             ϵ_stable = 0.001,
             kind = :exp,
@@ -55,7 +55,7 @@ agent = RL.Agent(
             warmup_steps = 0,
             decay_steps = 5000,
             step = 1,
-            is_break_tie = false, 
+            is_break_tie = false,
             #is_training = true,
             rng = MersenneTwister(33)
         )
@@ -65,4 +65,3 @@ agent = RL.Agent(
         state = Matrix{Float32} => state_size,
         legal_actions_mask = Vector{Bool} => (coloring_generator.n, ),
     )
-)
