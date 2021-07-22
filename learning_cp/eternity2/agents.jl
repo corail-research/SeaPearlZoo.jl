@@ -18,7 +18,7 @@ approximator_model = SeaPearl.FullFeaturedCPNN(
         Flux.Dense(24, 32, activation),
         Flux.Dense(32, 1),
     ),
-) #|> gpu
+) |> gpu
 target_approximator_model = SeaPearl.FullFeaturedCPNN(
     graphChain = Flux.Chain(
         GeometricFlux.GraphConv(numInFeatures=>12, activation),GeometricFlux.GraphConv(12=>12, activation)
@@ -30,16 +30,8 @@ target_approximator_model = SeaPearl.FullFeaturedCPNN(
         Flux.Dense(24, 32, activation),
         Flux.Dense(32, 1),
     ),
-) #|> gpu
+) |> gpu
 
-"""
-if isfile("model_weights_gc"*string(nqueens_generator.board_size)*".bson")
-    println("Parameters loaded from ", "model_weights_gc"*string(nqueens_generator.board_size)*".bson")
-    @load "model_weights_gc"*string(nqueens_generator.board_size)*".bson" trained_weights
-    Flux.loadparams!(approximator_model, trained_weights)
-    Flux.loadparams!(target_approximator_model, trained_weights)
-end
-"""
 #rng = MersenneTwister(33)
 
 agent = RL.Agent(

@@ -7,13 +7,10 @@ using Flux
 using GeometricFlux
 using Random
 using BSON: @save, @load
-using DataFrames
-using CSV
-using Plots
 gr()
 
 include("rewards.jl")
-include("features3.jl")
+include("features.jl")
 
 # -------------------
 # Generator
@@ -38,7 +35,7 @@ nbRandomHeuristics = 1
 # Agent definition
 # -------------------
 
-include("agents2.jl")
+include("agents.jl")
 
 # -------------------
 # Value Heuristic definition
@@ -92,10 +89,6 @@ function trytrain(nbEpisodes::Int)
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,eternity2_generator; evalFreq = evalFreq, nbInstances = nbInstances),
         seed=123
     )
-
-    #saving model weights
-    #trained_weights = params(approximator_model)
-    #@save "model_weights_gc"*string(eternity2_generator.n)*".bson" trained_weights
 
     return metricsArray, eval_metricsArray
 end

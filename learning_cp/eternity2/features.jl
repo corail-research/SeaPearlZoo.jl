@@ -2,6 +2,9 @@ struct EternityFeaturization <: SeaPearl.AbstractFeaturization end
 
 #this is the best featurization for eternity2 so far.
 #it uses FullFeaturedCPNN
+#it uses the adhocinfo from the instance generator to instantiate the values' features with the edges' colors.
+
+#when we place a piece on the board, update_features will add the edges' colors to the features.
 
 function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{EternityFeaturization,TS}) where TS
     n = eternity2_generator.n
@@ -20,7 +23,7 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{EternityFeat
                 a,b = parse(Int, suffix[1]), parse(Int, suffix[2])
                 features[1,i] = a
                 features[2,i] = b
-                features[3,i] = -1
+                features[3,i] = -1 #for now no neighboors
                 features[4,i] = -1
                 features[5,i] = -1
                 features[6,i] = -1
