@@ -9,8 +9,6 @@ using Statistics
 using Random
 using BSON: @load, @save
 using Dates
-using JSON
-gr()
 
 # -------------------
 # Generator
