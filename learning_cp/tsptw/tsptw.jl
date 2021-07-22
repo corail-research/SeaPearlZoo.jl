@@ -1,4 +1,5 @@
 using SeaPearl
+using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
@@ -7,33 +8,31 @@ using GeometricFlux
 using Statistics
 using Random
 using BSON: @load, @save
-using DataFrames
-using CSV
-using Plots
+using Dates
+using JSON
 gr()
 
 # -------------------
 # Generator
 # -------------------
-n_city = 10
+n_city = 11
 grid_size = 100
-max_tw_gap = 10
-max_tw = 100
+max_tw_gap = 0
+max_tw = 1000
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
+SR = SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}
 
 # -------------------
 # Internal variables
 # -------------------
-numInFeatures=SeaPearl.feature_length(tsptw_generator,SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization})
-state_size = SeaPearl.arraybuffer_dims(tsptw_generator, SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization})
-maxNumberOfCPNodes = state_size[1]
+numInFeatures=SeaPearl.feature_length(SR)
 
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 4000
+nbEpisodes = 2
 evalFreq = 200
-nbInstances = 1
+nbInstances = 10
 nbRandomHeuristics = 1
 
 # -------------------
@@ -44,7 +43,7 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.TsptwStateRepresentation, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
+learnedHeuristic = SeaPearl.LearnedHeuristic{SR, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
 
@@ -88,23 +87,41 @@ variableSelection = TsptwVariableSelection()
 # -------------------
 # -------------------
 function trytrain(nbEpisodes::Int)
+    experienceTime = now()
+    dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
+    expParameters = Dict(
+        :nbEpisodes => nbEpisodes,
+        :evalFreq => evalFreq,
+        :nbInstances => nbInstances
+    )
+    open(dir*"/params.json", "w") do file
+        JSON.print(file, expParameters)
+    end
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
     valueSelectionArray=valueSelectionArray,
     generator=tsptw_generator,
     nbEpisodes=nbEpisodes,
-    strategy=SeaPearl.DFSearch,
+    strategy=SeaPearl.DFSearch(),
     variableHeuristic=variableSelection,
-    out_solver=false,
+    out_solver=true,
     verbose = false,
     evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances)
 )
 
-    trained_weights = params(approximator_model)
-    @save "model_weights_tsptw"*string(n_city)*".bson" trained_weights
+    trained_weights = params(agent.policy.learner.approximator.model)
+    @save dir*"/model_weights_tsptw"*string(n_city)*".bson" trained_weights
+
+    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/tsptw_$(n_city)_training")
+    SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/tsptw_$(n_city)_trained")
+    SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/tsptw_$(n_city)_nearest")
+    for i = 1:nbRandomHeuristics
+        SeaPearlExtras.storedata(eval_metricsArray[:,i+2]; filename=dir*"/tsptw_$(n_city)_random$(i)")
+    end
 
     return metricsArray, eval_metricsArray
 end
 
+
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
-SeaPearl.plotNodeVisited(metricsArray[1])
+nothing
