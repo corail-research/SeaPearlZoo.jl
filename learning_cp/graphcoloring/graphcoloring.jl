@@ -6,14 +6,8 @@ using Flux
 using Zygote
 using GeometricFlux
 using Random
-using BSON: @save, @load
-using DataFrames
-using CSV
-using Plots
 using Dates
-using JSON
 using Statistics
-gr()
 
 
 # -------------------
@@ -109,7 +103,7 @@ function trytrain(nbEpisodes::Int)
         nbEpisodes=nbEpisodes,
         strategy=SeaPearl.ILDSearch(0),
         variableHeuristic=variableSelection,
-        out_solver=false,
+        out_solver=true,
         verbose = false,
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,coloring_generator; evalFreq = evalFreq, nbInstances = nbInstances),
         restartPerInstances = restartPerInstances
