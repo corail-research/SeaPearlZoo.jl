@@ -12,10 +12,10 @@ using Dates
 # -------------------
 # Generator
 # -------------------
-n_city = 11
+n_city = 21
 grid_size = 100
 max_tw_gap = 0
-max_tw = 1000
+max_tw = 100
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
 SR = SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}
 
@@ -27,7 +27,7 @@ numInFeatures=SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 2
+nbEpisodes = 500
 evalFreq = 200
 nbInstances = 10
 nbRandomHeuristics = 1
