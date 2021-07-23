@@ -1,19 +1,13 @@
-using Revise
 using SeaPearl
+using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
-using CUDA
-using DataFrames
-using CSV
-using Statistics
-using Zygote
 using GeometricFlux
-using Random
 using BSON: @save, @load
+using Random
+using Statistics
 
-using Plots
-gr()
 
 include("rewards.jl")
 include("features.jl")
@@ -74,7 +68,7 @@ function trytrain(nbEpisodes::Int)
         valueSelectionArray= valueSelectionArray,
         generator=knapsack_generator,
         nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch,
+        strategy=SeaPearl.DFSearch(),
         variableHeuristic=KnapsackVariableSelection(),
         out_solver=false,
         verbose=true, #true to print processus
@@ -89,6 +83,5 @@ function trytrain(nbEpisodes::Int)
     return metricsArray, eval_metricsArray
 end
 
-CUDA.allowscalar(false)
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
 nothing
