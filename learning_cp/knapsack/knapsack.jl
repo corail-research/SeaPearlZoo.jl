@@ -20,7 +20,7 @@ knapsack_generator = SeaPearl.KnapsackGenerator(20, 10, 0.2)
 # -------------------
 # Internal variables
 # -------------------
-const StateRepresentation = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
+const StateRepresentation = SeaPearl.DefaultStateRepresentation{KnapsackFeaturization, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(StateRepresentation)
 
 # -------------------
@@ -73,13 +73,9 @@ function trytrain(nbEpisodes::Int)
         out_solver=false,
         verbose=true, #true to print processus
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,knapsack_generator; evalFreq=evalFreq, nbInstances=nbInstances),
-        metrics=nothing
+        restartPerInstances = 1
         )
 
-    #saving model weights
-    trained_weights = params(approximator_model)
-    #@save "model_weights_knapsack"*string(knapsack_generator.nb_items)*".bson" trained_weights
-    
     return metricsArray, eval_metricsArray
 end
 
