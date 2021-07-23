@@ -43,16 +43,6 @@ target_approximator_model = SeaPearl.CPNN(
 ) #|> gpu
 
 
-"""
-if isfile("model_weights_gc"*string(nqueens_generator.board_size)*".bson")
-    println("Parameters loaded from ", "model_weights_gc"*string(nqueens_generator.board_size)*".bson")
-    @load "model_weights_gc"*string(nqueens_generator.board_size)*".bson" trained_weights
-    Flux.loadparams!(approximator_model, trained_weights)
-    Flux.loadparams!(target_approximator_model, trained_weights)
-end
-"""
-#rng = MersenneTwister(33)
-
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = RL.DQNLearner(

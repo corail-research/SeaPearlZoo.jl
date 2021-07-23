@@ -15,12 +15,12 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-knapsack_generator = SeaPearl.KnapsackGenerator(20, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(10, 10, 0.2)
 
 # -------------------
 # Internal variables
 # -------------------
-const StateRepresentation = SeaPearl.DefaultStateRepresentation{KnapsackFeaturization, SeaPearl.DefaultTrajectoryState}
+StateRepresentation = SeaPearl.DefaultStateRepresentation{KnapsackFeaturization, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(StateRepresentation)
 
 # -------------------
@@ -71,7 +71,7 @@ function trytrain(nbEpisodes::Int)
         strategy=SeaPearl.DFSearch(),
         variableHeuristic=KnapsackVariableSelection(),
         out_solver=false,
-        verbose=true, #true to print processus
+        verbose=false, #true to print processus
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,knapsack_generator; evalFreq=evalFreq, nbInstances=nbInstances),
         restartPerInstances = 1
         )

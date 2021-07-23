@@ -2,7 +2,6 @@ using SeaPearl
 using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
-using LightGraphs
 using Flux
 using GeometricFlux
 using Random
@@ -24,7 +23,7 @@ numGlobalFeature = SeaPearl.global_feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 10000
+nbEpisodes = 500
 evalFreq = 30
 nbInstances = 1
 nbRandomHeuristics = 0
@@ -83,7 +82,7 @@ function trytrain(nbEpisodes::Int)
         strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=false,
-        verbose = true,
+        verbose = false,
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,latin_generator; evalFreq = evalFreq, nbInstances = nbInstances),
         restartPerInstances = 1
     )
