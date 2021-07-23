@@ -39,7 +39,7 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic=SeaPearl.LearnedHeuristic{SR, SeaPearl.DefaultReward2, SeaPearl.FixedOutput}(agent)
+learnedHeuristic=SeaPearl.LearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
