@@ -3,11 +3,10 @@ using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
-using Zygote
 using GeometricFlux
-using Statistics
-using Random
+using JSON
 using BSON: @load, @save
+using Random
 using Dates
 
 # -------------------

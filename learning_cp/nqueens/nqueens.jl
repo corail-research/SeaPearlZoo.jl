@@ -1,12 +1,11 @@
-using SeaPearlExtras
 using SeaPearl
+using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
-using Zygote
 using GeometricFlux
+using BSON: @save, @load
 using Random
-#using CUDA
 using Statistics
 
 include("rewards.jl")

@@ -1,19 +1,19 @@
-using SeaPearlExtras
 using SeaPearl
+using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
-using Zygote
 using GeometricFlux
-using Random
+using JSON
+using BSON: @save, @load
 using Dates
-using Statistics
+using Random
 
 
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 1000
+nbEpisodes = 100
 restartPerInstances = 20
 evalFreq = 50
 nbInstances = 10
@@ -110,15 +110,15 @@ function trytrain(nbEpisodes::Int)
     )
 
     #saving model weights
-    trained_weights = params(approximator_model)
-    @save dir*"model_weights_gc"*string(coloring_generator.n)*"_graph.bson" trained_weights
+    model = agent.policy.learner.approximator
+    @save dir*"/model_gc"*string(coloring_generator.n)*".bson" model
 
     SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/graph_coloring_$(nbNodes)_training_learned")
     SeaPearlExtras.storedata(metricsArray[2]; filename=dir*"/graph_coloring_$(nbNodes)_training_greedy")
     for i = 1:nbRandomHeuristics
         SeaPearlExtras.storedata(metricsArray[2+i]; filename=dir*"/graph_coloring_$(nbNodes)_training_random$(i)")
     end
-    SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/graph_coloring_$(nbNodes)_trained")
+    SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/graph_coloring_$(nbNodes)_learned")
     SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/graph_coloring_$(nbNodes)_greedy")
     for i = 1:nbRandomHeuristics
         SeaPearlExtras.storedata(eval_metricsArray[:,i+2]; filename=dir*"/graph_coloring_$(nbNodes)_random$(i)")
