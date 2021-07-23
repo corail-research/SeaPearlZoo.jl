@@ -20,42 +20,45 @@ Here, a node feature encodes the following informations :
     10 :   |__ the variable value / 10
 ]
 """
-function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{KnapsackFeaturization}) 
+function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
     g = sr.cplayergraph
-    features = zeros(Float32, nv(g), numberOfFeatures)
+    features = zeros(Float32, numberOfFeatures, nv(g))
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, SeaPearl.VariableVertex)
             variable = cp_vertex.variable
-            features[i, 1] = 1.
+            features[1,i] = 1.
             if g.cpmodel.objective == variable
-                features[i, 2] = 1.
+                features[2,i] = 1.
             end
 
             if isa(variable, SeaPearl.IntVarViewOpposite)
-                features[i, 3] = 1.
+                features[3, i] = 1.
             end
             if isa(variable, SeaPearl.IntVarViewMul)
-                features[i, 4] = 1.
-                features[i, 5] = variable.a
+                features[4, i] = 1.
+                features[5, i] = variable.a
             end
         end
         if isa(cp_vertex, SeaPearl.ConstraintVertex)
-            features[i, 6] = 1.
+            features[6, i] = 1.
             constraint = cp_vertex.constraint
             if isa(constraint, SeaPearl.SumToZero)
-                features[i, 7] = 1.
+                features[7, i] = 1.
             end
             if isa(constraint, SeaPearl.LessOrEqualConstant)
-                features[i, 8] = 1.
+                features[8, i] = 1.
             end
         end
         if isa(cp_vertex, SeaPearl.ValueVertex)
-            features[i, 9] = 1.
+            features[9, i] = 1.
             value = cp_vertex.value
-            features[i, 10] = value/10 #max_weight
+            features[10, i] = value/10 #max_weight
         end
     end
     features
+end
 
+function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{KnapsackFeaturization, TS}}) where TS
+    numberOfFeatures
 end
