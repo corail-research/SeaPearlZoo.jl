@@ -10,11 +10,7 @@ function SeaPearl.set_reward!(::Type{SeaPearl.StepPhase}, lh::SeaPearl.LearnedHe
     SR <: SeaPearl.AbstractStateRepresentation,
     O <: SeaPearl.ActionOutput
 }
-    if symbol == :Infeasible
-        lh.reward.value -= 10
-    elseif symbol == :Feasible
-        lh.reward.value -= 1
-    end
+    nothing
 end
 
 function SeaPearl.set_reward!(::Type{SeaPearl.DecisionPhase}, lh::SeaPearl.LearnedHeuristic{SR, InspectReward, O}, model::SeaPearl.CPModel) where {
@@ -29,6 +25,9 @@ function SeaPearl.set_reward!(::Type{SeaPearl.EndingPhase}, lh::SeaPearl.Learned
     SR <: SeaPearl.AbstractStateRepresentation,
     O <: SeaPearl.ActionOutput
 }
-    lh.reward.value += 200
-    nothing
+    if symbol == :Feasible || symbol == :FoundSolution
+        lh.reward.value += 200
+    else
+        lh.reward.value-=100
+    end
 end

@@ -65,14 +65,15 @@ agent = RL.Agent(
                 optimizer = ADAM()
             ),
             loss_func = Flux.Losses.huber_loss,
-            batch_size = 1, #32,
+            γ = 0.9f0,
+            batch_size = 8, #32,
             update_horizon = 10, #what if the number of nodes in a episode is smaller
-            min_replay_history = 1,
+            min_replay_history = 8,
             update_freq = 8,
             target_update_freq = 100,
         ),
         explorer = RL.EpsilonGreedyExplorer(
-            ϵ_stable = 0.001,
+            ϵ_stable = 0.01,
             #kind = :exp,
             decay_steps = nbEpisodes,
             step = 1,
