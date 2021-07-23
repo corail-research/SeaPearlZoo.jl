@@ -1,16 +1,13 @@
-  using Revise
 using SeaPearl
+using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
-using Statistics
-using Zygote
 using GeometricFlux
-using Random
 using BSON: @save, @load
+using Random
+using Statistics
 
-using Plots
-gr()
 
 include("rewards.jl")
 include("features.jl")
@@ -18,21 +15,20 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-knapsack_generator = SeaPearl.KnapsackGenerator(25, 10, 0.2)
+knapsack_generator = SeaPearl.KnapsackGenerator(10, 10, 0.2)
 
 # -------------------
 # Internal variables
 # -------------------
-numInFeatures = SeaPearl.feature_length(knapsack_generator, SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
-state_size = SeaPearl.arraybuffer_dims(knapsack_generator, SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
-maxNumberOfCPNodes = state_size[1]
+StateRepresentation = SeaPearl.DefaultStateRepresentation{KnapsackFeaturization, SeaPearl.DefaultTrajectoryState}
+numInFeatures = SeaPearl.feature_length(StateRepresentation)
 
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 2
-evalFreq = 50
-nbInstances = 1
+nbEpisodes = 1000
+evalFreq = 100
+nbInstances = 3
 nbRandomHeuristics = 0
 
 # -------------------
@@ -43,7 +39,7 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{KnapsackFeaturization}, knapsackReward, SeaPearl.FixedOutput}(agent, maxNumberOfCPNodes)
+learnedHeuristic = SeaPearl.LearnedHeuristic{StateRepresentation, knapsackReward, SeaPearl.FixedOutput}(agent)
 basicHeuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> SeaPearl.maximum(x.domain)) # Basic value-selection heuristic
 
 # -------------------
@@ -72,20 +68,16 @@ function trytrain(nbEpisodes::Int)
         valueSelectionArray= valueSelectionArray,
         generator=knapsack_generator,
         nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch,
+        strategy=SeaPearl.DFSearch(),
         variableHeuristic=KnapsackVariableSelection(),
         out_solver=false,
-        verbose=true, #true to print processus
+        verbose=false, #true to print processus
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,knapsack_generator; evalFreq=evalFreq, nbInstances=nbInstances),
-        metrics=nothing
+        restartPerInstances = 1
         )
-
-    #saving model weights
-    trained_weights = params(approximator_model)
-    @save "model_weights_knapsack"*string(knapsack_generator.nb_items)*".bson" trained_weights
 
     return metricsArray, eval_metricsArray
 end
 
-
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
+nothing

@@ -1,3 +1,6 @@
+# Model definition
+N = latin_generator.N
+p = latin_generator.p
 approximator_GNN = GeometricFlux.GraphConv(32 => 32, Flux.leakyrelu)
 target_approximator_GNN = GeometricFlux.GraphConv(32 => 32, Flux.leakyrelu)
 gnnlayers = 2
@@ -9,12 +12,17 @@ approximator_model = SeaPearl.CPNN(
     ),
     nodeChain = Flux.Chain(
         Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    globalChain = Flux.Chain(),
+    globalChain = Flux.Chain(
+        Flux.Dense(numGlobalFeature, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
+    ),
     outputChain = Flux.Chain(
-        Flux.Dense(16, 32, Flux.leakyrelu),
-        Flux.Dense(32, nqueens_generator.board_size),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, N),
     )
 )
  #|> gpu
@@ -25,12 +33,17 @@ target_approximator_model = SeaPearl.CPNN(
     ),
     nodeChain = Flux.Chain(
         Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
         Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    globalChain = Flux.Chain(),
+    globalChain = Flux.Chain(
+        Flux.Dense(numGlobalFeature, 32, Flux.leakyrelu),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
+    ),
     outputChain = Flux.Chain(
-        Flux.Dense(16, 32, Flux.leakyrelu),
-        Flux.Dense(32, nqueens_generator.board_size),
+        Flux.Dense(32, 32, Flux.leakyrelu),
+        Flux.Dense(32, N),
     )
 ) #|> gpu
 
@@ -64,6 +77,6 @@ agent = RL.Agent(
     trajectory = RL.CircularArraySLARTTrajectory(
         capacity = 1000,
         state = SeaPearl.DefaultTrajectoryState[] => (),
-        legal_actions_mask = Vector{Bool} => (nqueens_generator.board_size, ),
+        legal_actions_mask = Vector{Bool} => (N, ),
     )
 )

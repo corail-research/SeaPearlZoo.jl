@@ -1,16 +1,12 @@
 using SeaPearl
+using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
-using Zygote
 using GeometricFlux
-using Random
 using BSON: @save, @load
-using DataFrames
-using CSV
-using Plots
+using Random
 using Statistics
-gr()
 
 include("rewards.jl")
 include("features.jl")
@@ -18,25 +14,23 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-nqueens_generator = SeaPearl.NQueensGenerator(8)
+nqueens_generator = SeaPearl.NQueensGenerator(25)
 #model = model_queens(4)
-#SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization}(model)
+SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
 #gplot(SR.cplayergraph)
 
 # -------------------
 # Internal variables
 # -------------------
-numInFeatures = SeaPearl.feature_length(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
-state_size = SeaPearl.arraybuffer_dims(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
-maxNumberOfCPNodes = state_size[1]
+numInFeatures = SeaPearl.feature_length(SR)
 
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 5000
+nbEpisodes = 100
 evalFreq = 300
 nbInstances = 1
-nbRandomHeuristics = 1
+nbRandomHeuristics = 0
 
 # -------------------
 # Agent definition
@@ -46,7 +40,7 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{BetterFeaturization}, InspectReward, SeaPearl.FixedOutput}(agent, maxNumberOfCPNodes)
+learnedHeuristic = SeaPearl.LearnedHeuristic{SR, InspectReward, SeaPearl.FixedOutput}(agent)
 
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -89,16 +83,15 @@ function trytrain(nbEpisodes::Int)
         valueSelectionArray=valueSelectionArray,
         generator=nqueens_generator,
         nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch,
+        strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=false,
-        verbose = true,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances)
+        verbose = false,
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances),
+        restartPerInstances = 1
     )
 
     #saving model weights
-    trained_weights = params(approximator_model)
-    @save "model_weights_gc"*string(nqueens_generator.board_size)*".bson" trained_weights
 
     return metricsArray, eval_metricsArray
 end
@@ -109,3 +102,4 @@ end
 # -------------------
 
 metricsArray, eval_metricsArray = trytrain(nbEpisodes)
+nothing

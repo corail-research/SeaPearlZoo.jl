@@ -1,4 +1,4 @@
-#An inspect Reward to find a solution in a few number of steps, in the case when one episode corresponds to finind a solution.
+
 
 mutable struct InspectReward <: SeaPearl.AbstractReward
     value::Float32
@@ -10,6 +10,7 @@ function SeaPearl.set_reward!(::Type{SeaPearl.StepPhase}, lh::SeaPearl.LearnedHe
     SR <: SeaPearl.AbstractStateRepresentation,
     O <: SeaPearl.ActionOutput
 }
+    lh.reward.value += -1
     nothing
 end
 
@@ -25,9 +26,6 @@ function SeaPearl.set_reward!(::Type{SeaPearl.EndingPhase}, lh::SeaPearl.Learned
     SR <: SeaPearl.AbstractStateRepresentation,
     O <: SeaPearl.ActionOutput
 }
-    if symbol == :Feasible || symbol == :FoundSolution
-        lh.reward.value += 200
-    else
-        lh.reward.value-=100
-    end
+    lh.reward.value += 100
+    nothing
 end

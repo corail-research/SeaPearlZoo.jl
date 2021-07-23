@@ -1,68 +1,78 @@
 # Model definition
-approximator_model = SeaPearl.FlexGNN(
+n = coloring_generator.n
+approximator_GNN = GeometricFlux.GraphConv(16 => 16, Flux.leakyrelu)
+target_approximator_GNN = GeometricFlux.GraphConv(16 => 16, Flux.leakyrelu)
+gnnlayers = 2
+
+approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+        GeometricFlux.GraphConv(numInFeatures => 16, Flux.leakyrelu),
+        [approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(16, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(20, coloring_generator.n)
-)
-target_approximator_model = SeaPearl.FlexGNN(
+    #globalChain = Flux.Chain(
+    ##    Flux.Dense(numGlobalFeature, 64, Flux.leakyrelu),
+    #    Flux.Dense(64, 32, Flux.leakyrelu),
+    #    Flux.Dense(32, 16, Flux.leakyrelu),
+    #),
+    outputChain = Flux.Chain(
+        Flux.Dense(16, 16, Flux.leakyrelu),
+        Flux.Dense(16, n),
+    )) #|> gpu
+target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GATConv(numInFeatures => 10, heads=2, concat=true),
-        GeometricFlux.GATConv(20 => 20, heads=2, concat=false),
+        GeometricFlux.GraphConv(numInFeatures => 16, Flux.leakyrelu),
+        [target_approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
-        Flux.Dense(20, 20),
+        Flux.Dense(16, 32, Flux.leakyrelu),
+        Flux.Dense(32, 16, Flux.leakyrelu),
     ),
-    outputLayer = Flux.Dense(20, coloring_generator.n)
-)
+    #globalChain = Flux.Chain(
+    ##    Flux.Dense(numGlobalFeature, 64, Flux.leakyrelu),
+    #    Flux.Dense(64, 32, Flux.leakyrelu),
+    #    Flux.Dense(32, 16, Flux.leakyrelu),
+    #),
+    outputChain = Flux.Chain(
+        Flux.Dense(16, 16, Flux.leakyrelu),
+        Flux.Dense(16, n),
+    ) #|> gpu
+) #|> gpu
 
-if isfile("model_weights_gc"*string(coloring_generator.n)*".bson")
-    println("Parameters loaded from ", "model_weights_gc"*string(coloring_generator.n)*".bson")
-    @load "model_weights_gc"*string(coloring_generator.n)*".bson" trained_weights
-    Flux.loadparams!(approximator_model, trained_weights)
-    Flux.loadparams!(target_approximator_model, trained_weights)
-end
 
-# Agent definition
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = RL.DQNLearner(
             approximator = RL.NeuralNetworkApproximator(
                 model = approximator_model,
-                optimizer = ADAM(0.0005f0)
+                optimizer = ADAM()
             ),
             target_approximator = RL.NeuralNetworkApproximator(
                 model = target_approximator_model,
-                optimizer = ADAM(0.0005f0)
+                optimizer = ADAM()
             ),
             loss_func = Flux.Losses.huber_loss,
-            stack_size = nothing,
-            γ = 0.9999f0,
-            batch_size = 1, #32,
-            update_horizon = 25,
-            min_replay_history = 1,
-            update_freq = 10,
-            target_update_freq = 200,
-        ), 
+            γ = 0.9f0,
+            batch_size = 8, #32,
+            update_horizon = 10, #what if the number of nodes in a episode is smaller
+            min_replay_history = 8,
+            update_freq = 8,
+            target_update_freq = 100,
+        ),
         explorer = RL.EpsilonGreedyExplorer(
-            ϵ_stable = 0.001,
-            kind = :exp,
-            ϵ_init = 1.0,
-            warmup_steps = 0,
-            decay_steps = 5000,
+            ϵ_stable = 0.01,
+            #kind = :exp,
+            decay_steps = nbEpisodes,
             step = 1,
-            is_break_tie = false, 
-            #is_training = true,
-            rng = MersenneTwister(33)
+            #rng = rng
         )
     ),
     trajectory = RL.CircularArraySLARTTrajectory(
-        capacity = 8000,
-        state = Matrix{Float32} => state_size,
-        legal_actions_mask = Vector{Bool} => (coloring_generator.n, ),
+        capacity = 1000,
+        state = SeaPearl.DefaultTrajectoryState[] => (),
+        legal_actions_mask = Vector{Bool} => (n, ),
     )
 )

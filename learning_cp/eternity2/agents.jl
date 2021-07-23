@@ -1,111 +1,70 @@
-using SeaPearl
-using ReinforcementLearning
-const RL = ReinforcementLearning
-using Flux
-using Zygote
-using GeometricFlux
-using Random
-using BSON: @save, @load
-using DataFrames
-using CSV
-using Plots
-using Statistics
-gr()
+# Model definition
+n = eternity2_generator.n
+m = eternity2_generator.m
 
-include("rewards.jl")
-include("features.jl")
+activation = Flux.leakyrelu
+approximator_GNN = GeometricFlux.GraphConv(64 => 64, activation)
+target_approximator_GNN = GeometricFlux.GraphConv(64 => 64, activation)
+gnnlayers = 1
 
-# -------------------
-# Generator
-# -------------------
-eternity2_generator = SeaPearl.Eternity2Generator(4,4,5)
-#model = model_queens(4)
-#SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization}(model)
-#gplot(SR.cplayergraph)
+approximator_model = SeaPearl.FullFeaturedCPNN(
+    graphChain = Flux.Chain(
+        GeometricFlux.GraphConv(numInFeatures=>12, activation),GeometricFlux.GraphConv(12=>12, activation)
+    ),
+    nodeChain = Flux.Chain(
+    Flux.Dense(12, 12, activation),
+    ),
+    outputChain = Flux.Chain(
+        Flux.Dense(24, 32, activation),
+        Flux.Dense(32, 1),
+    ),
+) #|> gpu
+target_approximator_model = SeaPearl.FullFeaturedCPNN(
+    graphChain = Flux.Chain(
+        GeometricFlux.GraphConv(numInFeatures=>12, activation),
+        GeometricFlux.GraphConv(12=>12, activation)
+    ),
+    nodeChain = Flux.Chain(
+    Flux.Dense(12, 12, activation),
+    ),
+    outputChain = Flux.Chain(
+        Flux.Dense(24, 32, activation),
+        Flux.Dense(32, 1),
+    ),
+) #|> gpu
 
-# -------------------
-# Internal variables
-# -------------------
-numInFeatures = SeaPearl.feature_length(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
-state_size = SeaPearl.arraybuffer_dims(nqueens_generator, SeaPearl.DefaultStateRepresentation{BetterFeaturization})
-maxNumberOfCPNodes = state_size[1]
+#rng = MersenneTwister(33)
 
-# -------------------
-# Experience variables
-# -------------------
-nbEpisodes = 5000
-evalFreq = 300
-nbInstances = 1
-nbRandomHeuristics = 1
-
-# -------------------
-# Agent definition
-# -------------------
-include("agents.jl")
-
-# -------------------
-# Value Heuristic definition
-# -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SeaPearl.DefaultStateRepresentation{BetterFeaturization}, InspectReward, SeaPearl.FixedOutput}(agent, maxNumberOfCPNodes)
-
-# Basic value-selection heuristic
-selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
-heuristic_min = SeaPearl.BasicHeuristic(selectMin)
-
-function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
-    selected_number = rand(1:length(x.domain))
-    i = 1
-    for value in x.domain
-        if i == selected_number
-            return value
-        end
-        i += 1
-    end
-    @assert false "This should not happen"
-end
-
-randomHeuristics = []
-for i in 1:nbRandomHeuristics
-    push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
-end
-
-valueSelectionArray = [learnedHeuristic, heuristic_min]
-append!(valueSelectionArray, randomHeuristics)
-# -------------------
-# Variable Heuristic definition
-# -------------------
-variableSelection = SeaPearl.MinDomainVariableSelection{false}()
-
-# -------------------
-# -------------------
-# Core function
-# -------------------
-# -------------------
-
-function trytrain(nbEpisodes::Int)
-
-
-    metricsArray, eval_metricsArray = SeaPearl.train!(
-        valueSelectionArray=valueSelectionArray,
-        generator=nqueens_generator,
-        nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch,
-        variableHeuristic=variableSelection,
-        out_solver=false,
-        verbose = true,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances)
+agent = RL.Agent(
+    policy = RL.QBasedPolicy(
+        learner = RL.DQNLearner(
+            approximator = RL.NeuralNetworkApproximator(
+                model = approximator_model,
+                optimizer = ADAM()
+            ),
+            target_approximator = RL.NeuralNetworkApproximator(
+                model = target_approximator_model,
+                optimizer = ADAM()
+            ),
+            loss_func = Flux.Losses.huber_loss,
+            γ = 0.9f0,
+            batch_size = 8, #32,
+            update_horizon = 7,
+            min_replay_history = 8,
+            update_freq = 8,
+            target_update_freq = 100,
+            #rng = rng,
+        ),
+        explorer = RL.EpsilonGreedyExplorer(
+            ϵ_stable = 0.01,
+            #kind = :exp,
+            decay_steps = nbEpisodes,
+            step = 1,
+        )
+    ),
+    trajectory = RL.CircularArraySLARTTrajectory(
+        capacity = 200,
+        state = SeaPearl.DefaultTrajectoryState[] => (),
+        legal_actions_mask = Vector{Bool} => (n*m, ),
     )
-
-    #saving model weights
-    trained_weights = params(approximator_model)
-    @save "model_weights_gc"*string(nqueens_generator.board_size)*".bson" trained_weights
-
-    return metricsArray, eval_metricsArray
-end
-
-
-
-# -------------------
-# -------------------
-
-metricsArray, eval_metricsArray = trytrain(nbEpisodes)
+)
