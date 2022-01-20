@@ -11,7 +11,7 @@ To launch this example, you need to have the package `SeaPearl` added to your en
 
 ## Usage
 
-Being inside that folder in the terminal (`examples/nqueens/`), you can launch:
+Being inside that folder in the terminal (`classic_cp/nqueens/`), you can launch:
 
 ```julia
 julia> include("nqueens.jl")
