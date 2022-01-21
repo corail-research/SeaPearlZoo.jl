@@ -14,9 +14,9 @@ To launch this example, you need to have the package `SeaPearl` added to your en
 Being inside that folder in the terminal (`classic_cp/nqueens/`), you can launch:
 
 ```julia
-julia> include("nqueens.jl");
-julia> model_solved = solve_queens(8);
-julia> print_queens(model_solved;nb_sols=5);
+julia> include("nqueens.jl")
+julia> model_solved = solve_queens(8)
+julia> print_queens(model_solved;nb_sols=5)
 ```
 
 ## Contributing
