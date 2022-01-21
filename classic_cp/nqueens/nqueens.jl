@@ -150,15 +150,16 @@ function print_queens(model::SeaPearl.CPModel; nb_sols=typemax(Int))
     solutions = model.statistics.solutions
     board_size = length(model.variables)
     count = 0
-    println("The solver found "*string(length(solutions))*" solutions to the "*string(board_size)*"-queens problem. Let's show them.")
+    real_solutions = filter(e -> !isnothing(e),solutions)
+    println("The solver found "*string(length(real_solutions))*" solutions to the "*string(board_size)*"-queens problem. Let's show them.")
     println()
-    for key in keys(solutions)
+    for key in keys(real_solutions)
         if(count >= nb_sols)
             break
         end
+        sol = real_solutions[key]
         println("Solution "*string(count+1))
         count +=1
-        sol = solutions[key]
         for i in 1:board_size
             ind_queen = sol["row_"*string(i)]
             for j in 1:board_size
@@ -186,15 +187,16 @@ function print_queens(board_size::Int; nb_sols=typemax(Int), benchmark=false, va
     variables = model.variables
     solutions = model.statistics.solutions
     count = 0
-    println("The solver found "*string(length(solutions))*" solutions to the "*string(board_size)*"-queens problem. Let's show them.")
+    real_solutions = filter(e -> !isnothing(e),solutions)
+    println("The solver found "*string(length(real_solutions))*" solutions to the "*string(board_size)*"-queens problem. Let's show them.")
     println()
-    for key in keys(solutions)
+    for key in keys(real_solutions)
         if(count >= nb_sols)
             break
         end
         println("Solution "*string(count+1))
         count +=1
-        sol = solutions[key]
+        sol = real_solutions[key]
         for i in 1:board_size
             ind_queen = sol["row_"*string(i)]
             for j in 1:board_size
