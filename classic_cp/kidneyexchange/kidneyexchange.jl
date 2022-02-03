@@ -1,5 +1,3 @@
-using Base: input_color
-using SeaPearl: initialPruning!
 using SeaPearl
 struct InputData
     numberOfPairs         :: Int
@@ -72,24 +70,24 @@ function solve_kidneyexchange_bis(filename::String)
     for i = 1:n
         for j in 1:n
             if j ∉ c[i]
-                push!(model.constraints, SeaPearl.NotEqualConstant(x[i], j, trailer))
+                SeaPearl.addConstraint!(model, SeaPearl.NotEqualConstant(x[i], j, trailer))
             end
         end
     end
-    push!(model.constraints, SeaPearl.AllDifferent(x, trailer))
+    SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(x, trailer))
 
     # additional constraint: sum(x_offset) = 0
 
     ### Objective ###
     numberOfExchanges = SeaPearl.IntVar(-n, 0, "numberOfExchanges", trailer) 
-    SeaPearl.addVariable!(model, numberOfExchanges)
+    SeaPearl.addVariable!(model, numberOfExchanges; branchable=true)
     vars = SeaPearl.AbstractIntVar[]
     for i in 1:n
         vars = cat(vars, int2bool(x_offset[i]); dims=1) #TODO int2bool?
     end
     push!(vars, numberOfExchanges)
     objective = SeaPearl.SumToZero(vars, trailer)
-    push!(model.constraints, objective)
+    SeaPearl.addConstraint!(model, objective)
     SeaPearl.addObjective!(model, numberOfExchanges)
 
     ### Solve ###
@@ -115,8 +113,8 @@ Return the SeaPearl model solved for to the KEP problem, using SeaPearl.MinDomai
 # Branchable variables
 - matrix n x n where: 
     n is the reduced number of pairs
-    m[i, j] = 1 => pair i receive a kidney from pair j
-    m[i, j] = 0 => pair i do not receive a kidney from pair j
+    x[i, j] = 1 => pair i receive a kidney from pair j
+    x[i, j] = 0 => pair i do not receive a kidney from pair j
 """
 function solve_kidneyexchange(filename::String)
     InputData = getInputData(filename)
@@ -128,6 +126,8 @@ function solve_kidneyexchange(filename::String)
     ### Try to reduce problem ###    
     canReduce = true
     current_n = n
+
+    #Remove recursively from vectors in compatibilities the pairs that can't receive nor give any kidney
     while canReduce
         flatten_c = reduce(vcat,c)
         usefullPairs = [i for i in 1:n if i in flatten_c && c[i] != []] 
@@ -139,6 +139,7 @@ function solve_kidneyexchange(filename::String)
         end
     end
 
+    #Create a vector (pairsEquivalence) to record the equivalence between the original instance and the reduced version
     count = 1
     pairsEquivalence = []
     for i in 1:n
@@ -150,8 +151,10 @@ function solve_kidneyexchange(filename::String)
         end
     end
 
+    #Remove from compatibilities the isolated pairs
     c = filter(e -> !isempty(e), c)
 
+    #Update compatibilities using pairsEquivalence
     for i in 1:length(c)
         c[i] = map(e -> pairsEquivalence[e], c[i])
     end
@@ -161,41 +164,59 @@ function solve_kidneyexchange(filename::String)
     n = current_n
     
     ### Variable declaration ###    
-    x = Matrix{SeaPearl.AbstractIntVar}(undef, n, n) 
-    minusx = Matrix{SeaPearl.AbstractIntVar}(undef, n, n) 
+
+    #x[i, j] = 1 => pair i receive a kidney from pair j
+    #x[i, j] = 0 => pair i do not receive a kidney from pair j
+    x = Matrix{SeaPearl.AbstractIntVar}(undef, n, n)
+
+    #minus_x = x * -1
+    #Usefull to check with SumToZero that for each pair: give a kidney <=> receive a kidney
+    minus_x = Matrix{SeaPearl.AbstractIntVar}(undef, n, n) 
 
     for i = 1:n
         for j = 1:n
             if j ∈ c[i]
                 x[i, j] = SeaPearl.IntVar(0, 1, "x_"*string(i)*"_"*string(j), model.trailer)
                 SeaPearl.addVariable!(model, x[i, j]; branchable=true)
-                minusx[i, j] = SeaPearl.IntVarViewOpposite(x[i, j], "-x_"*string(i)*"_"*string(j))
+                minus_x[i, j] = SeaPearl.IntVarViewOpposite(x[i, j], "-x_"*string(i)*"_"*string(j))
             else
+                #force x[i, j] = 0 as j ∉ c[i]
                 x[i, j] = SeaPearl.IntVar(0, 0, "x_"*string(i)*"_"*string(j), model.trailer)
                 SeaPearl.addVariable!(model, x[i, j]; branchable=false)
-                minusx[i, j] = SeaPearl.IntVarViewOpposite(x[i, j], "-x_"*string(i)*"_"*string(j))
+                minus_x[i, j] = SeaPearl.IntVarViewOpposite(x[i, j], "-x_"*string(i)*"_"*string(j))
             end
         end
     end
 
     ### Constraints ###
     for i = 1:n
-        push!(model.constraints, SeaPearl.SumLessThan(x[i, :], 1, trailer))
-        push!(model.constraints, SeaPearl.SumLessThan(x[:, i], 1, trailer))
-        push!(model.constraints, SeaPearl.SumToZero(hcat(x[:, i], minusx[i, :]), trailer))
+        #Check that any pair receives more than 1 kidney
+        SeaPearl.addConstraint!(model, SeaPearl.SumLessThan(x[i, :], 1, trailer))
+
+        #Check that any pair gives more than 1 kidney
+        SeaPearl.addConstraint!(model, SeaPearl.SumLessThan(x[:, i], 1, trailer))
+
+        #Check that for each pair: give a kidney <=> receive a kidney
+        SeaPearl.addConstraint!(model, SeaPearl.SumToZero(hcat(x[:, i], minus_x[i, :]), trailer))
     end
 
     ### Objective ###
-    numberOfExchanges = SeaPearl.IntVar(-n, 0, "numberOfExchanges", trailer) 
-    SeaPearl.addVariable!(model, numberOfExchanges)
+
+    #SeaPearl's solver minimize the objective variable, so we use minusNumberOfExchanges in order to maximize the number of exchanges
+    minusNumberOfExchanges = SeaPearl.IntVar(-n, 0, "minusNumberOfExchanges", trailer) 
+    SeaPearl.addVariable!(model, minusNumberOfExchanges; branchable=false)
     vars = SeaPearl.AbstractIntVar[]
+
+    #Concatenate all values of x and minusNumberOfExchanges
     for i in 1:n
         vars = cat(vars, x[i, :]; dims=1)
     end
-    push!(vars, numberOfExchanges)
+    push!(vars, minusNumberOfExchanges)
+
+    #minusNumberOfExchanges will take the necessary value to compensate the occurences of "1" in x
     objective = SeaPearl.SumToZero(vars, trailer)
-    push!(model.constraints, objective)
-    SeaPearl.addObjective!(model, numberOfExchanges)
+    SeaPearl.addConstraint!(model, objective)
+    SeaPearl.addObjective!(model, minusNumberOfExchanges)
 
     ### Solve ###
     @time SeaPearl.solve!(model; variableHeuristic=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
@@ -216,6 +237,8 @@ Print the optimal solution (in matrix form and as a set of cycles) calculated by
 """
 
 function print_solutions(solved_model::SeaPearl.CPModel)
+
+    #Filter solutions to remove "nothing" and non-optimal solutions
     solutions = solved_model.statistics.solutions
     numberOfPairs = trunc(Int, sqrt(length(solved_model.variables) - 1))
     count = 0
@@ -225,9 +248,12 @@ function print_solutions(solved_model::SeaPearl.CPModel)
     bestSolution = filter(e -> -minimum(values(e)) == bestScore, realSolutions)
     println("The solver found an optimal solutions with "*string(bestScore)*" exchanges to the KEP problem. Let's show it.")
     println()
+
     for sol in bestSolution
         
         #Print matrix
+        println("Solution as a matrix:")
+        println()
         coordOnes = []
         count +=1
         for i in 1:numberOfPairs
@@ -243,6 +269,8 @@ function print_solutions(solved_model::SeaPearl.CPModel)
         println()
 
         #Find cycles
+        println("Solution as a set of cycles:")
+        println()
         cycles = []
         while !isempty(coordOnes)
             current = pop!(coordOnes)
@@ -251,6 +279,7 @@ function print_solutions(solved_model::SeaPearl.CPModel)
             if current[1] != current[2]
                 isOpen = true
             else
+                #Edge case: pair i is compatible with itself
                 isOpen = false
             end
 

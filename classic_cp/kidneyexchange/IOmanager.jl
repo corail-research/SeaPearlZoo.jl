@@ -27,6 +27,7 @@ function parseInput(raw_input)
 
     for i = 2:numberOfPairs+1
         if isempty(lines[i])
+            #Edge case: pair i can't receive any kidney
             compabilities[i-1] = []
         else
             line = split(lines[i],' ')
