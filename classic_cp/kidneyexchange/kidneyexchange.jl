@@ -1,18 +1,10 @@
+using Base: input_color
+using SeaPearl: initialPruning!
 using SeaPearl
-
-"""
-Instances format
-4 0.33 #numberOfPairs density
-2 4    #pair 1 can receive a kidney from pairs 2 and 4
-1      #pair 2 can receive a kidney from pair 1
-4      #pair 3 can receive a kidney from pair 4
-3      #pair 4 can receive a kidney from pair 3
-"""
-
 struct InputData
     numberOfPairs         :: Int
     density               :: Float16
-    compatibilities       :: Vector{Union{Vector{Int}, Nothing}}
+    compatibilities       :: Vector{Vector{Int}}
 end
 
 include("IOmanager.jl")
@@ -86,7 +78,7 @@ function solve_kidneyexchange_bis(filename::String)
     end
     push!(model.constraints, SeaPearl.AllDifferent(x, trailer))
 
-    # additional constraint: sum(x - x_offset) = 0
+    # additional constraint: sum(x_offset) = 0
 
     ### Objective ###
     numberOfExchanges = SeaPearl.IntVar(-n, 0, "numberOfExchanges", trailer) 
@@ -109,17 +101,27 @@ end
 """
 solve_kidneyexchange(filename::String)
 
-return the SeaPearl model solved for to the KEP problem, using SeaPearl.MinDomainVariableSelection and SeaPearl.BasicHeuristic
+Return the SeaPearl model solved for to the KEP problem, using SeaPearl.MinDomainVariableSelection and SeaPearl.BasicHeuristic
 
-Constraints used: SumLessThan and SumToZero
+# Arguments
+- `filename`: file containing the compatibilities between pairs
+
+# Constraints
+- SumLessThan
+- SumToZero
+
+# Objective: maximize the number of valid exchanges
+
+# Branchable variables
+- matrix n x n where: 
+    n is the reduced number of pairs
+    m[i, j] = 1 => pair i receive a kidney from pair j
+    m[i, j] = 0 => pair i do not receive a kidney from pair j
 """
 function solve_kidneyexchange(filename::String)
-    
     InputData = getInputData(filename)
-
     n = InputData.numberOfPairs
     c = InputData.compatibilities
-
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
 
@@ -170,7 +172,7 @@ function solve_kidneyexchange(filename::String)
                 minusx[i, j] = SeaPearl.IntVarViewOpposite(x[i, j], "-x_"*string(i)*"_"*string(j))
             else
                 x[i, j] = SeaPearl.IntVar(0, 0, "x_"*string(i)*"_"*string(j), model.trailer)
-                SeaPearl.addVariable!(model, x[i, j]; branchable=true)
+                SeaPearl.addVariable!(model, x[i, j]; branchable=false)
                 minusx[i, j] = SeaPearl.IntVarViewOpposite(x[i, j], "-x_"*string(i)*"_"*string(j))
             end
         end
@@ -201,29 +203,32 @@ function solve_kidneyexchange(filename::String)
 end
 
 """
-Solutions format
-m[i, j] means that pair i receive a kidney from pair j
+print_solutions(solved_model::SeaPearl.CPModel)
+
+Print the optimal solution (in matrix form and as a set of cycles) calculated by solve_kidneyexchange()
+
+# Print format
+- matrix form
+    m[i, j] = 1 => pair i receive a kidney from pair j
+    m[i, j] = 0 => pair i do not receive a kidney from pair j
+- set of cycles form
+    4 -> 7 -> 1 => pair 4 gives a kidney to pair 7, pair 7 gives a kidney to pair 1 and pair 1 gives a kidney to pair 4
 """
 
-function print_solutions(model::SeaPearl.CPModel; nb_sols=typemax(Int))
-    solutions = model.statistics.solutions
-    numberOfPairs = trunc(Int, sqrt(length(model.variables) - 1))
+function print_solutions(solved_model::SeaPearl.CPModel)
+    solutions = solved_model.statistics.solutions
+    numberOfPairs = trunc(Int, sqrt(length(solved_model.variables) - 1))
     count = 0
     realSolutions = filter(e -> !isnothing(e),solutions)
     bestScores = map(e -> -minimum(values(e)),realSolutions)
     bestScore = maximum(bestScores)
-    bestSolutions = filter(e -> -minimum(values(e)) == bestScore, realSolutions)
-    println("The solver found "*string(length(bestSolutions))*" optimal solutions ("*string(bestScore)*" exchanges) to the KEP problem. Let's show them.")
+    bestSolution = filter(e -> -minimum(values(e)) == bestScore, realSolutions)
+    println("The solver found an optimal solutions with "*string(bestScore)*" exchanges to the KEP problem. Let's show it.")
     println()
-    for sol in bestSolutions
-        if(count >= nb_sols)
-            break
-        end
-        coordOnes = []
-        println("Solution "*string(count+1))
-        println()
-
+    for sol in bestSolution
+        
         #Print matrix
+        coordOnes = []
         count +=1
         for i in 1:numberOfPairs
             for j in 1:numberOfPairs
@@ -237,7 +242,7 @@ function print_solutions(model::SeaPearl.CPModel; nb_sols=typemax(Int))
         end
         println()
 
-        #Print cycles
+        #Find cycles
         cycles = []
         while !isempty(coordOnes)
             current = pop!(coordOnes)
@@ -260,6 +265,7 @@ function print_solutions(model::SeaPearl.CPModel; nb_sols=typemax(Int))
             push!(cycles, cycle)
         end
         
+        #Print cycles
         for c in cycles
             print("Cycle of size "*string(length(c))*": ")
             for p in c
@@ -273,6 +279,3 @@ function print_solutions(model::SeaPearl.CPModel; nb_sols=typemax(Int))
         end
     end
 end
-
-
-
