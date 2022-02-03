@@ -34,25 +34,22 @@ function solve_kidneyexchange_bis(filename::String)
         end
     end
 
-    count = 1
     pairsEquivalence = []
     for i in 1:n
-        if isempty(c[i])
-            push!(pairsEquivalence, nothing)
-        else
-            push!(pairsEquivalence, count)
-            count += 1
+        if !isempty(c[i])
+            push!(pairsEquivalence, i)
         end
     end
+    findfirst(x-> x == pair[1], pairsEquivalence)
 
     c = filter(e -> !isempty(e), c)
 
     for i in 1:length(c)
-        c[i] = map(e -> pairsEquivalence[e], c[i])
+        c[i] = map(e -> findfirst(x-> x == e, pairsEquivalence), c[i])
         push!(c[i], i)
     end
 
-    println("Instance reduction: original size "*string(n)*", new size "*string(current_n))
+    println("Instance reduction: original size "*string(n)*", reduced size "*string(current_n))
     println()
     n = current_n
     
@@ -117,6 +114,7 @@ Return the SeaPearl model solved for to the KEP problem, using SeaPearl.MinDomai
     x[i, j] = 0 => pair i do not receive a kidney from pair j
 """
 function solve_kidneyexchange(filename::String)
+
     InputData = getInputData(filename)
     n = InputData.numberOfPairs
     c = InputData.compatibilities
@@ -139,29 +137,32 @@ function solve_kidneyexchange(filename::String)
         end
     end
 
-    #Create a vector (pairsEquivalence) to record the equivalence between the original instance and the reduced version
-    count = 1
-    pairsEquivalence = []
-    for i in 1:n
-        if isempty(c[i])
-            push!(pairsEquivalence, nothing)
-        else
-            push!(pairsEquivalence, count)
-            count += 1
+    #Check if problem is reduced
+    if n != current_n
+
+        #Create a vector (pairsEquivalence) to record the equivalence between the original instance and the reduced version
+        pairsEquivalence = []
+        for i in 1:n
+            if !isempty(c[i])
+                push!(pairsEquivalence, i)
+            end
         end
+        model.adhocInfo = pairsEquivalence
+    
+        #Remove from compatibilities the isolated pairs
+        c = filter(e -> !isempty(e), c)
+
+        #Update compatibilities using pairsEquivalence
+        for i in 1:length(c)
+            c[i] = map(e -> findfirst(x-> x == e, pairsEquivalence), c[i])
+        end
+
+        println("Instance reduction: original size "*string(n)*", reduced size "*string(current_n))
+        println()
+        n = current_n
+    else
+        println("Irreductible instance")
     end
-
-    #Remove from compatibilities the isolated pairs
-    c = filter(e -> !isempty(e), c)
-
-    #Update compatibilities using pairsEquivalence
-    for i in 1:length(c)
-        c[i] = map(e -> pairsEquivalence[e], c[i])
-    end
-
-    println("Instance reduction: original size "*string(n)*", new size "*string(current_n))
-    println()
-    n = current_n
     
     ### Variable declaration ###    
 
@@ -240,6 +241,12 @@ function print_solutions(solved_model::SeaPearl.CPModel)
 
     #Filter solutions to remove "nothing" and non-optimal solutions
     solutions = solved_model.statistics.solutions
+    if isdefined(solved_model, :adhocInfo)
+        isReduced = true
+        pairsEquivalence = solved_model.adhocInfo
+    else
+        isReduced = false
+    end
     numberOfPairs = trunc(Int, sqrt(length(solved_model.variables) - 1))
     count = 0
     realSolutions = filter(e -> !isnothing(e),solutions)
@@ -252,7 +259,8 @@ function print_solutions(solved_model::SeaPearl.CPModel)
     for sol in bestSolution
         
         #Print matrix
-        println("Solution as a matrix:")
+        print("Solution as a matrix")
+        if isReduced print(" (reduced instance)") end
         println()
         coordOnes = []
         count +=1
@@ -269,7 +277,8 @@ function print_solutions(solved_model::SeaPearl.CPModel)
         println()
 
         #Find cycles
-        println("Solution as a set of cycles:")
+        print("Solution as a set of cycles")
+        if isReduced print(" (original instance)") end
         println()
         cycles = []
         while !isempty(coordOnes)
@@ -295,16 +304,26 @@ function print_solutions(solved_model::SeaPearl.CPModel)
         end
         
         #Print cycles
-        for c in cycles
-            print("Cycle of size "*string(length(c))*": ")
-            for p in c
-                print(string(p[1]))
-                if p != c[end]
+        for cycle in cycles
+            print("Cycle of size "*string(length(cycle))*": ")
+            for pair in cycle
+                isReduced ? print(string(pairsEquivalence[pair[1]])) : print(string(pair[1]))
+                if pair != cycle[end]
                     print(" -> ")
                 end
             end
-            println()
-            println()
+            println("\n")
+        end
+
+        #Print pairsEquivalence (link between the original pairs and the reduced pairs)
+        if isReduced
+            println("Table of equivalence: Original pair | Reduced pair")
+            for i in 1:length(pairsEquivalence)
+                #Pad with whitespace to align values
+                firstPair = string(pairsEquivalence[i])
+                formatedFirstPair = firstPair*" "^(length(string(pairsEquivalence[end]))-length(firstPair))
+                println(formatedFirstPair*" | "*string(i))
+            end
         end
     end
 end

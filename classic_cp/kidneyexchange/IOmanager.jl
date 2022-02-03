@@ -25,6 +25,7 @@ function parseInput(raw_input)
 
     compabilities = Vector{Vector{Int}}(undef, numberOfPairs)
 
+    #TODO remove hypothetical white space at the end of lines
     for i = 2:numberOfPairs+1
         if isempty(lines[i])
             #Edge case: pair i can't receive any kidney
