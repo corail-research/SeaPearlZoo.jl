@@ -18,13 +18,25 @@ To launch this example, you need to have the package `SeaPearl` added to your en
 
 Being inside that folder in the terminal (`classic_cp/kidneyexchange/`), you can launch:
 
+### Model A (solution as a matrix)
+
 ```julia
 julia> include("kidneyexchange.jl");
-julia> model_solved = solve_kidneyexchange("data/kep_8_0.2");
-julia> print_solutions(model_solved);
+julia> model_solved = solve_kidneyexchange_matrix("data/kep_8_0.2");
+julia> print_solutions_matrix(model_solved);
 ```
 
 This will print the solutions found as a matrix and a list of cycles.
+
+### Model B (solution as a vector)
+
+```julia
+julia> include("kidneyexchange.jl");
+julia> model_solved = solve_kidneyexchange_vector("data/kep_8_0.2");
+julia> print_solutions_vector(model_solved);
+```
+
+This will print the solutions found as a vector and a list of cycles.
 
 ## Instance example: 
 4 0.33 #numberOfPairs density

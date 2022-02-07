@@ -8,95 +8,124 @@ end
 include("IOmanager.jl")
 
 """
-    Unfinished version, problem defining the objective (how to convert IntVar to Bool?)
+solve_kidneyexchange_vector(filename::String)
+
+Return the SeaPearl model solved (solution as a vector) for to the KEP problem, using SeaPearl.MinDomainVariableSelection and SeaPearl.BasicHeuristic
+
+# Arguments
+- `filename`: file containing the compatibilities between pairs
+
+# Constraints
+- ReifiedInSet
+- NotEqualConstant
+- AllDifferent
+- SumToZero
+
+# Objective: maximize the number of valid exchanges
+
+# Branchable variables
+- n size vector where: 
+    n is the reduced number of pairs
+    v[i] = j => pair j receive a kidney from pair i
+    v[i] = i => pair i does not participate in any cycle
 """
-function solve_kidneyexchange_bis(filename::String)
+function solve_kidneyexchange_vector(filename::String)
 
-    InputData = getInputData(filename)
-
-    n = InputData.numberOfPairs
-    c = InputData.compatibilities
-
+    inputData = getInputData(filename)
+    c = inputData.compatibilities
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
 
-    ### Try to reduce problem ###    
-    canReduce = true
-    current_n = n
-    while canReduce
-        flatten_c = reduce(vcat,c)
-        usefullPairs = [i for i in 1:n if i in flatten_c && c[i] != []] 
-        if length(usefullPairs) < current_n
-            c = [filter(e -> e in usefullPairs, list) for list in c]
-            current_n = length(usefullPairs)
-        else
-            canReduce = false
-        end
+    ### Attempting to reduce the instance ###    
+    canReduce, pairsEquivalence, reduced_c = reduce_instance(inputData)
+    if canReduce
+        model.adhocInfo = pairsEquivalence
+        c = reduced_c
     end
-
-    pairsEquivalence = []
-    for i in 1:n
-        if !isempty(c[i])
-            push!(pairsEquivalence, i)
-        end
-    end
-    findfirst(x-> x == pair[1], pairsEquivalence)
-
-    c = filter(e -> !isempty(e), c)
-
-    for i in 1:length(c)
-        c[i] = map(e -> findfirst(x-> x == e, pairsEquivalence), c[i])
-        push!(c[i], i)
-    end
-
-    println("Instance reduction: original size "*string(n)*", reduced size "*string(current_n))
-    println()
-    n = current_n
+    n = length(c)
     
     ### Variable declaration ###    
+
+    # x[i] = j => pair j receive a kidney from pair i
+    # x[i] = i => pair i ∉ cycles
     x = Vector{SeaPearl.AbstractIntVar}(undef, n) 
-    x_offset = Vector{SeaPearl.AbstractIntVar}(undef, n) 
+
+    # "fake" variable to know if a pair participate in a cycle
+    index = Vector{SeaPearl.AbstractVar}(undef, n) 
+
+    # "view" variable to be able to use the "ReifiedInSet" constraint
+    # xEqualIndex_Bool[i] = true => i ∉ cycle
+    # xEqualIndex_Bool[i] = false => i ∈ cycle
+    xEqualIndex_Bool = Vector{SeaPearl.AbstractBoolVar}(undef, n)  
+
+    # "view" variable to be able to use the "ReifiedInSet" constraint
+    # xNotEqualIndex_Int[i] = 1 => i ∉ cycle
+    # xNotEqualIndex_Int[i] = 0 => i ∈ cycle
+    xNotEqualIndex_Int = Vector{SeaPearl.AbstractIntVar}(undef, n) 
+
+    # "fake" variable to know if xNotEqualIndex_Int == 0
+    zeroSet = SeaPearl.IntSetVar(0, 0, "zeroSet", model.trailer)
+    # require the unique value to ensure that zeroSet is bounded
+    SeaPearl.require!(zeroSet.domain, 0)
 
     for i = 1:n
         x[i] = SeaPearl.IntVar(1, n, "x_"*string(i), model.trailer)
         SeaPearl.addVariable!(model, x[i]; branchable=true)
-        x_offset[i] = SeaPearl.IntVarViewOffset(x[i], -i, x[i].id*"-"*string(i))
+
+        index[i] = SeaPearl.IntSetVar(i, i, "index_"*string(i), model.trailer)
+        # require the unique value to ensure that isbound(index[i]) return true
+        SeaPearl.require!(index[i].domain, i)
+        
+        xEqualIndex_Bool[i] = SeaPearl.BoolVar("xEqualIndex_Bool_"*string(i), model.trailer)
+        xNotEqualIndex_Int[i] = SeaPearl.IntVar(0, 1,"xNotEqualIndex_Int_"*string(i), model.trailer)
     end
 
     ### Constraints ###
     for i = 1:n
+        #Fix xEqualIndex_Bool
+        SeaPearl.addConstraint!(model, SeaPearl.ReifiedInSet(x[i], index[i], xEqualIndex_Bool[i], trailer))
+
+        #Fix xNotEqualIndex_Int
+        SeaPearl.addConstraint!(model, SeaPearl.ReifiedInSet(xNotEqualIndex_Int[i], zeroSet, xEqualIndex_Bool[i], trailer))
+
+        #Add incompatibilities to the model
         for j in 1:n
-            if j ∉ c[i]
+            if j ∉ c[i] && i !=j
                 SeaPearl.addConstraint!(model, SeaPearl.NotEqualConstant(x[i], j, trailer))
             end
         end
     end
+
+    #Check that any pair receives/gives more than 1 kidney and that for each pair "give a kidney <=> receive a kidney"
     SeaPearl.addConstraint!(model, SeaPearl.AllDifferent(x, trailer))
 
-    # additional constraint: sum(x_offset) = 0
-
     ### Objective ###
-    numberOfExchanges = SeaPearl.IntVar(-n, 0, "numberOfExchanges", trailer) 
-    SeaPearl.addVariable!(model, numberOfExchanges; branchable=true)
+
+    #SeaPearl's solver minimize the objective variable, so we use minusNumberOfExchanges in order to maximize the number of exchanges
+    minusNumberOfExchanges = SeaPearl.IntVar(-n, 0, "minusNumberOfExchanges", trailer) 
+    SeaPearl.addVariable!(model, minusNumberOfExchanges; branchable=false)
     vars = SeaPearl.AbstractIntVar[]
+
+    #Concatenate all values of xNotEqualIndex_Int and minusNumberOfExchanges
     for i in 1:n
-        vars = cat(vars, int2bool(x_offset[i]); dims=1) #TODO int2bool?
+        vars = cat(vars, xNotEqualIndex_Int[i]; dims=1) 
     end
-    push!(vars, numberOfExchanges)
+    push!(vars, minusNumberOfExchanges)
+
+    #minusNumberOfExchanges will take the necessary value to compensate the occurences of "1" in xNotEqualIndex_Int
     objective = SeaPearl.SumToZero(vars, trailer)
     SeaPearl.addConstraint!(model, objective)
-    SeaPearl.addObjective!(model, numberOfExchanges)
+    SeaPearl.addObjective!(model, minusNumberOfExchanges)
 
     ### Solve ###
     @time SeaPearl.solve!(model; variableHeuristic=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     return model
-
 end
 
 """
 solve_kidneyexchange(filename::String)
 
-Return the SeaPearl model solved for to the KEP problem, using SeaPearl.MinDomainVariableSelection and SeaPearl.BasicHeuristic
+Return the SeaPearl model solved (solution as a matrix) for to the KEP problem, using SeaPearl.MinDomainVariableSelection and SeaPearl.BasicHeuristic
 
 # Arguments
 - `filename`: file containing the compatibilities between pairs
@@ -113,56 +142,20 @@ Return the SeaPearl model solved for to the KEP problem, using SeaPearl.MinDomai
     x[i, j] = 1 => pair i receive a kidney from pair j
     x[i, j] = 0 => pair i do not receive a kidney from pair j
 """
-function solve_kidneyexchange(filename::String)
+function solve_kidneyexchange_matrix(filename::String)
 
-    InputData = getInputData(filename)
-    n = InputData.numberOfPairs
-    c = InputData.compatibilities
+    inputData = getInputData(filename)
+    c = inputData.compatibilities
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
 
-    ### Try to reduce problem ###    
-    canReduce = true
-    current_n = n
-
-    #Remove recursively from vectors in compatibilities the pairs that can't receive nor give any kidney
-    while canReduce
-        flatten_c = reduce(vcat,c)
-        usefullPairs = [i for i in 1:n if i in flatten_c && c[i] != []] 
-        if length(usefullPairs) < current_n
-            c = [filter(e -> e in usefullPairs, list) for list in c]
-            current_n = length(usefullPairs)
-        else
-            canReduce = false
-        end
-    end
-
-    #Check if problem is reduced
-    if n != current_n
-
-        #Create a vector (pairsEquivalence) to record the equivalence between the original instance and the reduced version
-        pairsEquivalence = []
-        for i in 1:n
-            if !isempty(c[i])
-                push!(pairsEquivalence, i)
-            end
-        end
+    ### Attempting to reduce the instance ### 
+    canReduce, pairsEquivalence, reduced_c = reduce_instance(inputData)
+    if canReduce
         model.adhocInfo = pairsEquivalence
-    
-        #Remove from compatibilities the isolated pairs
-        c = filter(e -> !isempty(e), c)
-
-        #Update compatibilities using pairsEquivalence
-        for i in 1:length(c)
-            c[i] = map(e -> findfirst(x-> x == e, pairsEquivalence), c[i])
-        end
-
-        println("Instance reduction: original size "*string(n)*", reduced size "*string(current_n))
-        println()
-        n = current_n
-    else
-        println("Irreductible instance")
+        c = reduced_c
     end
+    n = length(c)
     
     ### Variable declaration ###    
 
@@ -224,8 +217,67 @@ function solve_kidneyexchange(filename::String)
     return model
 end
 
+
 """
-print_solutions(solved_model::SeaPearl.CPModel)
+reduce_instance(inputData)
+
+Try to remove recursively from compatibilities the pairs that can't receive nor give any kidney
+Create a vector (pairsEquivalence) to record the equivalence between the original instance and the reduced version
+
+# Output
+- canReduce: bool to know if the instance is reductible
+- pairsEquivalence: vector to record the equivalence between the original instance and the reduced version 
+- c: reduced version of the vector compatibilities
+"""
+function reduce_instance(inputData)
+    n = inputData.numberOfPairs
+    c = inputData.compatibilities
+    canReduce = true
+    current_n = n
+
+    #Remove recursively from vectors in compatibilities the pairs that can't receive nor give any kidney
+    while canReduce
+        flatten_c = reduce(vcat,c)
+        usefullPairs = [i for i in 1:n if i in flatten_c && c[i] != []] 
+        if length(usefullPairs) < current_n
+            c = [filter(e -> e in usefullPairs, list) for list in c]
+            current_n = length(usefullPairs)
+        else
+            canReduce = false
+        end
+    end
+
+    #Check if problem is reduced
+    if n != current_n
+
+        #Create a vector (pairsEquivalence) to record the equivalence between the original instance and the reduced version
+        pairsEquivalence = []
+        for i in 1:n
+            if !isempty(c[i])
+                push!(pairsEquivalence, i)
+            end
+        end
+    
+        #Remove from compatibilities the isolated pairs
+        c = filter(e -> !isempty(e), c)
+
+        #Update compatibilities using pairsEquivalence
+        for i in 1:length(c)
+            c[i] = map(e -> findfirst(x-> x == e, pairsEquivalence), c[i])
+        end
+
+        println("Instance reduction: original size "*string(n)*", reduced size "*string(current_n))
+        println()
+        return true, pairsEquivalence, c
+        
+    else
+        println("Irreductible instance")
+        return false, nothing, nothing
+    end 
+end
+
+"""
+print_solutions_matrix(solved_model::SeaPearl.CPModel)
 
 Print the optimal solution (in matrix form and as a set of cycles) calculated by solve_kidneyexchange()
 
@@ -237,7 +289,7 @@ Print the optimal solution (in matrix form and as a set of cycles) calculated by
     4 -> 7 -> 1 => pair 4 gives a kidney to pair 7, pair 7 gives a kidney to pair 1 and pair 1 gives a kidney to pair 4
 """
 
-function print_solutions(solved_model::SeaPearl.CPModel)
+function print_solutions_matrix(solved_model::SeaPearl.CPModel)
 
     #Filter solutions to remove "nothing" and non-optimal solutions
     solutions = solved_model.statistics.solutions
@@ -248,63 +300,151 @@ function print_solutions(solved_model::SeaPearl.CPModel)
         isReduced = false
     end
     numberOfPairs = trunc(Int, sqrt(length(solved_model.variables) - 1))
-    count = 0
     realSolutions = filter(e -> !isnothing(e),solutions)
     bestScores = map(e -> -minimum(values(e)),realSolutions)
     bestScore = maximum(bestScores)
-    bestSolution = filter(e -> -minimum(values(e)) == bestScore, realSolutions)
+    solution = filter(e -> -minimum(values(e)) == bestScore, realSolutions)[1]
     println("The solver found an optimal solutions with "*string(bestScore)*" exchanges to the KEP problem. Let's show it.")
     println()
-
-    for sol in bestSolution
-        
-        #Print matrix
-        print("Solution as a matrix")
-        if isReduced print(" (reduced instance)") end
-        println()
-        coordOnes = []
-        count +=1
-        for i in 1:numberOfPairs
-            for j in 1:numberOfPairs
-                val = string(sol["x_"*string(i)*"_"*string(j)])
-                print(val*" ")
-                if val == "1"
-                    push!(coordOnes, (i, j))
-                end
+ 
+    #Print matrix
+    print("Solution as a matrix")
+    if isReduced print(" (reduced instance)") end
+    println()
+    coordOnes = []
+    for i in 1:numberOfPairs
+        for j in 1:numberOfPairs
+            val = string(solution["x_"*string(i)*"_"*string(j)])
+            print(val*" ")
+            if val == "1"
+                push!(coordOnes, (i, j))
             end
-            println()
         end
         println()
+    end
+    println()
 
-        #Find cycles
-        print("Solution as a set of cycles")
-        if isReduced print(" (original instance)") end
-        println()
-        cycles = []
-        while !isempty(coordOnes)
-            current = pop!(coordOnes)
-            cycle = []
+    #Find cycles
+    print("Solution as a set of cycles")
+    if isReduced print(" (original instance)") end
+    println()
+    cycles = []
+    while !isempty(coordOnes)
+        current = pop!(coordOnes)
+        cycle = []
+        push!(cycle, current)
+        if current[1] != current[2]
+            isOpen = true
+        else
+            #Edge case: pair i is compatible with itself
+            isOpen = false
+        end
+
+        while isOpen
+            idx = findfirst(x -> x[1] == cycle[end][2], coordOnes)
+            current = splice!(coordOnes, idx)
             push!(cycle, current)
-            if current[1] != current[2]
-                isOpen = true
-            else
-                #Edge case: pair i is compatible with itself
+            if cycle[1][1] == cycle[end][2]
                 isOpen = false
             end
-
-            while isOpen
-                idx = findfirst(x -> x[1] == cycle[end][2], coordOnes)
-                current = splice!(coordOnes, idx)
-                push!(cycle, current)
-                if cycle[1][1] == cycle[end][2]
-                    isOpen = false
-                end
-            end
-            push!(cycles, cycle)
         end
-        
-        #Print cycles
-        for cycle in cycles
+        push!(cycles, cycle)
+    end
+    
+    #Print cycles
+    for cycle in cycles
+        print("Cycle of size "*string(length(cycle))*": ")
+        for pair in cycle
+            isReduced ? print(string(pairsEquivalence[pair[1]])) : print(string(pair[1]))
+            if pair != cycle[end]
+                print(" -> ")
+            end
+        end
+        println()
+    end
+
+    #Print pairsEquivalence (link between the original pairs and the reduced pairs)
+    if isReduced
+        println("Table of equivalence: Original pair | Reduced pair")
+        for i in 1:length(pairsEquivalence)
+            #Pad with whitespace to align values
+            firstPair = string(pairsEquivalence[i])
+            formatedFirstPair = firstPair*" "^(length(string(pairsEquivalence[end]))-length(firstPair))
+            println(formatedFirstPair*" | "*string(i))
+        end
+    end
+    
+end
+
+"""
+print_solutions_vector(solved_model::SeaPearl.CPModel)
+
+Print the optimal solution (in vector form and as a set of cycles) calculated by solve_kidneyexchange_vector()
+
+# Print format
+- vector form
+    v[i] = j => pair j receive a kidney from pair i
+- set of cycles form
+    4 -> 7 -> 1 => pair 4 gives a kidney to pair 7, pair 7 gives a kidney to pair 1 and pair 1 gives a kidney to pair 4
+"""
+function print_solutions_vector(solved_model::SeaPearl.CPModel)
+
+    #Filter solutions to remove "nothing" and non-optimal solutions
+    solutions = solved_model.statistics.solutions
+    if isdefined(solved_model, :adhocInfo)
+        isReduced = true
+        pairsEquivalence = solved_model.adhocInfo
+    else
+        isReduced = false
+    end
+    numberOfPairs = trunc(Int, length(solved_model.variables) - 1)
+    realSolutions = filter(e -> !isnothing(e),solutions)
+    bestScores = map(e -> -minimum(values(e)),realSolutions)
+    bestScore = maximum(bestScores)
+    bestSolution = filter(e -> -minimum(values(e)) == bestScore, realSolutions)[1]
+    println("The solver found an optimal solutions with "*string(bestScore)*" exchanges to the KEP problem. Let's show it.")
+    println()
+    solution = [bestSolution["x_"*string(i)] for i in 1:numberOfPairs]
+
+    #Print vector
+    print("Solution as a vector")
+    if isReduced print(" (reduced instance)") end
+    println()
+    println(solution)
+    println()
+
+    #Find cycles
+    print("Solution as a set of cycles")
+    if isReduced print(" (original instance)") end
+    println()
+    cycles = []
+    tupleSolution = [(i, solution[i]) for i in 1:numberOfPairs]
+
+    while !isempty(tupleSolution)
+        current = pop!(tupleSolution)
+        cycle = []
+        push!(cycle, current)
+        if current[1] != current[2]
+            isOpen = true
+        else
+            #Edge case: pair i is compatible with itself
+            isOpen = false
+        end
+
+        while isOpen
+            idx = findfirst(x -> x[1] == cycle[end][2], tupleSolution)
+            current = splice!(tupleSolution, idx)
+            push!(cycle, current)
+            if cycle[1][1] == cycle[end][2]
+                isOpen = false
+            end
+        end
+        push!(cycles, cycle)
+    end
+
+    #Print cycles
+    for cycle in cycles
+        if length(cycle) > 1
             print("Cycle of size "*string(length(cycle))*": ")
             for pair in cycle
                 isReduced ? print(string(pairsEquivalence[pair[1]])) : print(string(pair[1]))
@@ -312,18 +452,20 @@ function print_solutions(solved_model::SeaPearl.CPModel)
                     print(" -> ")
                 end
             end
-            println("\n")
-        end
-
-        #Print pairsEquivalence (link between the original pairs and the reduced pairs)
-        if isReduced
-            println("Table of equivalence: Original pair | Reduced pair")
-            for i in 1:length(pairsEquivalence)
-                #Pad with whitespace to align values
-                firstPair = string(pairsEquivalence[i])
-                formatedFirstPair = firstPair*" "^(length(string(pairsEquivalence[end]))-length(firstPair))
-                println(formatedFirstPair*" | "*string(i))
-            end
+            println()
         end
     end
+    println()
+
+    #Print pairsEquivalence (link between the original pairs and the reduced pairs)
+    if isReduced
+        println("Table of equivalence: Original pair | Reduced pair")
+        for i in 1:length(pairsEquivalence)
+            #Pad with whitespace to align values
+            firstPair = string(pairsEquivalence[i])
+            formatedFirstPair = firstPair*" "^(length(string(pairsEquivalence[end]))-length(firstPair))
+            println(formatedFirstPair*" | "*string(i))
+        end
+    end
+    
 end
