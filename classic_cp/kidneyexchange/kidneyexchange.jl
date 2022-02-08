@@ -11,6 +11,7 @@ include("IOmanager.jl")
 solve_kidneyexchange_vector(filename::String)
 
 Return the SeaPearl model solved (solution as a vector) for to the KEP problem, using SeaPearl.MinDomainVariableSelection and SeaPearl.BasicHeuristic
+This model does not allow self-compatible pairs, as there will be no way to distinguish a self-compatible pair (size one cycle) from a pair that does not participate in any cycle. 
 
 # Arguments
 - `filename`: file containing the compatibilities between pairs
@@ -59,8 +60,8 @@ function solve_kidneyexchange_vector(filename::String)
     xEqualIndex_Bool = Vector{SeaPearl.AbstractBoolVar}(undef, n)  
 
     # "view" variable to be able to use the "ReifiedInSet" constraint
-    # xNotEqualIndex_Int[i] = 1 => i ∉ cycle
-    # xNotEqualIndex_Int[i] = 0 => i ∈ cycle
+    # xNotEqualIndex_Int[i] = 1 => i ∈ cycle
+    # xNotEqualIndex_Int[i] = 0 => i ∉ cycle
     xNotEqualIndex_Int = Vector{SeaPearl.AbstractIntVar}(undef, n) 
 
     # "fake" variable to know if xNotEqualIndex_Int == 0
@@ -123,9 +124,10 @@ function solve_kidneyexchange_vector(filename::String)
 end
 
 """
-solve_kidneyexchange(filename::String)
+solve_kidneyexchange_matrix(filename::String)
 
 Return the SeaPearl model solved (solution as a matrix) for to the KEP problem, using SeaPearl.MinDomainVariableSelection and SeaPearl.BasicHeuristic
+This model does allow self-compatible pairs. If donor from pair i gives a kidney to patient of pair i, it will be a size 1 cycle represented as a 1 in the i-th element of the diagonal of the matrix solution.
 
 # Arguments
 - `filename`: file containing the compatibilities between pairs
@@ -279,7 +281,7 @@ end
 """
 print_solutions_matrix(solved_model::SeaPearl.CPModel)
 
-Print the optimal solution (in matrix form and as a set of cycles) calculated by solve_kidneyexchange()
+Print the optimal solution (in matrix form and as a set of cycles) calculated by solve_kidneyexchange_matrix()
 
 # Print format
 - matrix form
@@ -361,6 +363,7 @@ function print_solutions_matrix(solved_model::SeaPearl.CPModel)
             end
         end
         println()
+        println()
     end
 
     #Print pairsEquivalence (link between the original pairs and the reduced pairs)
@@ -372,6 +375,8 @@ function print_solutions_matrix(solved_model::SeaPearl.CPModel)
             formatedFirstPair = firstPair*" "^(length(string(pairsEquivalence[end]))-length(firstPair))
             println(formatedFirstPair*" | "*string(i))
         end
+        println()
+        println()
     end
     
 end
@@ -466,6 +471,8 @@ function print_solutions_vector(solved_model::SeaPearl.CPModel)
             formatedFirstPair = firstPair*" "^(length(string(pairsEquivalence[end]))-length(firstPair))
             println(formatedFirstPair*" | "*string(i))
         end
+        println()
+        println()
     end
     
 end

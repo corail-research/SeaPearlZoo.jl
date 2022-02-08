@@ -20,6 +20,8 @@ Being inside that folder in the terminal (`classic_cp/kidneyexchange/`), you can
 
 ### Model A (solution as a matrix)
 
+This model does allow self-compatible pairs. If donor from pair i gives a kidney to patient of pair i, it will be a size 1 cycle represented as a 1 in the i-th element of the diagonal of the matrix solution.
+
 ```julia
 julia> include("kidneyexchange.jl");
 julia> model_solved = solve_kidneyexchange_matrix("data/kep_8_0.2");
@@ -29,6 +31,8 @@ julia> print_solutions_matrix(model_solved);
 This will print the solutions found as a matrix and a list of cycles.
 
 ### Model B (solution as a vector)
+
+This model does not allow self-compatible pairs, as there will be no way to distinguish a self-compatible pair (size one cycle) from a pair that does not participate in any cycle. 
 
 ```julia
 julia> include("kidneyexchange.jl");
