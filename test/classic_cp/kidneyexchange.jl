@@ -26,7 +26,6 @@ expectedBestScores = [6, 20, 29]
         for i in 1:length(instancesToSolve)
             solved_model = solve_kidneyexchange_matrix(pathToData*instancesToSolve[i])
             solutions = solved_model.statistics.solutions
-            numberOfPairs = trunc(Int, sqrt(length(solved_model.variables) - 1))
             realSolutions = filter(e -> !isnothing(e),solutions)
             bestScores = map(e -> -minimum(values(e)),realSolutions)
             bestScore = maximum(bestScores)
@@ -38,7 +37,6 @@ expectedBestScores = [6, 20, 29]
         for i in 1:length(instancesToSolve)
             solved_model = solve_kidneyexchange_vector(pathToData*instancesToSolve[i])
             solutions = solved_model.statistics.solutions
-            numberOfPairs = trunc(Int, sqrt(length(solved_model.variables) - 1))
             realSolutions = filter(e -> !isnothing(e),solutions)
             bestScores = map(e -> -minimum(values(e)),realSolutions)
             bestScore = maximum(bestScores)
