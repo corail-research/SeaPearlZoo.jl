@@ -31,7 +31,6 @@ This model does not allow self-compatible pairs, as there will be no way to dist
     v[i] = i => pair i does not participate in any cycle
 """
 function solve_kidneyexchange_vector(filename::String)
-
     inputData = getInputData(filename)
     c = inputData.compatibilities
     trailer = SeaPearl.Trailer()
@@ -145,7 +144,6 @@ This model does allow self-compatible pairs. If donor from pair i gives a kidney
     x[i, j] = 0 => pair i do not receive a kidney from pair j
 """
 function solve_kidneyexchange_matrix(filename::String)
-
     inputData = getInputData(filename)
     c = inputData.compatibilities
     trailer = SeaPearl.Trailer()
@@ -300,6 +298,7 @@ function print_solutions_matrix(solved_model::SeaPearl.CPModel)
         pairsEquivalence = solved_model.adhocInfo
     else
         isReduced = false
+        pairsEquivalence = nothing
     end
     numberOfPairs = trunc(Int, sqrt(length(solved_model.variables) - 1))
     realSolutions = filter(e -> !isnothing(e),solutions)
@@ -326,57 +325,14 @@ function print_solutions_matrix(solved_model::SeaPearl.CPModel)
     end
     println()
 
-    #Find cycles
-    print("Solution as a set of cycles")
-    if isReduced print(" (original instance)") end
-    println()
-    cycles = []
-    while !isempty(coordOnes)
-        current = pop!(coordOnes)
-        cycle = []
-        push!(cycle, current)
-        if current[1] != current[2]
-            isOpen = true
-        else
-            #Edge case: pair i is compatible with itself
-            isOpen = false
-        end
-
-        while isOpen
-            idx = findfirst(x -> x[1] == cycle[end][2], coordOnes)
-            current = splice!(coordOnes, idx)
-            push!(cycle, current)
-            if cycle[1][1] == cycle[end][2]
-                isOpen = false
-            end
-        end
-        push!(cycles, cycle)
-    end
-    
     #Print cycles
-    for cycle in cycles
-        print("Cycle of size "*string(length(cycle))*": ")
-        for pair in cycle
-            isReduced ? print(string(pairsEquivalence[pair[1]])) : print(string(pair[1]))
-            if pair != cycle[end]
-                print(" -> ")
-            end
-        end
-        println()
-        println()
-    end
+    print_cycles(coordOnes, isReduced, pairsEquivalence)
 
     #Print pairsEquivalence (link between the original pairs and the reduced pairs)
     if isReduced
-        println("Table of equivalence: Original pair | Reduced pair")
-        for i in 1:length(pairsEquivalence)
-            #Pad with whitespace to align values
-            firstPair = string(pairsEquivalence[i])
-            formatedFirstPair = firstPair*" "^(length(string(pairsEquivalence[end]))-length(firstPair))
-            println(formatedFirstPair*" | "*string(i))
+        if isReduced
+            print_pairsEquivalence(pairsEquivalence)
         end
-        println()
-        println()
     end
     
 end
@@ -401,6 +357,7 @@ function print_solutions_vector(solved_model::SeaPearl.CPModel)
         pairsEquivalence = solved_model.adhocInfo
     else
         isReduced = false
+        pairsEquivalence = nothing
     end
     numberOfPairs = trunc(Int, length(solved_model.variables) - 1)
     realSolutions = filter(e -> !isnothing(e),solutions)
@@ -418,15 +375,34 @@ function print_solutions_vector(solved_model::SeaPearl.CPModel)
     println(solution)
     println()
 
-    #Find cycles
+    #Print cycles
+    tupleSolution = [(i, solution[i]) for i in 1:numberOfPairs]
+    print_cycles(tupleSolution, isReduced, pairsEquivalence)
+
+    #Print pairsEquivalence (link between the original pairs and the reduced pairs)
+    if isReduced
+        print_pairsEquivalence(pairsEquivalence)
+    end
+end
+
+"""
+print_cycles(exchangeTuples)
+
+Print cycles that make up the optimal solution 
+
+# Example
+If the solution is composed by one cycle as "pair 4 gives a kidney to pair 7, pair 7 gives a kidney to pair 1 and pair 1 gives a kidney to pair 4", the function will print:
+Cycle of size 3: 4 -> 7 -> 1 
+"""
+function print_cycles(exchangeTuples, isReduced, pairsEquivalence)
     print("Solution as a set of cycles")
     if isReduced print(" (original instance)") end
     println()
     cycles = []
-    tupleSolution = [(i, solution[i]) for i in 1:numberOfPairs]
-
-    while !isempty(tupleSolution)
-        current = pop!(tupleSolution)
+    
+    #Find cycles
+    while !isempty(exchangeTuples)
+        current = pop!(exchangeTuples)
         cycle = []
         push!(cycle, current)
         if current[1] != current[2]
@@ -437,8 +413,8 @@ function print_solutions_vector(solved_model::SeaPearl.CPModel)
         end
 
         while isOpen
-            idx = findfirst(x -> x[1] == cycle[end][2], tupleSolution)
-            current = splice!(tupleSolution, idx)
+            idx = findfirst(x -> x[1] == cycle[end][2], exchangeTuples)
+            current = splice!(exchangeTuples, idx)
             push!(cycle, current)
             if cycle[1][1] == cycle[end][2]
                 isOpen = false
@@ -461,10 +437,23 @@ function print_solutions_vector(solved_model::SeaPearl.CPModel)
         end
     end
     println()
+end
 
-    #Print pairsEquivalence (link between the original pairs and the reduced pairs)
-    if isReduced
-        println("Table of equivalence: Original pair | Reduced pair")
+"""
+print_pairsEquivalence(pairsEquivalence)
+
+Print pairsEquivalence (link between the original pairs and the reduced pairs)
+
+# Example
+If the original instance has 9 pairs and that pairs 1, 4, 6, 7 and 8 have been removed, the function will print:
+Table of equivalence: Original pair | Reduced pair
+2  | 1
+3  | 2
+5  | 3
+9  | 4
+"""
+function print_pairsEquivalence(pairsEquivalence)
+    println("Table of equivalence: Original pair | Reduced pair")
         for i in 1:length(pairsEquivalence)
             #Pad with whitespace to align values
             firstPair = string(pairsEquivalence[i])
@@ -473,6 +462,4 @@ function print_solutions_vector(solved_model::SeaPearl.CPModel)
         end
         println()
         println()
-    end
-    
 end
