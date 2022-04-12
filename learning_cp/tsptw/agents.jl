@@ -4,10 +4,10 @@ agent = RL.Agent(
             approximator = RL.NeuralNetworkApproximator(
                 model = SeaPearl.VariableOutputCPNN(
                     graphChain = Flux.Chain(
-                        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(numInFeatures => 32, 1 => 4),
+                        SeaPearl.EdgeFtLayer(32 => 32,  4 => 4),
+                        SeaPearl.EdgeFtLayer(32 => 32,  4 => 4),
+                        SeaPearl.EdgeFtLayer(32 => 32,  4 => 4),
                     ),
                     nodeChain = Flux.Chain(
                         Flux.Dense(32, 32, relu),
@@ -20,10 +20,10 @@ agent = RL.Agent(
             target_approximator = RL.NeuralNetworkApproximator(
                 model = SeaPearl.VariableOutputCPNN(
                     graphChain = Flux.Chain(
-                        SeaPearl.EdgeFtLayer(; v_dim=numInFeatures => 32, e_dim= 1 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
-                        SeaPearl.EdgeFtLayer(; v_dim=32 => 32, e_dim= 4 => 4),
+                        SeaPearl.EdgeFtLayer(numInFeatures => 32,  1 => 4),
+                        SeaPearl.EdgeFtLayer(32 => 32,  4 => 4),
+                        SeaPearl.EdgeFtLayer(32 => 32,  4 => 4),
+                        SeaPearl.EdgeFtLayer(32 => 32,  4 => 4),
                     ),
                     nodeChain = Flux.Chain(
                         Flux.Dense(32, 32, relu),
