@@ -180,17 +180,19 @@ function solve_tsptw_known_instance()
 
     generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
 
-    dist, time_windows = SeaPearl.fill_with_generator!(model, generator; dist=dist, time_windows=time_windows)
+    dist, time_windows = SeaPearl.fill_with_generator!(model, generator; dist=dist, timeWindows=time_windows)
 
     variableheuristic = TsptwVariableSelection{false}()
     my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
     valueheuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> closer_city(x, dist, model))
 
-    SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
+    SeaPearl.search!(model, SeaPearl.DFSearch(), variableheuristic, valueheuristic)
 
     solution_found = Int[]
+    
+    last_solution = model.statistics.solutions[model.statistics.solutions.!=nothing][end]
     for i in 1:(n_city-1)
-        push!(solution_found, model.solutions[end]["a_"*string(i)])
+        push!(solution_found, last_solution["a_"*string(i)])
     end
 
     println("Solution: ", solution_found)
