@@ -79,13 +79,13 @@ variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 
 function trytrain(nbEpisodes::Int)
     experienceTime = now()
-    dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
+    dir = mkdir(string("exp_", Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
     expParameters = Dict(
         :nbEpisodes => nbEpisodes,
         :evalFreq => evalFreq,
         :nbInstances => nbInstances
     )
-    open(dir*"/params.json", "w") do file
+    open(dir * "/params.json", "w") do file
         JSON.print(file, expParameters)
     end
 
@@ -103,13 +103,13 @@ function trytrain(nbEpisodes::Int)
 
     #saving model weights
     trained_weights = params(agent.policy.learner.approximator.model)
-    @save dir*"/model_weights_nqueens_$(board_size).bson" trained_weights
+    @save dir * "/model_weights_nqueens_$(board_size).bson" trained_weights
 
-    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/nqueens_$(board_size)_training")
-    SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/nqueens_$(board_size)_trained")
-    SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/nqueens_$(board_size)_min")
+    SeaPearlExtras.storedata(metricsArray[1]; filename=dir * "/nqueens_$(board_size)_training")
+    SeaPearlExtras.storedata(eval_metricsArray[:, 1]; filename=dir * "/nqueens_$(board_size)_trained")
+    SeaPearlExtras.storedata(eval_metricsArray[:, 2]; filename=dir * "/nqueens_$(board_size)_min")
     for i = 1:nbRandomHeuristics
-        SeaPearlExtras.storedata(eval_metricsArray[:,i+2]; filename=dir*"/nqueens_$(board_size)_random$(i)")
+        SeaPearlExtras.storedata(eval_metricsArray[:, i+2]; filename=dir * "/nqueens_$(board_size)_random$(i)")
     end
 
     return metricsArray, eval_metricsArray
