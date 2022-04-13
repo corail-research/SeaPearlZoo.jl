@@ -14,7 +14,7 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-nqueens_generator = SeaPearl.NQueensGenerator(25)
+nqueens_generator = SeaPearl.NQueensGenerator(15)
 #model = model_queens(4)
 SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
 #gplot(SR.cplayergraph)
@@ -27,9 +27,9 @@ numInFeatures = SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 100
-evalFreq = 300
-nbInstances = 1
+nbEpisodes = 500
+evalFreq = 100
+nbInstances = 20
 nbRandomHeuristics = 0
 
 # -------------------
