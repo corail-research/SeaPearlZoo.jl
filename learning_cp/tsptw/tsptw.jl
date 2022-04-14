@@ -17,7 +17,16 @@ grid_size = 100
 max_tw_gap = 0
 max_tw = 100
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
-SR = SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}
+
+# -------------------
+# Representation
+# -------------------
+default_representation = true
+if default_representation
+    SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
+else
+    SR = SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}
+end
 
 # -------------------
 # Internal variables
@@ -27,7 +36,7 @@ numInFeatures=SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 500
+nbEpisodes = 5
 evalFreq = 200
 nbInstances = 10
 nbRandomHeuristics = 1
@@ -35,12 +44,21 @@ nbRandomHeuristics = 1
 # -------------------
 # Agent definition
 # -------------------
-include("agents.jl")
+if default_representation
+    include("agents_defaultstaterepresentation.jl")
+else
+    include("agents.jl")
+end
 
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SR, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
+if default_representation
+    learnedHeuristic = SeaPearl.LearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
+else
+    learnedHeuristic = SeaPearl.LearnedHeuristic{SR, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
+end
+
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
 
