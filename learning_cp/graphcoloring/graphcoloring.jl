@@ -8,6 +8,7 @@ using JSON
 using BSON: @save, @load
 using Dates
 using Random
+using LightGraphs
 
 
 # -------------------
