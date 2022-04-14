@@ -1,9 +1,6 @@
 import Pkg
 Pkg.activate("")
-# Pkg.add("BSON")
-# Pkg.add("JSON")
 Pkg.instantiate()
-# Pkg.add("GeometricFlux")
 
 using ArgParse
 using SeaPearl
@@ -19,6 +16,7 @@ using JSON
 using GeometricFlux
 
 include("agents.jl")
+include("features.jl")
 
 mutable struct KepParameters
     nbNodes             ::Int
@@ -45,16 +43,16 @@ mutable struct KepParameters
             10,         #nbNodes
             10,         #nbNodeEval
             0.2,        #density
-            1000,       #nbEpisodes
+            500,       #nbEpisodes #usually 1000
             20,         #restartPerInstance
             20,         #nbEval
             10,         #nbInstances
-            5,          #nbRandomHeuristics
+            1,          #nbRandomHeuristics #usually 5
             300,        #evalTimeOut
             1,          #batchSize
             nothing,       #seed
             nothing,       #seedEval
-            SeaPearl.CPReward,
+            SeaPearl.SmartReward,
             SeaPearl.ILDSearch(0),
             SeaPearl.DFSearch(),
             nothing,
@@ -175,7 +173,7 @@ function main(args::KepParameters)
     kepGenerator = SeaPearl.KepGenerator(args.nbNodes, args.density)
     kepEvalGenerator = SeaPearl.KepGenerator(args.nbNodes, args.density)
 
-    SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
+    SR = SeaPearl.DefaultStateRepresentation{KepFeaturization, SeaPearl.DefaultTrajectoryState}
     args.SR = SR
     args.numInFeatures = SeaPearl.feature_length(SR)
 
@@ -252,7 +250,7 @@ function parse_commandline()
         "--reward"
             help = "Name of the reward: CPReward | SmartReward"
             arg_type = String
-            default = "CPReward"
+            default = "SmartReward"
         "--seed"
             help = "seed used to generate model and randomheuristic"
             arg_type = Int
@@ -279,7 +277,7 @@ function script()
     kepParams.seed = args[:seed]
     kepParams.seedEval = args[:seedEval]
     kepParams.density = args[:density]
-    kepParams.reward = SeaPearl.CPReward
+    kepParams.reward = SeaPearl.SmartReward
 
     main(kepParams)
 end
@@ -296,7 +294,7 @@ function scriptDebug(nbEpisodes, restartPerInstance, timeout, nbInstances, rando
     kepParams.seed = seed
     kepParams.seedEval = seedEval
     kepParams.density = density
-    kepParams.reward = SeaPearl.CPReward # TODO
+    kepParams.reward = SeaPearl.SmartReward # TODO
 
     main(kepParams)
 end
