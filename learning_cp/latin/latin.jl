@@ -4,7 +4,11 @@ using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
 using GeometricFlux
+using JSON
+using BSON: @load, @save
 using Random
+using Dates
+using LightGraphs
 
 include("rewards.jl")
 include("features.jl")
@@ -12,7 +16,9 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-latin_generator = SeaPearl.LatinGenerator(11,0.6)
+N = 11
+p = 0.6
+latin_generator = SeaPearl.LatinGenerator(N,p)
 # -------------------
 # Internal variables
 # -------------------
@@ -23,7 +29,7 @@ numGlobalFeature = SeaPearl.global_feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 500
+nbEpisodes = 10
 evalFreq = 30
 nbInstances = 1
 nbRandomHeuristics = 0
@@ -73,7 +79,16 @@ variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 # -------------------
 
 function trytrain(nbEpisodes::Int)
-
+    experienceTime = now()
+    dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
+    expParameters = Dict(
+        :nbEpisodes => nbEpisodes,
+        :evalFreq => evalFreq,
+        :nbInstances => nbInstances
+    )
+    open(dir*"/params.json", "w") do file
+        JSON.print(file, expParameters)
+    end
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
@@ -82,10 +97,20 @@ function trytrain(nbEpisodes::Int)
         strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=false,
-        verbose = false,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,latin_generator; evalFreq = evalFreq, nbInstances = nbInstances),
-        restartPerInstances = 1
+        verbose=false,
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,latin_generator; evalFreq=evalFreq, nbInstances=nbInstances),
+        restartPerInstances=1
     )
+
+    trained_weights = params(agent.policy.learner.approximator.model)
+    @save dir*"/model_weights_latin"*string(N)*"_"*string(p)*".bson" trained_weights
+
+    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/latin_$(N)_$(p)training")
+    SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/latin_$(N)_$(p)_trained")
+    SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/latin_$(N)_$(p)_min")
+    for i = 1:nbRandomHeuristics
+        SeaPearlExtras.storedata(eval_metricsArray[:,i+2]; filename=dir*"/latin_$(N)_$(p)_random$(i)")
+    end
 
     return metricsArray, eval_metricsArray
 end
