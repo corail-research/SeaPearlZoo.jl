@@ -5,7 +5,9 @@ const RL = ReinforcementLearning
 using Flux
 using GeometricFlux
 using BSON: @save, @load
+using JSON
 using Random
+using Dates
 using Statistics
 
 include("rewards.jl")
@@ -14,10 +16,9 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-nqueens_generator = SeaPearl.NQueensGenerator(25)
-#model = model_queens(4)
-SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
-#gplot(SR.cplayergraph)
+board_size = 15
+nqueens_generator = SeaPearl.NQueensGenerator(board_size)
+SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
 # -------------------
 # Internal variables
@@ -27,9 +28,9 @@ numInFeatures = SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 100
-evalFreq = 300
-nbInstances = 1
+nbEpisodes = 200
+evalFreq = 100
+nbInstances = 20
 nbRandomHeuristics = 0
 
 # -------------------
@@ -40,7 +41,7 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SR, InspectReward, SeaPearl.FixedOutput}(agent)
+learnedHeuristic = SeaPearl.LearnedHeuristic{SR,InspectReward,SeaPearl.FixedOutput}(agent)
 
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -77,7 +78,16 @@ variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 # -------------------
 
 function trytrain(nbEpisodes::Int)
-
+    experienceTime = now()
+    dir = mkdir(string("exp_", Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
+    expParameters = Dict(
+        :nbEpisodes => nbEpisodes,
+        :evalFreq => evalFreq,
+        :nbInstances => nbInstances
+    )
+    open(dir * "/params.json", "w") do file
+        JSON.print(file, expParameters)
+    end
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
@@ -86,12 +96,21 @@ function trytrain(nbEpisodes::Int)
         strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=false,
-        verbose = false,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,nqueens_generator; evalFreq = evalFreq, nbInstances = nbInstances),
-        restartPerInstances = 1
+        verbose=false,
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, nqueens_generator; evalFreq=evalFreq, nbInstances=nbInstances),
+        restartPerInstances=1
     )
 
     #saving model weights
+    trained_weights = params(agent.policy.learner.approximator.model)
+    @save dir * "/model_weights_nqueens_$(board_size).bson" trained_weights
+
+    SeaPearlExtras.storedata(metricsArray[1]; filename=dir * "/nqueens_$(board_size)_training")
+    SeaPearlExtras.storedata(eval_metricsArray[:, 1]; filename=dir * "/nqueens_$(board_size)_trained")
+    SeaPearlExtras.storedata(eval_metricsArray[:, 2]; filename=dir * "/nqueens_$(board_size)_min")
+    for i = 1:nbRandomHeuristics
+        SeaPearlExtras.storedata(eval_metricsArray[:, i+2]; filename=dir * "/nqueens_$(board_size)_random$(i)")
+    end
 
     return metricsArray, eval_metricsArray
 end
