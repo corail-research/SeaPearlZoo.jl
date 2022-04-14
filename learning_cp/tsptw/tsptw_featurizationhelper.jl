@@ -32,6 +32,8 @@ chosen_features = Dict([("constraint_activity", constraint_activity), ("values_o
 nb_features = 3
 if values_onehot
     nb_features += nb_possible_values
+else
+    nb_features += 1
 end
 nb_features += constraint_activity + variable_initial_domain_size + nb_involved_constraint_propagation
 
