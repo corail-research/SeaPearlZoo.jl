@@ -1,12 +1,12 @@
 # Model definition
 n = coloring_generator.n
-approximator_GNN = GeometricFlux.GraphConv(16 => 16, Flux.leakyrelu)
-target_approximator_GNN = GeometricFlux.GraphConv(16 => 16, Flux.leakyrelu)
+approximator_GNN = SeaPearl.GraphConv(16 => 16, Flux.leakyrelu)
+target_approximator_GNN = SeaPearl.GraphConv(16 => 16, Flux.leakyrelu)
 gnnlayers = 2
 
 approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GraphConv(numInFeatures => 16, Flux.leakyrelu),
+        SeaPearl.GraphConv(numInFeatures => 16, Flux.leakyrelu),
         [approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
@@ -24,7 +24,7 @@ approximator_model = SeaPearl.CPNN(
     )) #|> gpu
 target_approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
-        GeometricFlux.GraphConv(numInFeatures => 16, Flux.leakyrelu),
+        SeaPearl.GraphConv(numInFeatures => 16, Flux.leakyrelu),
         [target_approximator_GNN for i = 1:gnnlayers]...
     ),
     nodeChain = Flux.Chain(
