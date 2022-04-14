@@ -2,35 +2,34 @@ agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = RL.DQNLearner(
             approximator = RL.NeuralNetworkApproximator(
-                model = SeaPearl.VariableOutputCPNN(
+                model = SeaPearl.CPNN(
                     graphChain = Flux.Chain(
-                        SeaPearl.EdgeFtLayer(numInFeatures => 32, 1 => 4),
-                        SeaPearl.EdgeFtLayer(32 => 32,  4 => 4),
-                        SeaPearl.EdgeFtLayer(32 => 32,  4 => 4),
-                        SeaPearl.EdgeFtLayer(32 => 32,  4 => 4),
-
+                        SeaPearl.GraphConv(numInFeatures => 32, Flux.leakyrelu),
+                        SeaPearl.GraphConv(32 => 32,  Flux.leakyrelu),
+                        SeaPearl.GraphConv(32 => 32,  Flux.leakyrelu),
+                        SeaPearl.GraphConv(32 => 32,  Flux.leakyrelu),
                     ),
                     nodeChain = Flux.Chain(
                         Flux.Dense(32, 32, relu),
                         Flux.Dense(32, 32, relu),
                     ),
-                    outputChain = Flux.Dense(64, 1),
+                    outputChain = Flux.Dense(32, n_city),
                 ),
                 optimizer = ADAM(0.0001f0)
             ),
             target_approximator = RL.NeuralNetworkApproximator(
-                model = SeaPearl.VariableOutputCPNN(
+                model = SeaPearl.CPNN(
                     graphChain = Flux.Chain(
-                        SeaPearl.EdgeFtLayer(numInFeatures => 32, 1 => 4),
-                        SeaPearl.EdgeFtLayer(32 => 32, 4 => 4),
-                        SeaPearl.EdgeFtLayer(32 => 32, 4 => 4),
-                        SeaPearl.EdgeFtLayer(32 => 32, 4 => 4),
+                        SeaPearl.GraphConv(numInFeatures => 32,  Flux.leakyrelu),
+                        SeaPearl.GraphConv(32 => 32,  Flux.leakyrelu),
+                        SeaPearl.GraphConv(32 => 32,  Flux.leakyrelu),
+                        SeaPearl.GraphConv(32 => 32,  Flux.leakyrelu),
                     ),
                     nodeChain = Flux.Chain(
                         Flux.Dense(32, 32, relu),
                         Flux.Dense(32, 32, relu),
                     ),
-                    outputChain = Flux.Dense(64, 1),
+                    outputChain = Flux.Dense(32, n_city),
                 ),
                 optimizer = ADAM(0.0001f0)
             ),
@@ -57,6 +56,6 @@ agent = RL.Agent(
     ),
     trajectory = RL.CircularArraySARTTrajectory(
         capacity = 4000,
-        state = SeaPearl.TsptwTrajectoryState[] => ()
+        state = SeaPearl.DefaultTrajectoryState[] => ()
     )
 )

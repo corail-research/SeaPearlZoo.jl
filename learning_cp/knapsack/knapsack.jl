@@ -7,6 +7,8 @@ using GeometricFlux
 using BSON: @save, @load
 using Random
 using Statistics
+using Dates
+using JSON
 
 
 include("rewards.jl")
@@ -63,7 +65,16 @@ valueSelectionArray = [learnedHeuristic, basicHeuristic]
 # -------------------
 # -------------------
 function trytrain(nbEpisodes::Int)
-
+    experienceTime = now()
+    dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
+    expParameters = Dict(
+        :nbEpisodes => nbEpisodes,
+        :evalFreq => evalFreq,
+        :nbInstances => nbInstances
+    )
+    open(dir*"/params.json", "w") do file
+        JSON.print(file, expParameters)
+    end
     metricsArray, eval_metricsArray = SeaPearl.train!(;
         valueSelectionArray= valueSelectionArray,
         generator=knapsack_generator,
@@ -75,7 +86,12 @@ function trytrain(nbEpisodes::Int)
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,knapsack_generator; evalFreq=evalFreq, nbInstances=nbInstances),
         restartPerInstances = 1
         )
+    trained_weights = params(agent.policy.learner.approximator.model)
+    @save dir*"/model_weights_knapsack.bson" trained_weights
 
+    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/knapsack_training")
+    SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/knapsack_learned")
+    SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/knapsack_basic")
     return metricsArray, eval_metricsArray
 end
 

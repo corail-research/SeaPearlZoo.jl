@@ -1,3 +1,4 @@
+using LightGraphs
 
 struct KnapsackFeaturization <: SeaPearl.AbstractFeaturization end
 
