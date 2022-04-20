@@ -29,13 +29,15 @@ nb_involved_constraint_propagation = true
 
 chosen_features = Dict([("constraint_activity", constraint_activity), ("values_onehot", values_onehot), ("variable_initial_domain_size", variable_initial_domain_size), ("nb_involved_constraint_propagation", nb_involved_constraint_propagation)])
 
+# TODO: Modifier pour prendre en compte le one-hot encoding du type de contrainte
 nb_features = 3
+nb_constraint_types = 12
 if values_onehot
     nb_features += nb_possible_values
 else
     nb_features += 1
 end
-nb_features += constraint_activity + variable_initial_domain_size + nb_involved_constraint_propagation
+nb_features += constraint_activity + variable_initial_domain_size + nb_involved_constraint_propagation + nb_constraint_types
 
 function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, TS}}) where TS
     return nb_features
@@ -54,8 +56,8 @@ numInFeatures=SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 5
-evalFreq = 200
+nbEpisodes = 50
+evalFreq = 5
 nbInstances = 10
 nbRandomHeuristics = 1
 
@@ -135,7 +137,7 @@ function trytrain(nbEpisodes::Int)
 
     trained_weights = params(agent.policy.learner.approximator.model)
     @save dir*"/model_weights_tsptw"*string(n_city)*".bson" trained_weights
-
+    
     SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/tsptw_$(n_city)_training")
     SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/tsptw_$(n_city)_trained")
     SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/tsptw_$(n_city)_nearest")
