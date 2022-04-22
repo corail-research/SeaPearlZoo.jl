@@ -12,8 +12,8 @@ using Dates
 # -------------------
 # Generator
 # -------------------
-n_city = 21
-grid_size = 100
+n_city = 10
+grid_size = 25
 max_tw_gap = 0
 max_tw = 100
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
@@ -29,7 +29,7 @@ nb_involved_constraint_propagation = true
 
 chosen_features = Dict([("constraint_activity", constraint_activity), ("values_onehot", values_onehot), ("variable_initial_domain_size", variable_initial_domain_size), ("nb_involved_constraint_propagation", nb_involved_constraint_propagation)])
 
-# TODO: Modifier pour prendre en compte le one-hot encoding du type de contrainte
+# TODO: Edit it to automatically compute the number of constraint types
 nb_features = 3
 nb_constraint_types = 12
 if values_onehot
@@ -56,8 +56,8 @@ numInFeatures=SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 50
-evalFreq = 5
+nbEpisodes = 1000
+evalFreq = 250
 nbInstances = 10
 nbRandomHeuristics = 1
 
@@ -130,8 +130,8 @@ function trytrain(nbEpisodes::Int)
     nbEpisodes=nbEpisodes,
     strategy=SeaPearl.DFSearch(),
     variableHeuristic=variableSelection,
-    out_solver=true,
-    verbose = false,
+    out_solver=false,
+    verbose = true,
     evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances)
 )
 
