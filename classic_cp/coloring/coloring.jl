@@ -98,8 +98,10 @@ function solve_coloring(input_file; benchmark=false)
 
     if !benchmark
         for oneSolution in model.statistics.solutions
-            output = outputFromSeaPearl(oneSolution)
-            printSolution(output)
+            if !isnothing(oneSolution)
+                output = outputFromSeaPearl(oneSolution)
+                # printSolution(output)
+            end
         end
     end
 end
