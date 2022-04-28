@@ -54,10 +54,11 @@ end
 # Value Heuristic definition
 # -------------------
 if default_representation
-    learnedHeuristic = SeaPearl.LearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
 else
-    learnedHeuristic = SeaPearl.LearnedHeuristic{SR, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
 end
+println("learnedHeuristic defined.")
 
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
@@ -79,7 +80,10 @@ for i in 1:nbRandomHeuristics
     push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
-valueSelectionArray = [learnedHeuristic, nearest_heuristic]
+eta = .5
+supervisedLearnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(), eta)
+
+valueSelectionArray = [supervisedLearnedHeuristic, nearest_heuristic]
 append!(valueSelectionArray, randomHeuristics)
 
 # -------------------
