@@ -9,6 +9,7 @@ using JSON
 using Random
 using Dates
 using Statistics
+using LightGraphs
 
 include("rewards.jl")
 include("features.jl")
@@ -18,7 +19,36 @@ include("features.jl")
 # -------------------
 board_size = 15
 nqueens_generator = SeaPearl.NQueensGenerator(board_size)
-SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
+
+
+#SR = SeaPearl.DefaultStateRepresentation{BetterFeaturization,SeaPearl.DefaultTrajectoryState}
+# -------------------
+# Features
+# -------------------
+constraint_activity = true
+values_onehot = true
+nb_possible_values = 15
+variable_initial_domain_size = true
+nb_involved_constraint_propagation = true
+
+chosen_features = Dict([("constraint_activity", constraint_activity), ("values_onehot", values_onehot), ("variable_initial_domain_size", variable_initial_domain_size), ("nb_involved_constraint_propagation", nb_involved_constraint_propagation)])
+
+# TODO: Edit it to automatically compute the number of constraint types
+nb_features = 3
+nb_constraint_types = 1
+if values_onehot
+    nb_features += nb_possible_values
+else
+    nb_features += 1
+end
+nb_features += constraint_activity + variable_initial_domain_size + nb_involved_constraint_propagation + nb_constraint_types
+
+function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, TS}}) where TS
+    return nb_features
+end
+
+
+SR = SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, SeaPearl.DefaultTrajectoryState}
 
 # -------------------
 # Internal variables
@@ -28,9 +58,9 @@ numInFeatures = SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 200
-evalFreq = 100
-nbInstances = 20
+nbEpisodes = 10000
+evalFreq = 1000
+nbInstances = 50
 nbRandomHeuristics = 0
 
 # -------------------
@@ -41,8 +71,8 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SR,InspectReward,SeaPearl.FixedOutput}(agent)
-
+#learnedHeuristic = SeaPearl.LearnedHeuristic{SR,SeaPearl.CPReward,SeaPearl.FixedOutput}(agent)
+learnedHeuristic = SeaPearl.LearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent; chosen_features = chosen_features)
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
@@ -80,22 +110,24 @@ variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_", Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
+    out_solver = true
     expParameters = Dict(
         :nbEpisodes => nbEpisodes,
         :evalFreq => evalFreq,
-        :nbInstances => nbInstances
+        :nbInstances => nbInstances,
+        :rlagent => string(agent),
+        :out_solver => out_solver
     )
     open(dir * "/params.json", "w") do file
         JSON.print(file, expParameters)
     end
-
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
         generator=nqueens_generator,
         nbEpisodes=nbEpisodes,
         strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
-        out_solver=false,
+        out_solver=out_solver,
         verbose=false,
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, nqueens_generator; evalFreq=evalFreq, nbInstances=nbInstances),
         restartPerInstances=1

@@ -15,8 +15,8 @@ using LightGraphs
 # Experience variables
 # -------------------
 nbEpisodes = 100
-restartPerInstances = 20
-evalFreq = 50
+restartPerInstances = 10
+evalFreq = 100
 nbInstances = 10
 nbRandomHeuristics = 1
 
@@ -102,7 +102,7 @@ function trytrain(nbEpisodes::Int)
         valueSelectionArray=valueSelectionArray,
         generator=coloring_generator,
         nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.ILDSearch(0),
+        strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=true,
         verbose = false,
@@ -114,10 +114,10 @@ function trytrain(nbEpisodes::Int)
     model = agent.policy.learner.approximator
     @save dir*"/model_gc"*string(coloring_generator.n)*".bson" model
 
-    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/graph_coloring_$(nbNodes)_training_learned")
-    SeaPearlExtras.storedata(metricsArray[2]; filename=dir*"/graph_coloring_$(nbNodes)_training_greedy")
+    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/graph_coloring_$(nbNodes)_traininglearned")
+    SeaPearlExtras.storedata(metricsArray[2]; filename=dir*"/graph_coloring_$(nbNodes)_traininggreedy")
     for i = 1:nbRandomHeuristics
-        SeaPearlExtras.storedata(metricsArray[2+i]; filename=dir*"/graph_coloring_$(nbNodes)_training_random$(i)")
+        SeaPearlExtras.storedata(metricsArray[2+i]; filename=dir*"/graph_coloring_$(nbNodes)_trainingrandom$(i)")
     end
     SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/graph_coloring_$(nbNodes)_learned")
     SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/graph_coloring_$(nbNodes)_greedy")
