@@ -1,5 +1,6 @@
 # Model definition
 n = coloring_generator.n
+trajectory_capacity = 1000
 
 approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
@@ -70,7 +71,7 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularArraySLARTTrajectory(
-        capacity = 1000,
+        capacity = trajectory_capacity,
         state = SeaPearl.DefaultTrajectoryState[] => (),
         legal_actions_mask = Vector{Bool} => (n, ),
     )
