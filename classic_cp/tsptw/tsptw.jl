@@ -114,12 +114,16 @@ function solve_tsptw(n_city=21)
     my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
     valueheuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> closer_city(x, dist, model))
 
-    SeaPearl.search!(model, SeaPearl.DFSearch, variableheuristic, valueheuristic)
+    SeaPearl.solve!(model; variableHeuristic=variableheuristic, valueSelection=valueheuristic)
 
     solution_found = Int[]
+    solutions = model.statistics.solutions
+    filter!(e -> !isnothing(e),solutions)
+    bestSolution = solutions[end]
     for i in 1:(n_city-1)
-        push!(solution_found, model.solutions[end]["a_"*string(i)])
+        push!(solution_found, bestSolution["a_"*string(i)])
     end
+    
 
     println("Solution: ", solution_found)
     println("Nodes visited: ", model.statistics.numberOfNodes)
@@ -186,13 +190,11 @@ function solve_tsptw_known_instance()
     my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
     valueheuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> closer_city(x, dist, model))
 
-    SeaPearl.search!(model, SeaPearl.DFSearch(), variableheuristic, valueheuristic)
+    SeaPearl.solve!(model; variableHeuristic=variableheuristic, valueSelection=valueheuristic)
 
     solution_found = Int[]
-    
-    last_solution = model.statistics.solutions[model.statistics.solutions.!=nothing][end]
     for i in 1:(n_city-1)
-        push!(solution_found, last_solution["a_"*string(i)])
+        push!(solution_found, model.solutions[end]["a_"*string(i)])
     end
 
     println("Solution: ", solution_found)
