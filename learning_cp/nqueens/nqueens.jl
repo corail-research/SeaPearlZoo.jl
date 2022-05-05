@@ -86,7 +86,14 @@ function trytrain(nbEpisodes::Int)
     expParameters = Dict(
         :nbEpisodes => nbEpisodes,
         :evalFreq => evalFreq,
-        :nbInstances => nbInstances
+        :nbInstances => nbInstances,
+        :nbRandomHeuristics => nbRandomHeuristics,
+        :learnedHeuristicType => typeof(learnedHeuristic),
+        :eta_init => hasproperty(heuristic, :eta_init) ? heuristic.eta_init : nothing,
+        :eta_stable => hasproperty(heuristic, :eta_stable) ? heuristic.eta_stable : nothing,
+        :warmup_steps => hasproperty(heuristic, :warmup_steps) ? heuristic.warmup_steps : nothing,
+        :decay_steps => hasproperty(heuristic, :decay_steps) ? heuristic.decay_steps : nothing,
+        :rng => hasproperty(heuristic, :rng) ? heuristic.rng : nothing
     )
     open(dir * "/params.json", "w") do file
         JSON.print(file, expParameters)
