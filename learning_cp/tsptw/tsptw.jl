@@ -12,8 +12,8 @@ using Dates
 # -------------------
 # Generator
 # -------------------
-n_city = 21
-grid_size = 100
+n_city = 5
+grid_size = 20
 max_tw_gap = 0
 max_tw = 100
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
@@ -36,8 +36,8 @@ numInFeatures=SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 5
-evalFreq = 200
+nbEpisodes = 200
+evalFreq = 10
 nbInstances = 10
 nbRandomHeuristics = 1
 
@@ -58,7 +58,6 @@ if default_representation
 else
     learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
 end
-println("learnedHeuristic defined.")
 
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
@@ -80,8 +79,17 @@ for i in 1:nbRandomHeuristics
     push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
-eta = .5
-supervisedLearnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent, SeaPearl.MinDomainVariableSelection(), SeaPearl.BasicHeuristic(), eta)
+eta_init = .5
+eta_stable = .1
+warmup_steps = 0
+decay_steps = 100
+supervisedLearnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(
+    agent#, 
+    #eta_init=eta_init, 
+    #eta_stable=eta_stable, 
+    #warmup_steps=warmup_steps, 
+    #decay_steps=decay_steps
+    )
 
 valueSelectionArray = [supervisedLearnedHeuristic, nearest_heuristic]
 append!(valueSelectionArray, randomHeuristics)
