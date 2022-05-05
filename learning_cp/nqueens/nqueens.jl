@@ -84,10 +84,19 @@ function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_", Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
     expParameters = Dict(
+        :board_size => board_size,
         :nbEpisodes => nbEpisodes,
         :evalFreq => evalFreq,
-        :nbInstances => nbInstances
+        :nbInstances => nbInstances,
+        :nbRandomHeuristics => nbRandomHeuristics,
+        :heuristicType => typeof(learnedHeuristic),
+        :eta_init => isdefined(learnedHeuristic, :eta_init) ? learnedHeuristic.eta_init : nothing,
+        :eta_stable => isdefined(learnedHeuristic, :eta_stable) ? learnedHeuristic.eta_stable : nothing,
+        :warmup_steps => isdefined(learnedHeuristic, :warmup_steps) ? learnedHeuristic.warmup_steps : nothing,
+        :decay_steps => isdefined(learnedHeuristic, :decay_steps) ? learnedHeuristic.decay_steps : nothing,
+        :rng => isdefined(learnedHeuristic, :rng) ? learnedHeuristic.rng : nothing
     )
+
     open(dir * "/params.json", "w") do file
         JSON.print(file, expParameters)
     end
