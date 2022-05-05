@@ -14,7 +14,7 @@ include("features.jl")
 # -------------------
 # Generator
 # -------------------
-board_size = 5
+board_size = 7
 nqueens_generator = SeaPearl.NQueensGenerator(board_size)
 SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 # -------------------
@@ -24,8 +24,8 @@ numInFeatures = SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 2000
-evalFreq = 100
+nbEpisodes = 5000
+evalFreq = 200
 nbInstances = 100
 nbRandomHeuristics = 0
 # -------------------
@@ -35,8 +35,22 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-eta = .9
-learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR,SeaPearl.CPReward,SeaPearl.FixedOutput}(agent, eta)
+eta_init = 1.
+eta_stable = 0.1
+warmup_steps = 1000
+decay_steps = 2000
+
+learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(
+    agent, 
+    eta_init=eta_init,
+    eta_stable=eta_stable, 
+    warmup_steps=warmup_steps, 
+    decay_steps=decay_steps,
+    rng=MersenneTwister(1234)
+    )
+
+#learnedHeuristic = SeaPearl.SimpleLearnedHeuristic(agent)
+
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
