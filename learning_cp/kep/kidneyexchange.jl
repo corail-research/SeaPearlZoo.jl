@@ -52,8 +52,8 @@ mutable struct KepParameters
             1,          #batchSize
             nothing,       #seed
             nothing,       #seedEval
-            SeaPearl.SmartReward,
-            SeaPearl.ILDSearch(0),
+            SeaPearl.ExperimentalReward,
+            SeaPearl.DFSearch(),
             SeaPearl.DFSearch(),
             nothing,
             nothing
@@ -61,23 +61,6 @@ mutable struct KepParameters
     end
 end
 
-# -------------------
-# Variable Heuristic definition
-# -------------------
-struct KepVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
-KepVariableSelection(;take_objective=false) = KepVariableSelection{take_objective}()
-function (::KepVariableSelection{false})(cpmodel::SeaPearl.CPModel; rng=nothing)
-    numberOfNodes = count(values(cpmodel.branchable))
-    print("in KepVariableSelection")
-    for i = 1:numberOfNodes
-        for j = 1:numberOfNodes
-            if haskey(cpmodel.variables, "x_"*string(i)*"_"*string(j)) && !SeaPearl.isbound(cpmodel.variables["x_"*string(i)*"_"*string(j)])
-                return cpmodel.variables["x_"*string(i)*"_"*string(j)]
-            end
-        end
-    end
-end
-# use SeaPearl.MinDomainVariableSelection() ? 
 struct select_random_value <: Function
     rng::MersenneTwister
     function select_random_value(rng::MersenneTwister)
@@ -137,15 +120,15 @@ function trytrain(
         strategy=args.strategy,
         eval_strategy=args.evalStrategy,
         variableHeuristic=variableSelection,
-        out_solver = false,
+        out_solver = true,
         verbose = true,
         evaluator=SeaPearl.SameInstancesEvaluator(heuristics, evalGenerator;
             seed = args.seedEval,
-            evalFreq = div(args.nbEpisodes,args.nbEvals), #TODO assert to check that evalFreq>0 ?
+            evalFreq = div(args.nbEpisodes,args.nbEvals), 
             nbInstances = args.nbInstances, 
             evalTimeOut = args.evalTimeout
         ),
-        metrics = nothing, #TODO 
+        metrics = nothing, 
         restartPerInstances = args.restartPerInstance,
     )
     println("\n\nExperiment done, writing weights")
@@ -201,8 +184,7 @@ function main(args::KepParameters)
     append!(valueSelectionArray, randomHeuristics)
 
 
-    variableSelection = SeaPearl.MinDomainVariableSelection() #KepVariableSelection() TODO
-
+    variableSelection = SeaPearl.MinDomainVariableSelection()
     
     # -------------------
     # -------------------
@@ -250,7 +232,7 @@ function parse_commandline()
         "--reward"
             help = "Name of the reward: CPReward | SmartReward"
             arg_type = String
-            default = "SmartReward"
+            default = "ExperimentalReward"
         "--seed"
             help = "seed used to generate model and randomheuristic"
             arg_type = Int
@@ -277,7 +259,7 @@ function script()
     kepParams.seed = args[:seed]
     kepParams.seedEval = args[:seedEval]
     kepParams.density = args[:density]
-    kepParams.reward = SeaPearl.SmartReward
+    kepParams.reward = SeaPearl.ExperimentalReward
 
     main(kepParams)
 end
@@ -294,7 +276,7 @@ function scriptDebug(nbEpisodes, restartPerInstance, timeout, nbInstances, rando
     kepParams.seed = seed
     kepParams.seedEval = seedEval
     kepParams.density = density
-    kepParams.reward = SeaPearl.SmartReward # TODO
+    kepParams.reward = SeaPearl.ExperimentalReward 
 
     main(kepParams)
 end
@@ -315,5 +297,4 @@ function exp_restart()
 end
 
 script()
-# scriptDebug(40, 1, 100, 3, 1, 10, 0.1, 15, 15) # nbEpisodes, restartPerInstance, timeout, nbInstances, random, nbNodes, density, seed, seedEval
-nothing 
+# scriptDebug(1000, 1, 100, 50, 1, 10, 0.1, 15, 15) # nbEpisodes, restartPerInstance, timeout, nbInstances, random, nbNodes, density, seed, seedEval
