@@ -24,8 +24,8 @@ numInFeatures = SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 5000
-evalFreq = 200
+nbEpisodes = 50
+evalFreq = 49
 nbInstances = 100
 nbRandomHeuristics = 0
 # -------------------
@@ -40,16 +40,20 @@ eta_stable = 0.1
 warmup_steps = 1000
 decay_steps = 2000
 
-learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(
-    agent, 
-    eta_init=eta_init,
-    eta_stable=eta_stable, 
-    warmup_steps=warmup_steps, 
-    decay_steps=decay_steps,
-    rng=MersenneTwister(1234)
-    )
+heuristic_used = "supervised"
 
-#learnedHeuristic = SeaPearl.SimpleLearnedHeuristic(agent)
+if heuristic_used == "simple"
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic(agent)
+elseif heuristic_used == "supervised"
+    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(
+        agent, 
+        eta_init=eta_init,
+        eta_stable=eta_stable, 
+        warmup_steps=warmup_steps, 
+        decay_steps=decay_steps,
+        rng=MersenneTwister(1234)
+        )
+end
 
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -84,18 +88,20 @@ function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_", Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
     expParameters = Dict(
-        :instance => "nqueens"
+        :instance => "nqueens",
+        :board_size => board_size,
         :nbEpisodes => nbEpisodes,
         :evalFreq => evalFreq,
         :nbInstances => nbInstances,
         :nbRandomHeuristics => nbRandomHeuristics,
         :learnedHeuristicType => typeof(learnedHeuristic),
-        :eta_init => hasproperty(heuristic, :eta_init) ? heuristic.eta_init : nothing,
-        :eta_stable => hasproperty(heuristic, :eta_stable) ? heuristic.eta_stable : nothing,
-        :warmup_steps => hasproperty(heuristic, :warmup_steps) ? heuristic.warmup_steps : nothing,
-        :decay_steps => hasproperty(heuristic, :decay_steps) ? heuristic.decay_steps : nothing,
-        :rng => hasproperty(heuristic, :rng) ? heuristic.rng : nothing
+        :eta_init => hasproperty(learnedHeuristic, :eta_init) ? learnedHeuristic.eta_init : nothing,
+        :eta_stable => hasproperty(learnedHeuristic, :eta_stable) ? learnedHeuristic.eta_stable : nothing,
+        :warmup_steps => hasproperty(learnedHeuristic, :warmup_steps) ? learnedHeuristic.warmup_steps : nothing,
+        :decay_steps => hasproperty(learnedHeuristic, :decay_steps) ? learnedHeuristic.decay_steps : nothing,
+        :rng => hasproperty(learnedHeuristic, :rng) ? learnedHeuristic.rng : nothing
     )
+
     open(dir * "/params.json", "w") do file
         JSON.print(file, expParameters)
     end
