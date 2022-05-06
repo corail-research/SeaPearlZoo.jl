@@ -24,8 +24,8 @@ numInFeatures = SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 50
-evalFreq = 49
+nbEpisodes = 200
+evalFreq = 50
 nbInstances = 100
 nbRandomHeuristics = 0
 # -------------------
@@ -37,8 +37,8 @@ include("agents.jl")
 # -------------------
 eta_init = 1.
 eta_stable = 0.1
-warmup_steps = 1000
-decay_steps = 2000
+warmup_steps = 50
+decay_steps = 50
 
 heuristic_used = "supervised"
 
