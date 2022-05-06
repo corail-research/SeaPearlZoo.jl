@@ -26,12 +26,7 @@ nqueens_generator = SeaPearl.NQueensGenerator(board_size)
 # -------------------
 features_type = BetterFeaturization
 
-function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{BetterFeaturization, TS}}) where TS
-    return nb_features
-end
-
-
-SR = SeaPearl.DefaultStateRepresentation{SeaPearl.FeaturizationHelper, SeaPearl.DefaultTrajectoryState}
+SR = SeaPearl.DefaultStateRepresentation{features_type, SeaPearl.DefaultTrajectoryState}
 
 # -------------------
 # Internal variables
@@ -45,6 +40,7 @@ nbEpisodes = 10000
 evalFreq = 1000
 nbInstances = 50
 nbRandomHeuristics = 0
+restartPerInstances = 1
 
 # -------------------
 # Agent definition
