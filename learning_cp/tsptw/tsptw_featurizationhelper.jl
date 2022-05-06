@@ -28,8 +28,9 @@ chosen_features = Dict([("values_raw", values_raw), ("constraint_type", constrai
 
 # TODO: Edit it to automatically compute the number of constraint types
 nb_features = 16
+featurizationType = SeaPearl.DefaultFeaturization
 
-function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, TS}}) where TS
+function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{featurizationType, TS}}) where TS
     return nb_features
 end
 

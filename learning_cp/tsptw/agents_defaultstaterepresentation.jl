@@ -15,7 +15,7 @@ agent = RL.Agent(
                         Flux.Dense(32, 32, relu),
                         Flux.Dense(32, 32, relu),
                     ),
-                    outputChain = Flux.Dense(32, n_city),
+                    outputChain = Flux.Chain(Flux.Dense(32, n_city)),
                 ),
                 optimizer = ADAM(0.0005f0)
             ),
@@ -31,7 +31,7 @@ agent = RL.Agent(
                         Flux.Dense(32, 32, relu),
                         Flux.Dense(32, 32, relu),
                     ),
-                    outputChain = Flux.Dense(32, n_city),
+                    outputChain = Flux.Chain(Flux.Dense(32, n_city)),
                 ),
                 optimizer = ADAM(0.0005f0)
             ),
