@@ -59,7 +59,8 @@ include("agents_defaultstaterepresentation.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-learnedHeuristic = SeaPearl.LearnedHeuristic{SR, SeaPearl.ExperimentalReward, SeaPearl.FixedOutput}(agent; chosen_features = chosen_features)
+rewardType = SeaPearl.GeneralReward
+learnedHeuristic = SeaPearl.LearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent; chosen_features = chosen_features)
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
 
@@ -106,9 +107,40 @@ function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
     expParameters = Dict(
-        :nbEpisodes => nbEpisodes,
-        :evalFreq => evalFreq,
-        :nbInstances => nbInstances
+            :experimentParameters => Dict(
+            :nbEpisodes => nbEpisodes,
+            :evalFreq => evalFreq,
+            :nbInstances => nbInstances,
+        ),
+        :generatorParameters => Dict(
+            :nCity => n_city,
+            :gridSize => grid_size,
+            :maxTwGap => max_tw_gap,
+            :maxTw => max_tw,
+        ),
+        :nbRandomHeuristics => nbRandomHeuristics,
+        :Featurization => Dict(
+            :featurizationType => featurizationType,
+            :chosen_features => chosen_features
+        ),
+        :learnerParameters => Dict(
+            :model => string(agent.policy.learner.approximator.model),
+            :gamma => agent.policy.learner.sampler.γ,
+            :batch_size => agent.policy.learner.sampler.batch_size,
+            :update_horizon => agent.policy.learner.sampler.n,
+            :min_replay_history => agent.policy.learner.min_replay_history,
+            :update_freq => agent.policy.learner.update_freq,
+            :target_update_freq => agent.policy.learner.target_update_freq,
+        ),
+        :explorerParameters => Dict(
+            :ϵ_stable => agent.policy.explorer.ϵ_stable,
+            :decay_steps => agent.policy.explorer.decay_steps,
+        ),
+        :trajectoryParameters => Dict(
+            :trajectoryType => typeof(agent.trajectory),
+            :capacity => trajectory_capacity
+        ),
+        :reward => rewardType
     )
     open(dir*"/params.json", "w") do file
         JSON.print(file, expParameters)

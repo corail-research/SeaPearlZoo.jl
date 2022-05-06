@@ -1,3 +1,5 @@
+trajectory_capacity = 2000
+
 agent = RL.Agent(
     policy = RL.QBasedPolicy(
         learner = RL.DQNLearner(
@@ -55,7 +57,7 @@ agent = RL.Agent(
         )
     ),
     trajectory = RL.CircularArraySARTTrajectory(
-        capacity = 2000,
+        capacity = trajectory_capacity,
         state = SeaPearl.DefaultTrajectoryState[] => ()
     )
 )
