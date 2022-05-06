@@ -1,6 +1,6 @@
 # Model definition
 n = coloring_generator.n
-trajectory_capacity = 1000
+trajectory_capacity = 3000
 
 approximator_model = SeaPearl.CPNN(
     graphChain = Flux.Chain(
@@ -56,16 +56,16 @@ agent = RL.Agent(
             ),
             loss_func = Flux.Losses.huber_loss,
             γ = 0.99f0,
-            batch_size = 8, #32,
-            update_horizon = 10, #what if the number of nodes in a episode is smaller
-            min_replay_history = 8,
+            batch_size = 16, #32,
+            update_horizon = 4, #what if the number of nodes in a episode is smaller
+            min_replay_history = 128,
             update_freq = 1,
             target_update_freq = 200,
         ),
         explorer = RL.EpsilonGreedyExplorer(
-            ϵ_stable = 0.1,
+            ϵ_stable = 0.01,
             kind = :exp,
-            decay_steps = 2000,
+            decay_steps = 3000,
             step = 1,
             #rng = rng
         )
