@@ -13,7 +13,7 @@ using Dates
 # Generator
 # -------------------
 n_city = 5
-grid_size = 20
+grid_size = 10
 max_tw_gap = 0
 max_tw = 100
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
@@ -36,8 +36,8 @@ numInFeatures=SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 200
-evalFreq = 10
+nbEpisodes = 2000
+evalFreq = 100
 nbInstances = 10
 nbRandomHeuristics = 1
 
@@ -53,11 +53,31 @@ end
 # -------------------
 # Value Heuristic definition
 # -------------------
-if default_representation
-    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
-else
-    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
+
+heuristic_used = "supervised"
+
+if heuristic_used == "simple"
+    if default_representation
+        learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
+    else
+        learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
+    end
+elseif heuristic_used == "supervised"
+    eta_init = .9
+    eta_stable = .1
+    warmup_steps = 300
+    decay_steps = 700
+
+    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(
+        agent, 
+        eta_init=eta_init, 
+        eta_stable=eta_stable, 
+        warmup_steps=warmup_steps, 
+        decay_steps=decay_steps,
+        rng=MersenneTwister(1234)
+        )
 end
+
 
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
@@ -79,19 +99,8 @@ for i in 1:nbRandomHeuristics
     push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
-eta_init = .5
-eta_stable = .1
-warmup_steps = 0
-decay_steps = 100
-supervisedLearnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(
-    agent#, 
-    #eta_init=eta_init, 
-    #eta_stable=eta_stable, 
-    #warmup_steps=warmup_steps, 
-    #decay_steps=decay_steps
-    )
 
-valueSelectionArray = [supervisedLearnedHeuristic, nearest_heuristic]
+valueSelectionArray = [learnedHeuristic, nearest_heuristic]
 append!(valueSelectionArray, randomHeuristics)
 
 # -------------------
@@ -117,9 +126,22 @@ function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
     expParameters = Dict(
+        :instance  => "tsptw",
         :nbEpisodes => nbEpisodes,
         :evalFreq => evalFreq,
-        :nbInstances => nbInstances
+        :nbInstances => nbInstances,
+        :nbRandomHeuristics => nbRandomHeuristics,
+        :learnedHeuristicType => typeof(learnedHeuristic),
+        :eta_init => hasproperty(learnedHeuristic, :eta_init) ? learnedHeuristic.eta_init : nothing,
+        :eta_stable => hasproperty(learnedHeuristic, :eta_stable) ? learnedHeuristic.eta_stable : nothing,
+        :warmup_steps => hasproperty(learnedHeuristic, :warmup_steps) ? learnedHeuristic.warmup_steps : nothing,
+        :decay_steps => hasproperty(learnedHeuristic, :decay_steps) ? learnedHeuristic.decay_steps : nothing,
+        :rng => hasproperty(learnedHeuristic, :rng) ? learnedHeuristic.rng : nothing,
+        :n_city => tsptw_generator.n_city,
+        :grid_size => tsptw_generator.grid_size,
+        :max_tw_gap => tsptw_generator.max_tw_gap, 
+        :max_tw => tsptw_generator.max_tw, 
+        :pruning => tsptw_generator.pruning
     )
     open(dir*"/params.json", "w") do file
         JSON.print(file, expParameters)

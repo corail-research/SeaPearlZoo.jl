@@ -84,6 +84,7 @@ function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_", Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
     expParameters = Dict(
+        :instance => "nqueens"
         :nbEpisodes => nbEpisodes,
         :evalFreq => evalFreq,
         :nbInstances => nbInstances,
