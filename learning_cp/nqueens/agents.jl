@@ -1,3 +1,5 @@
+trajectory_capacity = 50000
+
 approximator_model = SeaPearl.CPNN(
     graphChain=Flux.Chain(
         SeaPearl.GraphConv(numInFeatures => 32, Flux.leakyrelu),
@@ -61,7 +63,7 @@ agent = RL.Agent(
         )
     ),
     trajectory=RL.CircularArraySLARTTrajectory(
-        capacity=50000,
+        capacity=trajectory_capacity,
         state=SeaPearl.DefaultTrajectoryState[] => (),
         legal_actions_mask=Vector{Bool} => (nqueens_generator.board_size,),
     )
