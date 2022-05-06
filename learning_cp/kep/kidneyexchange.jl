@@ -69,12 +69,10 @@ struct select_random_value <: Function
 end
 function (func::select_random_value)(x::SeaPearl.IntVar; cpmodel=nothing)
 
-    #print("selected variable : ", x)
     selected_number = rand(func.rng, 1: length(x.domain))
     i = 1
     for value in x.domain
         if i == selected_number
-            #println(" : selected value : ",value)
             return value
         end
         i += 1
@@ -145,10 +143,8 @@ function trytrain(
     return metricsArray, evalMetricsArray
 end
 
-
 function main(args::KepParameters)
 
-    
 
     # -------------------
     # Generator
@@ -160,13 +156,10 @@ function main(args::KepParameters)
     args.SR = SR
     args.numInFeatures = SeaPearl.feature_length(SR)
 
-    
-
     # -------------------
     # Agent definition
     # -------------------   
     agent = create_agent(args)
-
 
     # -------------------
     # Value Heuristic definition
@@ -264,23 +257,6 @@ function script()
     main(kepParams)
 end
 
-function scriptDebug(nbEpisodes, restartPerInstance, timeout, nbInstances, random, nbNodes, density, seed, seedEval)
-    kepParams = KepParameters()
-    kepParams.nbEpisodes = nbEpisodes
-    kepParams.restartPerInstance = restartPerInstance
-    kepParams.evalTimeout = timeout
-    kepParams.nbInstances = nbInstances
-    kepParams.nbRandomHeuristics = random
-    kepParams.nbNodes = nbNodes
-    kepParams.nbNodesEval = nbNodes
-    kepParams.seed = seed
-    kepParams.seedEval = seedEval
-    kepParams.density = density
-    kepParams.reward = SeaPearl.ExperimentalReward 
-
-    main(kepParams)
-end
-
 # -------------------
 # Episode/Restart ratio experiment
 # -------------------
@@ -297,4 +273,3 @@ function exp_restart()
 end
 
 script()
-# scriptDebug(1000, 1, 100, 50, 1, 10, 0.1, 15, 15) # nbEpisodes, restartPerInstance, timeout, nbInstances, random, nbNodes, density, seed, seedEval
