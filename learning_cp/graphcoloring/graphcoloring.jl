@@ -14,10 +14,10 @@ using LightGraphs
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 100
-restartPerInstances = 10
+nbEpisodes = 1001
+restartPerInstances = 1
 evalFreq = 100
-nbInstances = 10
+nbInstances = 50
 nbRandomHeuristics = 1
 
 nbNodes = 20
@@ -35,7 +35,7 @@ include("features.jl")
 # Internal variables
 # -------------------
 featurizationType = BetterFeaturization
-rewardType = SeaPearl.ExperimentalReward
+rewardType = SeaPearl.GeneralReward
 
 SR = SeaPearl.DefaultStateRepresentation{featurizationType, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
