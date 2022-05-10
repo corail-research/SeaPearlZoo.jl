@@ -35,7 +35,7 @@ include("features.jl")
 # Internal variables
 # -------------------
 featurizationType = BetterFeaturization
-rewardType = SeaPearl.GeneralReward
+rewardType = SeaPearl.CPReward
 
 SR = SeaPearl.DefaultStateRepresentation{featurizationType, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
@@ -50,7 +50,7 @@ include("agents.jl")
 # Value Heuristic definition
 # -------------------
 
-learnedHeuristic=SeaPearl.LearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent)
+learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent)
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)

@@ -61,7 +61,7 @@ include("agents_defaultstaterepresentation.jl")
 # Value Heuristic definition
 # -------------------
 rewardType = SeaPearl.GeneralReward
-learnedHeuristic = SeaPearl.LearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent; chosen_features = chosen_features)
+learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent; chosen_features = chosen_features)
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
 
