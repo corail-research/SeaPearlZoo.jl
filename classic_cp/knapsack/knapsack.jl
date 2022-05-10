@@ -81,13 +81,15 @@ function solve_knapsack(filename::String; benchmark=false)
 
 
 
-    status = SeaPearl.solve!(model; variableHeuristic=selectVariable)
+    status = SeaPearl.solve!(model)
 
     if !benchmark
         print(status)
         for oneSolution in model.statistics.solutions
-            output = solutionFromSeaPearl(oneSolution, input, permutation)
-            printSolution(output)
+            if !isnothing(oneSolution)
+                output = solutionFromSeaPearl(oneSolution, input, permutation)
+                printSolution(output)
+            end
         end
     end
     return status
