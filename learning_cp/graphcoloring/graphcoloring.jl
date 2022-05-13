@@ -35,7 +35,7 @@ include("features.jl")
 # Internal variables
 # -------------------
 featurizationType = BetterFeaturization
-rewardType = SeaPearl.CPReward
+rewardType = SeaPearl.GeneralReward
 
 SR = SeaPearl.DefaultStateRepresentation{featurizationType, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)

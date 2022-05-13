@@ -39,3 +39,7 @@ exp_*/
 
 # Plot files
 *plot.ipynb
+*plot.py
+
+# Save experiment files
+*save_experiment.py
