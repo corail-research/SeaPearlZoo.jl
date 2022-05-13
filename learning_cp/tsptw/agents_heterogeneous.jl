@@ -1,3 +1,5 @@
+trajectory_capacity = 3000
+
 agent = RL.Agent(
     policy=RL.QBasedPolicy(
         learner=RL.DQNLearner(
@@ -39,12 +41,11 @@ agent = RL.Agent(
                 optimizer=ADAM()
             ),
             loss_func=Flux.Losses.huber_loss,
-            batch_size=8, #8,
-            update_horizon=4, #what if the number of nodes in a episode is smaller
+            batch_size=8,
+            update_horizon=4,
             min_replay_history=128,
             update_freq=1,
             target_update_freq=200,
-            #rng = rng,
         ),
         explorer=RL.EpsilonGreedyExplorer(
             ϵ_stable=0.01,
@@ -55,7 +56,7 @@ agent = RL.Agent(
         )
     ),
     trajectory=RL.CircularArraySLARTTrajectory(
-        capacity=3000,
+        capacity=trajectory_capacity,
         state=SeaPearl.DefaultTrajectoryState[] => (),
         legal_actions_mask=Vector{Bool} => (n_city,),
     )
@@ -120,23 +121,21 @@ agent2 = RL.Agent(
                 optimizer=ADAM()
             ),
             loss_func=Flux.Losses.huber_loss,
-            batch_size=8, #32,
-            update_horizon = 4, #what if the number of nodes in a episode is smaller
+            batch_size=8,
+            update_horizon = 4,
             min_replay_history=128,
             update_freq=1,
             target_update_freq=200,
-            #rng = rng,
         ),
         explorer=RL.EpsilonGreedyExplorer(
             ϵ_stable=0.01,
             kind = :exp,
             decay_steps=3000,
             step=1,
-            #rng = rng
         )
     ),
     trajectory=RL.CircularArraySLARTTrajectory(
-        capacity=3000,
+        capacity=trajectory_capacity,
         state=SeaPearl.HeterogeneousTrajectoryState[] => (),
         legal_actions_mask=Vector{Bool} => (n_city,),
     )
