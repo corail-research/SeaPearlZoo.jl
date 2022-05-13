@@ -10,37 +10,35 @@ using Random
 using Dates
 using Statistics
 
-include("rewards.jl")
 include("features.jl")
 
 # -------------------
 # Generator
 # -------------------
 
-nbNodes = 50
+nbNodes = 30
 nbMinColor = 10
 density = 0.95
 
+featurizationType = SeaPearl.DefaultFeaturization
+rewardType = SeaPearl.GeneralReward
 coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(nbNodes, nbMinColor, density)
-SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
-SR2 = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+SR_default = SeaPearl.DefaultStateRepresentation{featurizationType,SeaPearl.DefaultTrajectoryState}
+SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{featurizationType,SeaPearl.HeterogeneousTrajectoryState}
 
 # -------------------
 # Internal variables
 # -------------------
-function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, TS}}) where TS
-    return 3
-end
-numInFeatures = SeaPearl.feature_length(SR)
+numInFeatures = 3
 numInFeatures2 = [1, 2, 1]
 
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 10001
+nbEpisodes = 1001
 restartPerInstances = 1
 evalFreq = 100
-nbInstances = 1
+nbInstances = 20
 
 # -------------------
 # Agent definition
@@ -63,14 +61,14 @@ chosen_features = Dict(
     "values_raw" => true,
 )
 
-# learnedHeuristic = SeaPearl.LearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
-learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.GeneralReward, SeaPearl.FixedOutput}(agent)
-learnedHeuristic2 = SeaPearl.SimpleLearnedHeuristic{SR2, SeaPearl.GeneralReward, SeaPearl.FixedOutput}(agent2; chosen_features=chosen_features)
+
+learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent)
+learnedHeuristic2 = SeaPearl.SimpleLearnedHeuristic{SR2, rewardType, SeaPearl.FixedOutput}(agent2; chosen_features=chosen_features)
 
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
-
+nbRandomHeuristics = 0
 valueSelectionArray = [learnedHeuristic, learnedHeuristic2, heuristic_min]
 
 # -------------------
@@ -88,13 +86,46 @@ function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_", Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
     expParameters = Dict(
-        :nbEpisodes => nbEpisodes,
-        :evalFreq => evalFreq,
-        :nbInstances => nbInstances
+        :experimentParameters => Dict(
+            :nbEpisodes => nbEpisodes,
+            :restartPerInstances => restartPerInstances,
+            :evalFreq => evalFreq,
+            :nbInstances => nbInstances,
+        ),
+        :generatorParameters => Dict(
+            :nbNodes => nbNodes,
+            :nbMinColor => nbMinColor,
+            :density => density
+        ),
+        :nbRandomHeuristics => nbRandomHeuristics,
+        :Featurization => Dict(
+            :featurizationType => featurizationType,
+            :chosen_features => chosen_features
+        ),
+        :learnerParameters => Dict(
+            :model => string(agent.policy.learner.approximator.model),
+            :gamma => agent.policy.learner.sampler.γ,
+            :batch_size => agent.policy.learner.sampler.batch_size,
+            :update_horizon => agent.policy.learner.sampler.n,
+            :min_replay_history => agent.policy.learner.min_replay_history,
+            :update_freq => agent.policy.learner.update_freq,
+            :target_update_freq => agent.policy.learner.target_update_freq,
+        ),
+        :explorerParameters => Dict(
+            :ϵ_stable => agent.policy.explorer.ϵ_stable,
+            :decay_steps => agent.policy.explorer.decay_steps,
+        ),
+        :trajectoryParameters => Dict(
+            :trajectoryType => typeof(agent.trajectory),
+            :capacity => trajectory_capacity
+        ),
+        :reward => rewardType
     )
     open(dir * "/params.json", "w") do file
         JSON.print(file, expParameters)
     end
+    cp("graphcoloring_heterogeneous.jl", dir*"/graphcoloring_heterogeneous.jl")
+    cp("agents_heterogeneous.jl", dir*"/agents_heterogeneous.jl")
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
