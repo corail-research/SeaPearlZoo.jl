@@ -18,6 +18,8 @@ nbNodes = @isdefined(SIZE) ? SIZE : 10
 nbMinColor = 5
 density = 0.95
 
+OUTPUT_SIZE = nbNodes
+
 coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(nbNodes, nbMinColor, density)
 
 # -------------------
@@ -99,6 +101,7 @@ metricsArray, eval_metricsArray = trytrain(
     out_solver=true,
     verbose=VERBOSE,
     expParameters=expParameters,
-    nbRandomHeuristics=NB_RANDOM_HEURISTICS
+    nbRandomHeuristics=NB_RANDOM_HEURISTICS,
+    exp_name = string(NB_EPISODES) * "_" * string(nbNodes) * "_"
 )
 nothing

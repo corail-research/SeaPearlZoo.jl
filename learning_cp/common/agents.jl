@@ -27,7 +27,7 @@ agent_default_default = RL.Agent(
                     globalChain=Flux.Chain(),
                     outputChain=Flux.Chain(
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
-                        Flux.Dense(DENSE_SIZE, coloring_generator.n),
+                        Flux.Dense(DENSE_SIZE, OUTPUT_SIZE),
                     )
                 ),
                 optimizer=ADAM()
@@ -45,7 +45,7 @@ agent_default_default = RL.Agent(
                     globalChain=Flux.Chain(),
                     outputChain=Flux.Chain(
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
-                        Flux.Dense(DENSE_SIZE, coloring_generator.n),
+                        Flux.Dense(DENSE_SIZE, OUTPUT_SIZE),
                     )
                 ),
                 optimizer=ADAM()
@@ -69,7 +69,7 @@ agent_default_default = RL.Agent(
     trajectory=RL.CircularArraySLARTTrajectory(
         capacity=CAPACITY,
         state=SeaPearl.DefaultTrajectoryState[] => (),
-        legal_actions_mask=Vector{Bool} => (coloring_generator.n,),
+        legal_actions_mask=Vector{Bool} => (OUTPUT_SIZE,),
     )
 )
 
@@ -92,7 +92,7 @@ agent_default_chosen = RL.Agent(
                     globalChain=Flux.Chain(),
                     outputChain=Flux.Chain(
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
-                        Flux.Dense(DENSE_SIZE, coloring_generator.n),
+                        Flux.Dense(DENSE_SIZE, OUTPUT_SIZE),
                     )
                 ),
                 optimizer=ADAM()
@@ -110,7 +110,7 @@ agent_default_chosen = RL.Agent(
                     globalChain=Flux.Chain(),
                     outputChain=Flux.Chain(
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
-                        Flux.Dense(DENSE_SIZE, coloring_generator.n),
+                        Flux.Dense(DENSE_SIZE, OUTPUT_SIZE),
                     )
                 ),
                 optimizer=ADAM()
@@ -134,7 +134,7 @@ agent_default_chosen = RL.Agent(
     trajectory=RL.CircularArraySLARTTrajectory(
         capacity=CAPACITY,
         state=SeaPearl.DefaultTrajectoryState[] => (),
-        legal_actions_mask=Vector{Bool} => (coloring_generator.n,),
+        legal_actions_mask=Vector{Bool} => (OUTPUT_SIZE,),
     )
 )
 
@@ -175,13 +175,13 @@ agent_heterogeneous = RL.Agent(
                 model=SeaPearl.HeterogeneousCPNN(
                     graphChain=HeterogeneousModel(),
                     nodeChain=Flux.Chain(
-                        Flux.Dense(CONV_SIZE, DENSE_SIZE, Flux.leakyrelu),
+                        Flux.Dense(3*CONV_SIZE, DENSE_SIZE, Flux.leakyrelu),
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
                     ),
                     globalChain=Flux.Chain(),
                     outputChain=Flux.Chain(
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
-                        Flux.Dense(DENSE_SIZE, coloring_generator.n),
+                        Flux.Dense(DENSE_SIZE, OUTPUT_SIZE),
                     )
                 ),
                 optimizer=ADAM()
@@ -190,13 +190,13 @@ agent_heterogeneous = RL.Agent(
                 model=SeaPearl.HeterogeneousCPNN(
                     graphChain=HeterogeneousModel(),
                     nodeChain=Flux.Chain(
-                        Flux.Dense(CONV_SIZE, DENSE_SIZE, Flux.leakyrelu),
+                        Flux.Dense(3*CONV_SIZE, DENSE_SIZE, Flux.leakyrelu),
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
                     ),
                     globalChain=Flux.Chain(),
                     outputChain=Flux.Chain(
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
-                        Flux.Dense(DENSE_SIZE, coloring_generator.n),
+                        Flux.Dense(DENSE_SIZE, OUTPUT_SIZE),
                     )
                 ),
                 optimizer=ADAM()
@@ -220,6 +220,6 @@ agent_heterogeneous = RL.Agent(
     trajectory=RL.CircularArraySLARTTrajectory(
         capacity=CAPACITY,
         state=SeaPearl.HeterogeneousTrajectoryState[] => (),
-        legal_actions_mask=Vector{Bool} => (coloring_generator.n,),
+        legal_actions_mask=Vector{Bool} => (OUTPUT_SIZE,),
     )
 )
