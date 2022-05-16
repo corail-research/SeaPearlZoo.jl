@@ -47,7 +47,26 @@ include("agents.jl")
 # Value Heuristic definition
 # -------------------
 
-learnedHeuristic=SeaPearl.LearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
+heuristic_used = "supervised"
+
+if heuristic_used == "simple"
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic(agent)
+elseif heuristic_used == "supervised"
+    eta_init = 1.
+    eta_stable = 0.1
+    warmup_steps = 0
+    decay_steps = 50
+
+    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(
+        agent, 
+        eta_init=eta_init,
+        eta_stable=eta_stable, 
+        warmup_steps=warmup_steps, 
+        decay_steps=decay_steps,
+        rng=MersenneTwister(1234)
+        )
+end
+
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
@@ -85,14 +104,21 @@ function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
     expParameters = Dict(
+        :instance => "graphcoloring",
+        :nbNodes => nbNodes,
+        :nbMinColor => nbMinColor,
+        :density => density,
         :nbEpisodes => nbEpisodes,
         :restartPerInstances => restartPerInstances,
         :evalFreq => evalFreq,
         :nbInstances => nbInstances,
         :nbRandomHeuristics => nbRandomHeuristics,
-        nbNodes => nbNodes,
-        nbMinColor => nbMinColor,
-        density => density
+        :learnedHeuristicType => typeof(learnedHeuristic),
+        :eta_init => hasproperty(learnedHeuristic, :eta_init) ? learnedHeuristic.eta_init : nothing,
+        :eta_stable => hasproperty(learnedHeuristic, :eta_stable) ? learnedHeuristic.eta_stable : nothing,
+        :warmup_steps => hasproperty(learnedHeuristic, :warmup_steps) ? learnedHeuristic.warmup_steps : nothing,
+        :decay_steps => hasproperty(learnedHeuristic, :decay_steps) ? learnedHeuristic.decay_steps : nothing,
+        :rng => hasproperty(learnedHeuristic, :rng) ? learnedHeuristic.rng : nothing
     )
     open(dir*"/params.json", "w") do file
         JSON.print(file, expParameters)
