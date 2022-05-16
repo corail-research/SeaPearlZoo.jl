@@ -12,7 +12,7 @@ using Dates
 # -------------------
 # Generator
 # -------------------
-n_city = 10
+n_city = 7
 grid_size = 25
 max_tw_gap = 0
 max_tw = 100
@@ -51,6 +51,7 @@ nbEpisodes = 2001
 evalFreq = 200
 nbInstances = 10
 nbRandomHeuristics = 1
+restartPerInstances = 1
 
 # -------------------
 # Agent definition
@@ -60,8 +61,27 @@ include("agents_defaultstaterepresentation.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
+heuristic_used = "supervised"
 rewardType = SeaPearl.GeneralReward
-learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent; chosen_features = chosen_features)
+
+if heuristic_used == "simple"
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
+elseif heuristic_used == "supervised"
+    eta_init = .9
+    eta_stable = .1
+    warmup_steps = 300
+    decay_steps = 700
+
+    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(
+        agent;
+        chosen_features,
+        eta_init=eta_init, 
+        eta_stable=eta_stable, 
+        warmup_steps=warmup_steps, 
+        decay_steps=decay_steps,
+        rng=MersenneTwister(1234)
+        )
+end
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
 
@@ -108,16 +128,16 @@ function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
     expParameters = Dict(
-            :experimentParameters => Dict(
+        :experimentParameters => Dict(
             :nbEpisodes => nbEpisodes,
             :evalFreq => evalFreq,
-            :nbInstances => nbInstances,
+            :nbInstances => nbInstances
         ),
         :generatorParameters => Dict(
             :nCity => n_city,
             :gridSize => grid_size,
             :maxTwGap => max_tw_gap,
-            :maxTw => max_tw,
+            :maxTw => max_tw
         ),
         :nbRandomHeuristics => nbRandomHeuristics,
         :Featurization => Dict(
@@ -131,11 +151,11 @@ function trytrain(nbEpisodes::Int)
             :update_horizon => agent.policy.learner.sampler.n,
             :min_replay_history => agent.policy.learner.min_replay_history,
             :update_freq => agent.policy.learner.update_freq,
-            :target_update_freq => agent.policy.learner.target_update_freq,
+            :target_update_freq => agent.policy.learner.target_update_freq
         ),
         :explorerParameters => Dict(
             :ϵ_stable => agent.policy.explorer.ϵ_stable,
-            :decay_steps => agent.policy.explorer.decay_steps,
+            :decay_steps => agent.policy.explorer.decay_steps
         ),
         :trajectoryParameters => Dict(
             :trajectoryType => typeof(agent.trajectory),
@@ -153,9 +173,10 @@ function trytrain(nbEpisodes::Int)
     nbEpisodes=nbEpisodes,
     strategy=SeaPearl.DFSearch(),
     variableHeuristic=variableSelection,
-    out_solver = true,
-    verbose = true,
-    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances)
+    out_solver=true,
+    verbose=false,
+    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances),
+    restartPerInstances=1
 )
 
     trained_weights = params(agent.policy.learner.approximator.model)
