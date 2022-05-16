@@ -50,8 +50,28 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-rewardType = SeaPearl.GeneralReward
-learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR,rewardType,SeaPearl.FixedOutput}(agent)
+rewardType = SeaPearl.CPReward
+
+eta_init = 1.
+eta_stable = 0.1
+warmup_steps = 50
+decay_steps = 50
+
+heuristic_used = "supervised"
+
+if heuristic_used == "simple"
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent)
+elseif heuristic_used == "supervised"
+    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(
+        agent, 
+        eta_init=eta_init,
+        eta_stable=eta_stable, 
+        warmup_steps=warmup_steps, 
+        decay_steps=decay_steps,
+        rng=MersenneTwister(1234)
+    )
+end
+
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
@@ -75,6 +95,7 @@ end
 
 valueSelectionArray = [learnedHeuristic, heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
+
 # -------------------
 # Variable Heuristic definition
 # -------------------
@@ -95,10 +116,19 @@ function trytrain(nbEpisodes::Int)
             :nbEpisodes => nbEpisodes,
             :restartPerInstances => restartPerInstances,
             :evalFreq => evalFreq,
-            :nbInstances => nbInstances,
+            :nbInstances => nbInstances
         ),
         :generatorParameters => Dict(
+            :instance => "nqueens",
             :boardSize => board_size,
+        ),
+        :learnedHeuristic => Dict(
+            :learnedHeuristicType => typeof(learnedHeuristic),
+            :eta_init => hasproperty(learnedHeuristic, :eta_init) ? learnedHeuristic.eta_init : nothing,
+            :eta_stable => hasproperty(learnedHeuristic, :eta_stable) ? learnedHeuristic.eta_stable : nothing,
+            :warmup_steps => hasproperty(learnedHeuristic, :warmup_steps) ? learnedHeuristic.warmup_steps : nothing,
+            :decay_steps => hasproperty(learnedHeuristic, :decay_steps) ? learnedHeuristic.decay_steps : nothing,
+            :rng => hasproperty(learnedHeuristic, :rng) ? {:rngType => typeof(learnedHeuristic.rng), :seed => learnedHeuristic.rng["seed"]} : nothing
         ),
         :nbRandomHeuristics => nbRandomHeuristics,
         :Featurization => Dict(
@@ -112,11 +142,11 @@ function trytrain(nbEpisodes::Int)
             :update_horizon => agent.policy.learner.sampler.n,
             :min_replay_history => agent.policy.learner.min_replay_history,
             :update_freq => agent.policy.learner.update_freq,
-            :target_update_freq => agent.policy.learner.target_update_freq,
+            :target_update_freq => agent.policy.learner.target_update_freq
         ),
         :explorerParameters => Dict(
             :ϵ_stable => agent.policy.explorer.ϵ_stable,
-            :decay_steps => agent.policy.explorer.decay_steps,
+            :decay_steps => agent.policy.explorer.decay_steps
         ),
         :trajectoryParameters => Dict(
             :trajectoryType => typeof(agent.trajectory),
