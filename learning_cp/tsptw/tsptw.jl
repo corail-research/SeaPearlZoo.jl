@@ -52,7 +52,10 @@ rewardType = SeaPearl.TsptwReward
 
 if heuristic_used == "simple"
     learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.VariableOutput}(agent)
-#= elseif heuristic_used == "supervised"
+
+# SupevisedLEarnedHeuristic is not compatible with TsptwStateRepresentation yet
+
+#=elseif heuristic_used == "supervised"
     eta_init = .9
     eta_stable = .1
     warmup_steps = 300
