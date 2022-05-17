@@ -36,3 +36,6 @@ exp_*/
 
 # Pictures
 *.png
+
+# Plot files
+*plot.ipynb

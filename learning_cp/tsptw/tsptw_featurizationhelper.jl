@@ -12,17 +12,32 @@ using Dates
 # -------------------
 # Generator
 # -------------------
-n_city = 5
-grid_size = 10
+n_city = 7
+grid_size = 25
 max_tw_gap = 0
 max_tw = 100
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
 
 # -------------------
-# Representation
+# Features
 # -------------------
+values_raw = true
+constraint_type = true
 
-SR = SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}
+chosen_features = Dict([("values_raw", values_raw), ("constraint_type", constraint_type)])
+
+# TODO: Edit it to automatically compute the number of constraint types
+nb_features = 16
+featurizationType = SeaPearl.DefaultFeaturization
+
+function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{featurizationType, TS}}) where TS
+    return nb_features
+end
+
+
+SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
+
+
 
 # -------------------
 # Internal variables
@@ -32,7 +47,7 @@ numInFeatures=SeaPearl.feature_length(SR)
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 5
+nbEpisodes = 2001
 evalFreq = 200
 nbInstances = 10
 nbRandomHeuristics = 1
@@ -41,36 +56,32 @@ restartPerInstances = 1
 # -------------------
 # Agent definition
 # -------------------
-
-include("agents.jl")
+include("agents_defaultstaterepresentation.jl")
 
 # -------------------
 # Value Heuristic definition
 # -------------------
-heuristic_used = "simple"
-rewardType = SeaPearl.TsptwReward
+heuristic_used = "supervised"
+rewardType = SeaPearl.GeneralReward
 
 if heuristic_used == "simple"
-    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.VariableOutput}(agent)
-
-# SupevisedLEarnedHeuristic is not compatible with TsptwStateRepresentation yet
-
-#=elseif heuristic_used == "supervised"
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
+elseif heuristic_used == "supervised"
     eta_init = .9
     eta_stable = .1
     warmup_steps = 300
     decay_steps = 700
 
-    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, rewardType, SeaPearl.VariableOutput}(
+    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(
         agent;
+        chosen_features,
         eta_init=eta_init, 
         eta_stable=eta_stable, 
         warmup_steps=warmup_steps, 
         decay_steps=decay_steps,
         rng=MersenneTwister(1234)
-    ) =#
+        )
 end
-
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
 
@@ -114,69 +125,63 @@ variableSelection = TsptwVariableSelection()
 # -------------------
 # -------------------
 function trytrain(nbEpisodes::Int)
-    
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
     expParameters = Dict(
-            :experimentParameters => Dict(
-                :nbEpisodes => nbEpisodes,
-                :restartPerInstances => restartPerInstances,
-                :evalFreq => evalFreq,
-                :nbInstances => nbInstances
-            ),
-            :generatorParameters => Dict(
-                :instance => "tsptw",
-                :n_city => n_city,
-                :grid_size => grid_size,
-                :max_tw_gap => max_tw_gap,
-                :max_tw => max_tw
-            ),
-            :learnedHeuristic => Dict(
-                :learnedHeuristicType => typeof(learnedHeuristic),
-                :eta_init => hasproperty(learnedHeuristic, :eta_init) ? learnedHeuristic.eta_init : nothing,
-                :eta_stable => hasproperty(learnedHeuristic, :eta_stable) ? learnedHeuristic.eta_stable : nothing,
-                :warmup_steps => hasproperty(learnedHeuristic, :warmup_steps) ? learnedHeuristic.warmup_steps : nothing,
-                :decay_steps => hasproperty(learnedHeuristic, :decay_steps) ? learnedHeuristic.decay_steps : nothing,
-                :rng => hasproperty(learnedHeuristic, :rng) ? Dict(:rngType => typeof(learnedHeuristic.rng), :seed => learnedHeuristic.rng.seed) : nothing
-            ),
-            :nbRandomHeuristics => nbRandomHeuristics,
-            :learnerParameters => Dict(
-                :model => string(agent.policy.learner.approximator.model),
-                :gamma => agent.policy.learner.sampler.γ,
-                :batch_size => agent.policy.learner.sampler.batch_size,
-                :update_horizon => agent.policy.learner.sampler.n,
-                :min_replay_history => agent.policy.learner.min_replay_history,
-                :update_freq => agent.policy.learner.update_freq,
-                :target_update_freq => agent.policy.learner.target_update_freq
-            ),
-            :explorerParameters => Dict(
-                :ϵ_stable => agent.policy.explorer.ϵ_stable,
-                :decay_steps => agent.policy.explorer.decay_steps
-            ),
-            :trajectoryParameters => Dict(
-                :trajectoryType => typeof(agent.trajectory),
-                :capacity => trajectory_capacity
-            ),
-            :reward => rewardType    
+        :experimentParameters => Dict(
+            :nbEpisodes => nbEpisodes,
+            :evalFreq => evalFreq,
+            :nbInstances => nbInstances
+        ),
+        :generatorParameters => Dict(
+            :nCity => n_city,
+            :gridSize => grid_size,
+            :maxTwGap => max_tw_gap,
+            :maxTw => max_tw
+        ),
+        :nbRandomHeuristics => nbRandomHeuristics,
+        :Featurization => Dict(
+            :featurizationType => featurizationType,
+            :chosen_features => chosen_features
+        ),
+        :learnerParameters => Dict(
+            :model => string(agent.policy.learner.approximator.model),
+            :gamma => agent.policy.learner.sampler.γ,
+            :batch_size => agent.policy.learner.sampler.batch_size,
+            :update_horizon => agent.policy.learner.sampler.n,
+            :min_replay_history => agent.policy.learner.min_replay_history,
+            :update_freq => agent.policy.learner.update_freq,
+            :target_update_freq => agent.policy.learner.target_update_freq
+        ),
+        :explorerParameters => Dict(
+            :ϵ_stable => agent.policy.explorer.ϵ_stable,
+            :decay_steps => agent.policy.explorer.decay_steps
+        ),
+        :trajectoryParameters => Dict(
+            :trajectoryType => typeof(agent.trajectory),
+            :capacity => trajectory_capacity
+        ),
+        :reward => rewardType
     )
     open(dir*"/params.json", "w") do file
         JSON.print(file, expParameters)
     end
 
-    metricsArray, eval_metricsArray=SeaPearl.train!(
+    metricsArray, eval_metricsArray = SeaPearl.train!(
     valueSelectionArray=valueSelectionArray,
     generator=tsptw_generator,
     nbEpisodes=nbEpisodes,
     strategy=SeaPearl.DFSearch(),
     variableHeuristic=variableSelection,
     out_solver=true,
-    verbose = false,
-    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq=evalFreq, nbInstances=nbInstances),
+    verbose=false,
+    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances),
     restartPerInstances=1
 )
+
     trained_weights = params(agent.policy.learner.approximator.model)
     @save dir*"/model_weights_tsptw"*string(n_city)*".bson" trained_weights
-
+    
     SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/tsptw_$(n_city)_training")
     SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/tsptw_$(n_city)_trained")
     SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/tsptw_$(n_city)_nearest")
