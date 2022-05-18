@@ -1,162 +1,102 @@
-using SeaPearl
-using SeaPearlExtras
-using ReinforcementLearning
-const RL = ReinforcementLearning
-using Flux
-using GeometricFlux
-using BSON: @save, @load
-using JSON
-using Random
-using Dates
-using Statistics
-using LightGraphs
+include("../common/experiment.jl")
 
-include("rewards.jl")
-include("features.jl")
+# -------------------
+# Parameters
+# -------------------
+
+NB_EPISODES = @isdefined(NB_EPISODES) ? NB_EPISODES : 1001
+EVAL_FREQ = @isdefined(EVAL_FREQ) ? EVAL_FREQ : 200
+NB_INSTANCES = @isdefined(NB_INSTANCES) ? NB_INSTANCES : 10
+NB_RANDOM_HEURISTICS = @isdefined(NB_RANDOM_HEURISTICS) ? NB_RANDOM_HEURISTICS : 0
+RESTART_PER_INSTANCES = @isdefined(RESTART_PER_INSTANCES) ? RESTART_PER_INSTANCES : 1
+VERBOSE = @isdefined(VERBOSE) ? VERBOSE : false
 
 # -------------------
 # Generator
 # -------------------
-board_size = 15
+board_size = @isdefined(SIZE) ? SIZE : 10
 nqueens_generator = SeaPearl.NQueensGenerator(board_size)
 
+OUTPUT_SIZE = board_size
 
 # -------------------
-# Features
+# State Representation
 # -------------------
-features_type = BetterFeaturization
+SR_default_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
+SR_default_chosen = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
+SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
 
-SR = SeaPearl.DefaultStateRepresentation{features_type, SeaPearl.DefaultTrajectoryState}
-
-# -------------------
-# Internal variables
-# -------------------
-numInFeatures = SeaPearl.feature_length(SR)
-
-# -------------------
-# Experience variables
-# -------------------
-nbEpisodes = 10000
-evalFreq = 1000
-nbInstances = 50
-nbRandomHeuristics = 0
-restartPerInstances = 1
+numInFeaturesDefault = 3
+numInFeaturesDefaultChosen = 9 + board_size
+numInFeaturesHeterogeneous = [1, 5, board_size]
 
 # -------------------
 # Agent definition
 # -------------------
-include("agents.jl")
+include("../common/agents.jl")
 
 # -------------------
 # Value Heuristic definition
 # -------------------
-rewardType = SeaPearl.GeneralReward
-learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR,rewardType,SeaPearl.FixedOutput}(agent)
+
+chosen_features = Dict(
+    "constraint_activity" => false,
+    "constraint_type" => true,
+    "nb_involved_constraint_propagation" => false,
+    "nb_not_bounded_variable" => false,
+    "variable_domain_size" => false,
+    "variable_initial_domain_size" => true,
+    "variable_is_bound" => false,
+    "values_onehot" => true,
+    "values_raw" => false,
+)
+
+# Learned Heuristic
+learnedHeuristic_default_default = SeaPearl.SimpleLearnedHeuristic{SR_default_default,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent_default_default)
+learnedHeuristic_default_chosen = SeaPearl.SimpleLearnedHeuristic{SR_default_chosen,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent_default_chosen; chosen_features=chosen_features)
+learnedHeuristic_heterogeneous = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent_heterogeneous; chosen_features=chosen_features)
+
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 
-function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
-    selected_number = rand(1:length(x.domain))
-    i = 1
-    for value in x.domain
-        if i == selected_number
-            return value
-        end
-        i += 1
-    end
-    @assert false "This should not happen"
-end
+learnedHeuristics = OrderedDict(
+    "defaultdefault" => learnedHeuristic_default_default,
+    "defaultchosen" => learnedHeuristic_default_chosen,
+    "heterogeneous" => learnedHeuristic_heterogeneous
+)
+basicHeuristics = OrderedDict(
+    "min" => heuristic_min
+)
 
-randomHeuristics = []
-for i in 1:nbRandomHeuristics
-    push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
-end
-
-valueSelectionArray = [learnedHeuristic, heuristic_min]
-append!(valueSelectionArray, randomHeuristics)
 # -------------------
 # Variable Heuristic definition
 # -------------------
-variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
 
 # -------------------
-# -------------------
-# Core function
-# -------------------
+# Run Experiment
 # -------------------
 
-function trytrain(nbEpisodes::Int)
-    experienceTime = now()
-    dir = mkdir(string("exp_", Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
-    out_solver = true
-    expParameters = Dict(
-        :experimentParameters => Dict(
-            :nbEpisodes => nbEpisodes,
-            :restartPerInstances => restartPerInstances,
-            :evalFreq => evalFreq,
-            :nbInstances => nbInstances,
-        ),
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-        ),
-        :nbRandomHeuristics => nbRandomHeuristics,
-        :Featurization => Dict(
-            :featurizationType => features_type,
-            :chosen_features => nothing
-        ),
-        :learnerParameters => Dict(
-            :model => string(agent.policy.learner.approximator.model),
-            :gamma => agent.policy.learner.sampler.γ,
-            :batch_size => agent.policy.learner.sampler.batch_size,
-            :update_horizon => agent.policy.learner.sampler.n,
-            :min_replay_history => agent.policy.learner.min_replay_history,
-            :update_freq => agent.policy.learner.update_freq,
-            :target_update_freq => agent.policy.learner.target_update_freq,
-        ),
-        :explorerParameters => Dict(
-            :ϵ_stable => agent.policy.explorer.ϵ_stable,
-            :decay_steps => agent.policy.explorer.decay_steps,
-        ),
-        :trajectoryParameters => Dict(
-            :trajectoryType => typeof(agent.trajectory),
-            :capacity => trajectory_capacity
-        ),
-        :reward => rewardType
-    )
-    open(dir * "/params.json", "w") do file
-        JSON.print(file, expParameters)
-    end
-    metricsArray, eval_metricsArray = SeaPearl.train!(
-        valueSelectionArray=valueSelectionArray,
-        generator=nqueens_generator,
-        nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch(),
-        variableHeuristic=variableSelection,
-        out_solver=out_solver,
-        verbose=false,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, nqueens_generator; evalFreq=evalFreq, nbInstances=nbInstances),
-        restartPerInstances=1
-    )
+expParameters = Dict(
+    :generatorParameters => Dict(
+        :boardSize => board_size,
+    ),
+)
 
-    #saving model weights
-    trained_weights = params(agent.policy.learner.approximator.model)
-    @save dir * "/model_weights_nqueens_$(board_size).bson" trained_weights
-
-    SeaPearlExtras.storedata(metricsArray[1]; filename=dir * "/nqueens_$(board_size)_training")
-    SeaPearlExtras.storedata(eval_metricsArray[:, 1]; filename=dir * "/nqueens_$(board_size)_trained")
-    SeaPearlExtras.storedata(eval_metricsArray[:, 2]; filename=dir * "/nqueens_$(board_size)_min")
-    for i = 1:nbRandomHeuristics
-        SeaPearlExtras.storedata(eval_metricsArray[:, i+2]; filename=dir * "/nqueens_$(board_size)_random$(i)")
-    end
-
-    return metricsArray, eval_metricsArray
-end
-
-
-
-# -------------------
-# -------------------
-
-metricsArray, eval_metricsArray = trytrain(nbEpisodes)
+metricsArray, eval_metricsArray = trytrain(
+    nbEpisodes=NB_EPISODES,
+    evalFreq=EVAL_FREQ,
+    nbInstances=NB_INSTANCES,
+    restartPerInstances=RESTART_PER_INSTANCES,
+    generator=nqueens_generator,
+    variableHeuristic=variableHeuristic,
+    learnedHeuristics=learnedHeuristics,
+    basicHeuristics=basicHeuristics;
+    out_solver=true,
+    verbose=VERBOSE,
+    expParameters=expParameters,
+    nbRandomHeuristics=NB_RANDOM_HEURISTICS,
+    exp_name = string(NB_EPISODES) * "_" * string(board_size) * "_"
+)
 nothing
