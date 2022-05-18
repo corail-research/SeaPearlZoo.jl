@@ -174,7 +174,7 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
         variableHeuristic=variableHeuristic,
         out_solver=out_solver,
         verbose=verbose,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, coloring_generator; evalFreq=evalFreq, nbInstances=nbInstances),
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; evalFreq=evalFreq, nbInstances=nbInstances),
         restartPerInstances=restartPerInstances
     )
 
