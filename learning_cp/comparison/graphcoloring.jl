@@ -6,8 +6,6 @@ include("../common/experiment.jl")
 
 get_default_graph_conv_layer(in, out) = SeaPearl.GraphConv(in => out, Flux.leakyrelu)
 
-println(get_default_graph_conv_layer(6, 6))
-
 function get_default_graph_chain(in, mid, out, n_layers)
     @assert n_layers >= 1
     layers = []
@@ -285,7 +283,7 @@ function get_heterogeneous_agent(; capacity, decay_steps, ϵ_stable, batch_size,
 end
 
 ###############################################################################
-######### Experiment 1
+######### Experiment Type 1
 #########  
 ######### 
 ###############################################################################
@@ -403,10 +401,101 @@ function experiment_1(n_nodes, n_min_color, density, n_episodes, n_instances; n_
         out_solver=true,
         verbose=false,
         expParameters=expParameters,
-        nbRandomHeuristics=0
+        nbRandomHeuristics=0,
+        exp_name="graphcoloring_type1_" * string(n_episodes) * "_" * string(n_nodes) * "_"
+    )
+end
+
+# println("start experiment_1")
+# experiment_1(10, 5, 0.95, 2001, 1)
+# println("end experiment_1")
+# println("start experiment_2")
+# experiment_1(15, 5, 0.95, 2001, 1)
+# println("end experiment_2")
+# println("start experiment_3")
+# experiment_1(20, 5, 0.95, 2001, 1)
+# println("end experiment_3")
+
+###############################################################################
+######### Experiment Type 2
+#########  
+######### 
+###############################################################################
+
+function experiment_heterogeneous_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+    
+    chosen_features = Dict(
+        "constraint_type" => true,
+        "variable_initial_domain_size" => true,
+        "values_onehot" => true,
+    )
+    learnedHeuristics = OrderedDict{String, SeaPearl.LearnedHeuristic}()
+
+    for i in 1:6
+        agent = get_heterogeneous_agent(;
+            capacity=2000,
+            decay_steps=2000,
+            ϵ_stable=0.01,
+            batch_size=16,
+            update_horizon=8,
+            min_replay_history=256,
+            update_freq=1,
+            target_update_freq=8,
+            feature_size=[1, 2, n_nodes],
+            conv_size=8,
+            dense_size=16,
+            output_size=n_nodes,
+            n_layers_graph=i,
+            n_layers_node=2,
+            n_layers_output=2
+        )
+        learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
+        learnedHeuristics["heterogeneous_" * string(i)] = learned_heuristic
+    end
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    # -------------------
+    # Variable Heuristic definition
+    # -------------------
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :nbMinColor => n_min_color,
+            :density => density
+        ),
+    )
+
+    metricsArray, eval_metricsArray = trytrain(
+        nbEpisodes=n_episodes,
+        evalFreq=Int(floor(n_episodes / n_eval)),
+        nbInstances=n_instances,
+        restartPerInstances=1,
+        generator=coloring_generator,
+        variableHeuristic=variableHeuristic,
+        learnedHeuristics=learnedHeuristics,
+        basicHeuristics=basicHeuristics;
+        out_solver=true,
+        verbose=false,
+        expParameters=expParameters,
+        nbRandomHeuristics=0,
+        exp_name="graphcoloring_heterogeneous_n_conv_" * string(n_episodes) * "_" * string(n_nodes) * "_"
     )
 end
 
 println("start experiment_1")
-experiment_1(10, 5, 0.95, 2001, 1)
+experiment_heterogeneous_n_conv(10, 5, 0.95, 1001, 1)
 println("end experiment_1")
