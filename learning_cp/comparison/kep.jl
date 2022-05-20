@@ -2,7 +2,7 @@ include("../common/experiment.jl")
 include("../common/utils.jl")
 include("comparison.jl")
 
-function experiment_representation(n_nodes, density, n_episodes, n_instances; n_layers_graph=2, n_eval=10)
+function experiment_representation(n_nodes, density, n_episodes, n_instances; n_layers_graph=2, n_eval=10, eval_timeout=60)
     """
     Compare three agents:
         - an agent with the default representation and default features;
@@ -116,12 +116,11 @@ function experiment_representation(n_nodes, density, n_episodes, n_instances; n_
         expParameters=expParameters,
         nbRandomHeuristics=0,
         exp_name="kep_representation_" * string(n_episodes) * "_" * string(n_nodes) * "_",
-        eval_timeout=60
+        eval_timeout=eval_timeout
     )
 end
 
-experiment_representation(10, 0.5, 1001, 1)
-nothing
+# experiment_representation(10, 0.5, 1001, 1)
 
 ###############################################################################
 ######### Experiment Type 3
@@ -129,7 +128,7 @@ nothing
 ######### 
 ###############################################################################
 
-function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episodes, n_instances; n_eval=10)
+function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episodes, n_instances; n_eval=10, eval_timeout=60)
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
@@ -142,7 +141,7 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
                 "variable_initial_domain_size" => true,
                 "values_onehot" => true,
             ), 
-            [1, 5, n_nodes]
+            [1, 6, 2]
         ],
         [
             Dict(
@@ -150,7 +149,7 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
                 "variable_initial_domain_size" => true,
                 "values_raw" => true,
             ), 
-            [1, 5, 1]
+            [1, 6, 1]
         ],
         [
             Dict(
@@ -159,7 +158,7 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
                 "variable_domain_size" => true,
                 "values_onehot" => true,
             ), 
-            [2, 5, n_nodes]
+            [2, 6, 2]
         ],
         [
             Dict(
@@ -168,7 +167,7 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
                 "variable_initial_domain_size" => true,
                 "values_onehot" => true,
             ), 
-            [1, 6, n_nodes]
+            [1, 7, 2]
         ],
         [
             Dict(
@@ -178,7 +177,7 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
                 "variable_domain_size" => true,
                 "values_raw" => true,
             ), 
-            [2, 6, 1]
+            [2, 7, 1]
         ],
         [
             Dict(
@@ -190,7 +189,7 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
                 "variable_is_bound" => true,
                 "values_raw" => true,
             ), 
-            [3, 7, 1]
+            [3, 8, 1]
         ],
     ]
 
@@ -203,11 +202,13 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
 
     experiment_chosen_features_heterogeneous(n_nodes, n_episodes, n_instances;
         n_eval=n_eval,
-        generator=nqueens_generator,
+        generator=kep_generator,
         chosen_features_list=chosen_features_list,
         type="kep",
-        output_size=n_nodes,
-        expParameters=expParameters)
+        output_size=2,
+        expParameters=expParameters,
+        eval_timeout=eval_timeout)
 end
 
 experiment_chosen_features_heterogeneous_kep(10, 0.5, 1001, 1)
+nothing
