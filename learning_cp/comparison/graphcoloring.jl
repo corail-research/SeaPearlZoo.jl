@@ -256,6 +256,28 @@ function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_c
             ), 
             [1, 3, n_nodes]
         ],
+        [
+            Dict(
+                "constraint_activity" => true,
+                "constraint_type" => true,
+                "variable_initial_domain_size" => true,
+                "variable_domain_size" => true,
+                "values_raw" => true,
+            ), 
+            [2, 3, 1]
+        ],
+        [
+            Dict(
+                "constraint_activity" => true,
+                "constraint_type" => true,
+                "nb_not_bounded_variable" => true,
+                "variable_initial_domain_size" => true,
+                "variable_domain_size" => true,
+                "variable_is_bound" => true,
+                "values_raw" => true,
+            ), 
+            [3, 4, 1]
+        ],
     ]
 
     experiment_chosen_features_heterogeneous(n_nodes, n_min_color, density, n_episodes, n_instances;

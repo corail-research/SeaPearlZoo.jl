@@ -17,7 +17,7 @@ include("features.jl")
 # -------------------
 
 nbNodes = 30
-nbMinColor = 10
+nbMinColor = 5
 density = 0.95
 
 featurizationType = SeaPearl.DefaultFeaturization
@@ -38,7 +38,7 @@ numInFeatures2 = [1, 2, 1]
 nbEpisodes = 1001
 restartPerInstances = 1
 evalFreq = 100
-nbInstances = 20
+nbInstances = 1
 
 # -------------------
 # Agent definition
@@ -62,8 +62,8 @@ chosen_features = Dict(
 )
 
 
-learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent)
-learnedHeuristic2 = SeaPearl.SimpleLearnedHeuristic{SR2, rewardType, SeaPearl.FixedOutput}(agent2; chosen_features=chosen_features)
+learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR_default, rewardType, SeaPearl.FixedOutput}(agent)
+learnedHeuristic2 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, rewardType, SeaPearl.FixedOutput}(agent2; chosen_features=chosen_features)
 
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
