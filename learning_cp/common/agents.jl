@@ -172,7 +172,7 @@ agent_heterogeneous = RL.Agent(
                 model=SeaPearl.HeterogeneousCPNN(
                     graphChain=HeterogeneousModel(),
                     nodeChain=Flux.Chain(
-                        Flux.Dense(3*CONV_SIZE, DENSE_SIZE, Flux.leakyrelu),
+                        Flux.Dense(CONV_SIZE, DENSE_SIZE, Flux.leakyrelu),
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
                     ),
                     globalChain=Flux.Chain(),
@@ -187,7 +187,7 @@ agent_heterogeneous = RL.Agent(
                 model=SeaPearl.HeterogeneousCPNN(
                     graphChain=HeterogeneousModel(),
                     nodeChain=Flux.Chain(
-                        Flux.Dense(3*CONV_SIZE, DENSE_SIZE, Flux.leakyrelu),
+                        Flux.Dense(CONV_SIZE, DENSE_SIZE, Flux.leakyrelu),
                         Flux.Dense(DENSE_SIZE, DENSE_SIZE, Flux.leakyrelu),
                     ),
                     globalChain=Flux.Chain(),
