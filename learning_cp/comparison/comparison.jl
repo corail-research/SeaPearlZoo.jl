@@ -52,14 +52,6 @@ function experiment_n_conv(n_nodes, n_min_color, density, n_episodes, n_instance
     # -------------------
     variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
 
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :nbNodes => n_nodes,
-            :nbMinColor => n_min_color,
-            :density => density
-        ),
-    )
-
     metricsArray, eval_metricsArray = trytrain(
         nbEpisodes=n_episodes,
         evalFreq=Int(floor(n_episodes / n_eval)),
@@ -83,7 +75,7 @@ end
 ######### 
 ###############################################################################
 
-function experiment_chosen_features_heterogeneous(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10, generator, chosen_features_list, type="")
+function experiment_chosen_features_heterogeneous(size, n_episodes, n_instances; output_size, n_eval=10, generator, chosen_features_list, type="", expParameters=Dict{String,Any}()::Dict{String,Any}, eval_timeout=nothing)
     """
     Compares the impact of the chosen_features for the heterogeneous representation.
     """
@@ -105,7 +97,7 @@ function experiment_chosen_features_heterogeneous(n_nodes, n_min_color, density,
             feature_size=feature_size,
             conv_size=8,
             dense_size=16,
-            output_size=n_nodes,
+            output_size=output_size,
             n_layers_graph=i,
             n_layers_node=2,
             n_layers_output=2
@@ -115,25 +107,17 @@ function experiment_chosen_features_heterogeneous(n_nodes, n_min_color, density,
     end
 
     # Basic value-selection heuristic
-    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
-    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    # selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    # heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 
     basicHeuristics = OrderedDict(
-        "min" => heuristic_min
+        "min" => SeaPearl.RandomHeuristic()
     )
 
     # -------------------
     # Variable Heuristic definition
     # -------------------
     variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
-
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :nbNodes => n_nodes,
-            :nbMinColor => n_min_color,
-            :density => density
-        ),
-    )
 
     metricsArray, eval_metricsArray = trytrain(
         nbEpisodes=n_episodes,
@@ -148,6 +132,7 @@ function experiment_chosen_features_heterogeneous(n_nodes, n_min_color, density,
         verbose=false,
         expParameters=expParameters,
         nbRandomHeuristics=0,
-        exp_name="graphcoloring_chosen_features_heterogeneous_" * type * "_" * string(n_episodes) * "_" * string(n_nodes) * "_"
+        exp_name= type * "_heterogeneous_chosen_features_" * string(n_episodes) * "_" * string(size) * "_",
+        eval_timeout=eval_timeout
     )
 end

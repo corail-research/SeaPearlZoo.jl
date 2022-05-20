@@ -280,11 +280,22 @@ function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_c
         ],
     ]
 
-    experiment_chosen_features_heterogeneous(n_nodes, n_min_color, density, n_episodes, n_instances;
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :nbMinColor => n_min_color,
+            :density => density
+        ),
+    )
+
+    experiment_chosen_features_heterogeneous(n_nodes, n_episodes, n_instances;
         n_eval=n_eval,
         generator=coloring_generator,
         chosen_features_list=chosen_features_list,
-        type="heterogeneous")
+        type="graphcoloring",
+        expParameters = expParameters,
+        output_size = n_nodes
+        )
 end
 
 experiment_chosen_features_heterogeneous_graphcoloring(10, 5, 0.95, 1001, 10)

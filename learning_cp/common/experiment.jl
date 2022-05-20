@@ -118,7 +118,7 @@ end
 # -------------------
 using CircularArrayBuffers
 
-function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection, learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, expParameters=Dict{String,Any}()::Dict{String,Any}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int)
+function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection, learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, expParameters=Dict{String,Any}()::Dict{String,Any}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int, eval_timeout::Union{Nothing, Int})
     experienceTime = now()
     dir = mkdir(string("exp_", exp_name, Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
     lh = last(collect(values(learnedHeuristics)))
@@ -174,7 +174,7 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
         variableHeuristic=variableHeuristic,
         out_solver=out_solver,
         verbose=verbose,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; evalFreq=evalFreq, nbInstances=nbInstances),
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; evalFreq=evalFreq, nbInstances=nbInstances, evalTimeOut = eval_timeout),
         restartPerInstances=restartPerInstances
     )
 
