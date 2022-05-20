@@ -43,3 +43,6 @@ exp_*/
 
 # Save experiment files
 *save_experiment.py
+
+# nohup output
+nohup*.out
