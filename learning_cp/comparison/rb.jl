@@ -87,13 +87,16 @@ function experiment_representation(k, n, α, r, p, n_episodes, n_instances; n_la
         "heterogeneous" => learned_heuristic_heterogeneous,
     )
     basicHeuristics = OrderedDict(
-        "min" => heuristic_min
+        # "min" => heuristic_min,
+        "random1" => SeaPearl.RandomHeuristic(),
+        # "random2" => SeaPearl.RandomHeuristic()
     )
 
     # -------------------
     # Variable Heuristic definition
     # -------------------
-    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+    # variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+    variableHeuristic = SeaPearl.RandomVariableSelection{false}()
 
     expParameters = Dict(
         :generatorParameters => Dict(
@@ -122,5 +125,5 @@ function experiment_representation(k, n, α, r, p, n_episodes, n_instances; n_la
     )
 end
 
-experiment_representation(2, 15, 0.7, 3, 0.21, 1001, 10)
+experiment_representation(2, 15, 0.7, 3, 0.21, 10001, 10)
 println("end experiment_1")
