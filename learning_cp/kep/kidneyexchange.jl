@@ -43,7 +43,7 @@ mutable struct KepParameters
             10,         #nbNodes
             10,         #nbNodeEval
             0.2,        #density
-            500,       #nbEpisodes #usually 1000
+            500,        #nbEpisodes #usually 1000
             20,         #restartPerInstance
             20,         #nbEval
             10,         #nbInstances
@@ -52,7 +52,7 @@ mutable struct KepParameters
             1,          #batchSize
             nothing,       #seed
             nothing,       #seedEval
-            SeaPearl.ExperimentalReward,
+            SeaPearl.GeneralReward,
             SeaPearl.DFSearch(),
             SeaPearl.DFSearch(),
             nothing,
@@ -121,7 +121,6 @@ function trytrain(
         out_solver = true,
         verbose = true,
         evaluator=SeaPearl.SameInstancesEvaluator(heuristics, evalGenerator;
-            seed = args.seedEval,
             evalFreq = div(args.nbEpisodes,args.nbEvals), 
             nbInstances = args.nbInstances, 
             evalTimeOut = args.evalTimeout
@@ -164,7 +163,7 @@ function main(args::KepParameters)
     # -------------------
     # Value Heuristic definition
     # -------------------
-    learnedHeuristic = SeaPearl.LearnedHeuristic{SR, args.reward, SeaPearl.FixedOutput}(agent)
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, args.reward, SeaPearl.FixedOutput}(agent)
     basic_heuristic = SeaPearl.BasicHeuristic()
 
     rngHeuristic = MersenneTwister(33)
@@ -252,7 +251,7 @@ function script()
     kepParams.seed = args[:seed]
     kepParams.seedEval = args[:seedEval]
     kepParams.density = args[:density]
-    kepParams.reward = SeaPearl.ExperimentalReward
+    kepParams.reward = SeaPearl.GeneralReward
 
     main(kepParams)
 end
