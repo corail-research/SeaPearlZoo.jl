@@ -25,7 +25,7 @@ function create_agent(args::Any)
             Flux.Dense(32, 32, Flux.leakyrelu),
         ),
         outputChain = Flux.Dense(32, 2),
-    ) |> gpu
+    )
 
 
     agent = RL.Agent(
