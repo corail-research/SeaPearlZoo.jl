@@ -7,7 +7,6 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{BetterFeatur
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, SeaPearl.VariableVertex)
             if isa(cp_vertex.variable, SeaPearl.IntVarViewOffset)
-                #features[1, i] = 0
                 id = cp_vertex.variable.id
                 if occursin("+",id)
                     features[parse(Int, split(id,"+")[end]), i] = 1
@@ -17,19 +16,16 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{BetterFeatur
                 
             else
                 id = cp_vertex.variable.id
-                #features[1, i] = string_to_queen(id)/nqueens_generator.board_size
                 features[string_to_queen(id), i] = 1
             end
         end
         if isa(cp_vertex, SeaPearl.ConstraintVertex)
             features[nqueens_generator.board_size+1, i] = 1
-            #features[2, i] = 1
         end
         if isa(cp_vertex, SeaPearl.ValueVertex)
             features[3, i] = 1.
             value = cp_vertex.value
             features[nqueens_generator.board_size+1+value, i] = 1.
-            #features[3+value, i] = 1
         end
     end
     features
@@ -41,7 +37,6 @@ end
 
 #initializing phase
 #update_with_cp_model
-#
 
 function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{BetterFeaturization, TS}}) where TS
     return 1 + 2*board_size

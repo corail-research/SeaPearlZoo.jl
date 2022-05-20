@@ -12,8 +12,8 @@ using Dates
 # -------------------
 # Generator
 # -------------------
-n_city = 21
-grid_size = 100
+n_city = 5
+grid_size = 10
 max_tw_gap = 0
 max_tw = 100
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
@@ -21,12 +21,8 @@ tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw,
 # -------------------
 # Representation
 # -------------------
-default_representation = true
-if default_representation
-    SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
-else
-    SR = SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}
-end
+
+SR = SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}
 
 # -------------------
 # Internal variables
@@ -40,15 +36,13 @@ nbEpisodes = 5
 evalFreq = 200
 nbInstances = 10
 nbRandomHeuristics = 1
+restartPerInstances = 1
 
 # -------------------
 # Agent definition
 # -------------------
-if default_representation
-    include("agents_defaultstaterepresentation.jl")
-else
-    include("agents.jl")
-end
+
+include("agents.jl")
 
 # -------------------
 # Value Heuristic definition
@@ -102,18 +96,56 @@ variableSelection = TsptwVariableSelection()
 # -------------------
 # -------------------
 function trytrain(nbEpisodes::Int)
+    
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
     expParameters = Dict(
-        :nbEpisodes => nbEpisodes,
-        :evalFreq => evalFreq,
-        :nbInstances => nbInstances
+            :experimentParameters => Dict(
+                :nbEpisodes => nbEpisodes,
+                :restartPerInstances => restartPerInstances,
+                :evalFreq => evalFreq,
+                :nbInstances => nbInstances
+            ),
+            :generatorParameters => Dict(
+                :instance => "tsptw",
+                :n_city => n_city,
+                :grid_size => grid_size,
+                :max_tw_gap => max_tw_gap,
+                :max_tw => max_tw
+            ),
+            :learnedHeuristic => Dict(
+                :learnedHeuristicType => typeof(learnedHeuristic),
+                :eta_init => hasproperty(learnedHeuristic, :eta_init) ? learnedHeuristic.eta_init : nothing,
+                :eta_stable => hasproperty(learnedHeuristic, :eta_stable) ? learnedHeuristic.eta_stable : nothing,
+                :warmup_steps => hasproperty(learnedHeuristic, :warmup_steps) ? learnedHeuristic.warmup_steps : nothing,
+                :decay_steps => hasproperty(learnedHeuristic, :decay_steps) ? learnedHeuristic.decay_steps : nothing,
+                :rng => hasproperty(learnedHeuristic, :rng) ? Dict(:rngType => typeof(learnedHeuristic.rng), :seed => learnedHeuristic.rng.seed) : nothing
+            ),
+            :nbRandomHeuristics => nbRandomHeuristics,
+            :learnerParameters => Dict(
+                :model => string(agent.policy.learner.approximator.model),
+                :gamma => agent.policy.learner.sampler.γ,
+                :batch_size => agent.policy.learner.sampler.batch_size,
+                :update_horizon => agent.policy.learner.sampler.n,
+                :min_replay_history => agent.policy.learner.min_replay_history,
+                :update_freq => agent.policy.learner.update_freq,
+                :target_update_freq => agent.policy.learner.target_update_freq
+            ),
+            :explorerParameters => Dict(
+                :ϵ_stable => agent.policy.explorer.ϵ_stable,
+                :decay_steps => agent.policy.explorer.decay_steps
+            ),
+            :trajectoryParameters => Dict(
+                :trajectoryType => typeof(agent.trajectory),
+                :capacity => trajectory_capacity
+            ),
+            :reward => rewardType    
     )
     open(dir*"/params.json", "w") do file
         JSON.print(file, expParameters)
     end
 
-    metricsArray, eval_metricsArray = SeaPearl.train!(
+    metricsArray, eval_metricsArray=SeaPearl.train!(
     valueSelectionArray=valueSelectionArray,
     generator=tsptw_generator,
     nbEpisodes=nbEpisodes,
@@ -121,9 +153,9 @@ function trytrain(nbEpisodes::Int)
     variableHeuristic=variableSelection,
     out_solver=true,
     verbose = false,
-    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances)
+    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq=evalFreq, nbInstances=nbInstances),
+    restartPerInstances=1
 )
-
     trained_weights = params(agent.policy.learner.approximator.model)
     @save dir*"/model_weights_tsptw"*string(n_city)*".bson" trained_weights
 

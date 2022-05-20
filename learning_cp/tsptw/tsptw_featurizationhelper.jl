@@ -60,8 +60,27 @@ include("agents_defaultstaterepresentation.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
+heuristic_used = "supervised"
 rewardType = SeaPearl.GeneralReward
-learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent; chosen_features = chosen_features)
+
+if heuristic_used == "simple"
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
+elseif heuristic_used == "supervised"
+    eta_init = .9
+    eta_stable = .1
+    warmup_steps = 300
+    decay_steps = 700
+
+    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(
+        agent;
+        chosen_features,
+        eta_init=eta_init, 
+        eta_stable=eta_stable, 
+        warmup_steps=warmup_steps, 
+        decay_steps=decay_steps,
+        rng=MersenneTwister(1234)
+        )
+end
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
 
