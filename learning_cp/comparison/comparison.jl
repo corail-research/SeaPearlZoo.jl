@@ -18,8 +18,7 @@ function experiment_representation(size, n_episodes, n_instances; feature_sizes,
 
     agent_default_default = get_default_agent(;
         capacity=2000,
-        decay_steps=2000,
-        ϵ_stable=0.01,
+        get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
         batch_size=16,
         update_horizon=8,
         min_replay_history=256,
@@ -47,8 +46,7 @@ function experiment_representation(size, n_episodes, n_instances; feature_sizes,
 
     agent_default_chosen = get_default_agent(;
         capacity=2000,
-        decay_steps=2000,
-        ϵ_stable=0.01,
+        get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
         batch_size=16,
         update_horizon=8,
         min_replay_history=256,
@@ -66,8 +64,7 @@ function experiment_representation(size, n_episodes, n_instances; feature_sizes,
 
     agent_heterogeneous = get_heterogeneous_agent(;
         capacity=2000,
-        decay_steps=2000,
-        ϵ_stable=0.01,
+        get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
         batch_size=16,
         update_horizon=8,
         min_replay_history=256,
@@ -133,8 +130,7 @@ function experiment_n_conv(n_nodes, n_min_color, density, n_episodes, n_instance
     for i in 1:3
         agent = get_agent(;
             capacity=2000,
-            decay_steps=2000,
-            ϵ_stable=0.01,
+            get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
             batch_size=16,
             update_horizon=8,
             min_replay_history=256,
@@ -205,8 +201,7 @@ function experiment_chosen_features_heterogeneous(size, n_episodes, n_instances;
         feature_size = chosen_features_list[i][2]
         agent = get_heterogeneous_agent(;
             capacity=2000,
-            decay_steps=2000,
-            ϵ_stable=0.01,
+            get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
             batch_size=16,
             update_horizon=8,
             min_replay_history=256,
@@ -280,8 +275,7 @@ function experiment_heuristic_heterogeneous(size, n_episodes, n_instances; featu
 
     agent_simple = get_heterogeneous_agent(;
         capacity=2000,
-        decay_steps=2000,
-        ϵ_stable=0.01,
+        get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
         batch_size=16,
         update_horizon=8,
         min_replay_history=256,
@@ -299,8 +293,7 @@ function experiment_heuristic_heterogeneous(size, n_episodes, n_instances; featu
 
     agent_supervised = get_heterogeneous_agent(;
         capacity=2000,
-        decay_steps=2000,
-        ϵ_stable=0.01,
+        get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
         batch_size=16,
         update_horizon=8,
         min_replay_history=256,

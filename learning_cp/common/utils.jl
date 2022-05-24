@@ -61,13 +61,17 @@ function get_default_learner(batch_size, update_horizon, min_replay_history, upd
     )
 end
 
-function get_explorer(decay_steps, ϵ_stable)
+function get_epsilon_greedy_explorer(decay_steps, ϵ_stable)
     return RL.EpsilonGreedyExplorer(
         ϵ_stable=ϵ_stable,
         kind=:exp,
         decay_steps=decay_steps,
         step=1,
     )
+end
+
+function get_ucb_explorer(c, n_actions)
+    return RL.UCBExplorer(n_actions; c=c)
 end
 
 function get_default_trajectory(capacity, n_actions)
@@ -78,11 +82,11 @@ function get_default_trajectory(capacity, n_actions)
     )
 end
 
-function get_default_agent(; capacity, decay_steps, ϵ_stable, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+function get_default_agent(; capacity, get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
     return RL.Agent(
         policy=RL.QBasedPolicy(
             learner=get_default_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output),
-            explorer=get_explorer(decay_steps, ϵ_stable),
+            explorer=get_explorer(),
         ),
         trajectory=get_default_trajectory(capacity, output_size)
     )
@@ -272,11 +276,11 @@ function get_heterogeneous_trajectory(capacity, n_actions)
     )
 end
 
-function get_heterogeneous_agent(; capacity, decay_steps, ϵ_stable, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+function get_heterogeneous_agent(; capacity, get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
     return RL.Agent(
         policy=RL.QBasedPolicy(
             learner=get_heterogeneous_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output),
-            explorer=get_explorer(decay_steps, ϵ_stable),
+            explorer=get_explorer(),
         ),
         trajectory=get_heterogeneous_trajectory(capacity, output_size)
     )
