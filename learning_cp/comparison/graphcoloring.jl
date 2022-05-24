@@ -8,7 +8,7 @@ include("comparison.jl")
 ######### 
 ###############################################################################
 
-function experiment_representation_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=2, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_representation_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
     """
     Compare three agents:
         - an agent with the default representation and default features;
@@ -35,11 +35,11 @@ function experiment_representation_graphcoloring(n_nodes, n_min_color, density, 
         n_layers_graph=n_layers_graph, 
         n_eval=n_eval, 
         reward=reward, 
-        type="nqueens", 
+        type="graphcoloring", 
     )
 end
 
-experiment_representation_graphcoloring(10, 5, 0.95, 1001, 10; n_layers_graph=3)
+# experiment_representation_graphcoloring(10, 5, 0.95, 1001, 10; n_layers_graph=3)
 
 ###############################################################################
 ######### Experiment Type 2
@@ -204,3 +204,56 @@ function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_c
 end
 
 # experiment_chosen_features_heterogeneous_graphcoloring(10, 5, 0.95, 1001, 10)
+
+###############################################################################
+######### Experiment Type 4
+#########  
+######### 
+###############################################################################
+
+# experiment_heuristic_heterogeneous
+
+function experiment_heuristic_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    """
+    Compare three agents:
+        - an agent with the default representation and default features;
+        - an agent with the default representation and chosen features;
+        - an agent with the heterogeneous representation and chosen features.
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :nbMinColor => n_min_color,
+            :density => density
+        ),
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+        basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_heuristic_heterogeneous(n_nodes, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = n_nodes, 
+        generator = coloring_generator, 
+        expParameters = expParameters, 
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "graphcoloring",
+        eta_decay_steps = Int(floor(n_episodes/1.5)),
+        helpValueHeuristic = heuristic_min,
+        eta_init = 1.0,
+        eta_stable = 0.0
+    )
+end
+
+experiment_heuristic_heterogeneous_graphcoloring(20, 5, 0.95, 1001, 10)
+nothing
