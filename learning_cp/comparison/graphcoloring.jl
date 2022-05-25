@@ -39,8 +39,6 @@ function experiment_representation_graphcoloring(n_nodes, n_min_color, density, 
     )
 end
 
-# experiment_representation_graphcoloring(10, 5, 0.95, 1001, 10; n_layers_graph=3)
-
 ###############################################################################
 ######### Experiment Type 2
 #########  
@@ -106,13 +104,6 @@ function experiment_default_default_n_conv(n_nodes, n_min_color, density, n_epis
         chosen_features=nothing,
         type="default_default")
 end
-
-# println("start experiment_1")
-# experiment_heterogeneous_n_conv(10, 5, 0.95, 1001, 1)
-# println("end experiment_1")
-
-# experiment_default_chosen_n_conv(10, 5, 0.95, 1001, 10)
-# experiment_default_default_n_conv(10, 5, 0.95, 1001, 10)
 
 ###############################################################################
 ######### Experiment Type 3
@@ -203,15 +194,11 @@ function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_c
         )
 end
 
-# experiment_chosen_features_heterogeneous_graphcoloring(10, 5, 0.95, 1001, 10)
-
 ###############################################################################
 ######### Experiment Type 4
 #########  
 ######### 
 ###############################################################################
-
-# experiment_heuristic_heterogeneous
 
 function experiment_heuristic_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
     """
@@ -255,15 +242,11 @@ function experiment_heuristic_heterogeneous_graphcoloring(n_nodes, n_min_color, 
     )
 end
 
-# experiment_heuristic_heterogeneous_graphcoloring(20, 5, 0.95, 2001, 10)
-
 ###############################################################################
-######### Experiment Type 4
+######### Experiment Type 5
 #########  
 ######### 
 ###############################################################################
-
-# experiment_heuristic_heterogeneous
 
 function experiment_explorer_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
     """
@@ -304,5 +287,3 @@ function experiment_explorer_heterogeneous_graphcoloring(n_nodes, n_min_color, d
         c=2.0
     )
 end
-
-experiment_explorer_heterogeneous_graphcoloring(20, 5, 0.95, 2001, 10)

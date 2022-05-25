@@ -37,10 +37,6 @@ function experiment_representation_nqueens(board_size, n_episodes, n_instances; 
     )
 end
 
-# for n in 5:5
-#     experiment_representation_nqueens(n, 1001, 10, n_layers_graph=3)
-# end
-
 ###############################################################################
 ######### Experiment Type 2
 #########  
@@ -124,13 +120,6 @@ function experiment_default_default_n_conv(board_size, n_episodes, n_instances; 
         chosen_features=nothing,
         type="default_default")
 end
-
-# println("start experiment_1")
-# experiment_heterogeneous_n_conv(10, 5, 0.95, 1001, 1)
-# println("end experiment_1")
-
-# experiment_default_chosen_n_conv(10, 5, 0.95, 1001, 10)
-# experiment_default_default_n_conv(10, 5, 0.95, 1001, 10)
 
 ###############################################################################
 ######### Experiment Type 3
@@ -219,17 +208,11 @@ function experiment_chosen_features_heterogeneous_nqueens(board_size, n_episodes
         reward=reward)
 end
 
-# experiment_chosen_features_heterogeneous_nqueens(20, 3001, 10)
-# println("end")
-nothing
-
 ###############################################################################
 ######### Experiment Type 5
 #########  
 ######### 
 ###############################################################################
-
-# experiment_heuristic_heterogeneous
 
 function experiment_explorer_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
     """
@@ -262,15 +245,11 @@ function experiment_explorer_heterogeneous_nqueens(board_size, n_episodes, n_ins
     )
 end
 
-# experiment_explorer_heterogeneous_nqueens(17, 5001, 10; reward=SeaPearl.CPReward)
-
 ###############################################################################
 ######### Experiment Type 6
 #########  
 ######### 
 ###############################################################################
-
-# experiment_heuristic_heterogeneous
 
 function experiment_nn_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
     """
@@ -302,5 +281,3 @@ function experiment_nn_heterogeneous_nqueens(board_size, n_episodes, n_instances
         basicHeuristics=nothing
     )
 end
-
-# experiment_nn_heterogeneous_nqueens(10, 3001, 10; reward=SeaPearl.CPReward)

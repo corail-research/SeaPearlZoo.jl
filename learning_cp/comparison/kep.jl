@@ -120,8 +120,6 @@ function experiment_representation(n_nodes, density, n_episodes, n_instances; n_
     )
 end
 
-# experiment_representation(10, 0.5, 1001, 1)
-
 ###############################################################################
 ######### Experiment Type 3
 #########  
@@ -209,6 +207,3 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
         expParameters=expParameters,
         eval_timeout=eval_timeout)
 end
-
-experiment_chosen_features_heterogeneous_kep(10, 0.5, 1001, 1)
-nothing

@@ -124,6 +124,3 @@ function experiment_representation(k, n, α, r, p, n_episodes, n_instances; n_la
         exp_name="rb_representation_" * string(n_episodes) * "_" * string(rb_generator.d) * "_"
     )
 end
-
-experiment_representation(2, 15, 0.7, 3, 0.21, 10001, 10)
-println("end experiment_1")
