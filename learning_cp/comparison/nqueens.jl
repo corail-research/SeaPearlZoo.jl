@@ -221,3 +221,44 @@ end
 # experiment_chosen_features_heterogeneous_nqueens(20, 3001, 10)
 # println("end")
 nothing
+
+###############################################################################
+######### Experiment Type 4
+#########  
+######### 
+###############################################################################
+
+# experiment_heuristic_heterogeneous
+
+function experiment_explorer_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    """
+    Compare three agents:
+        - an agent with the default representation and default features;
+        - an agent with the default representation and chosen features;
+        - an agent with the heterogeneous representation and chosen features.
+    """
+    nqueens_generator = SeaPearl.NQueensGenerator(board_size)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+        ),
+    )
+
+    experiment_explorer_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 6, 1], 
+        output_size = board_size, 
+        generator = nqueens_generator, 
+        expParameters = expParameters, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "nqueens",
+        decay_steps=2000,
+        c=2.0,
+        basicHeuristics=nothing
+    )
+end
+
+experiment_explorer_heterogeneous_nqueens(17, 5001, 10; reward=SeaPearl.CPReward)

@@ -34,7 +34,7 @@ function get_dense_chain(in, mid, out, n_layers)
     return Flux.Chain(layers...)
 end
 
-function get_default_cpnn(feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+function get_default_cpnn(;feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
     return SeaPearl.CPNN(
         graphChain=get_default_graph_chain(feature_size, conv_size, conv_size, n_layers_graph),
         nodeChain=get_dense_chain(conv_size, dense_size, dense_size, n_layers_node),
@@ -42,14 +42,14 @@ function get_default_cpnn(feature_size, conv_size, dense_size, output_size, n_la
     )
 end
 
-function get_default_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+function get_default_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_default_nn)
     return RL.DQNLearner(
         approximator=RL.NeuralNetworkApproximator(
-            model=get_default_cpnn(feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output),
+            model=get_default_nn(),
             optimizer=ADAM()
         ),
         target_approximator=RL.NeuralNetworkApproximator(
-            model=get_default_cpnn(feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output),
+            model=get_default_nn(),
             optimizer=ADAM()
         ),
         loss_func=Flux.Losses.huber_loss,
@@ -82,10 +82,10 @@ function get_default_trajectory(capacity, n_actions)
     )
 end
 
-function get_default_agent(; capacity, get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+function get_default_agent(; capacity, get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, output_size, get_default_nn)
     return RL.Agent(
         policy=RL.QBasedPolicy(
-            learner=get_default_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output),
+            learner=get_default_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_default_nn),
             explorer=get_explorer(),
         ),
         trajectory=get_default_trajectory(capacity, output_size)
@@ -241,7 +241,7 @@ function get_heterogeneous_graph_chain(original_features_size, mid, out, n_layer
     end
 end
 
-function get_heterogeneous_cpnn(feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+function get_heterogeneous_cpnn(;feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
     return SeaPearl.HeterogeneousCPNN(
         graphChain=get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph),
         nodeChain=get_dense_chain(conv_size, dense_size, dense_size, n_layers_node),
@@ -249,14 +249,31 @@ function get_heterogeneous_cpnn(feature_size, conv_size, dense_size, output_size
     )
 end
 
-function get_heterogeneous_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+    return SeaPearl.HeterogeneousFullFeaturedCPNN(
+        get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph),
+        get_dense_chain(conv_size, dense_size, dense_size, n_layers_node),
+        Flux.Chain(),
+        get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output)
+    )
+end
+
+function get_heterogeneous_variableoutputcpnn(;feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+    return SeaPearl.HeterogeneousVariableOutputCPNN(
+        get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph),
+        get_dense_chain(conv_size, dense_size, dense_size, n_layers_node),
+        get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output)
+    )
+end
+
+function get_heterogeneous_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_heterogeneous_nn)
     return RL.DQNLearner(
         approximator=RL.NeuralNetworkApproximator(
-            model=get_heterogeneous_cpnn(feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output),
+            model=get_heterogeneous_nn(),
             optimizer=ADAM()
         ),
         target_approximator=RL.NeuralNetworkApproximator(
-            model=get_heterogeneous_cpnn(feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output),
+            model=get_heterogeneous_nn(),
             optimizer=ADAM()
         ),
         loss_func=Flux.Losses.huber_loss,
@@ -276,10 +293,10 @@ function get_heterogeneous_trajectory(capacity, n_actions)
     )
 end
 
-function get_heterogeneous_agent(; capacity, get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output)
+function get_heterogeneous_agent(; capacity, get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, output_size, get_heterogeneous_nn)
     return RL.Agent(
         policy=RL.QBasedPolicy(
-            learner=get_heterogeneous_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output),
+            learner=get_heterogeneous_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_heterogeneous_nn),
             explorer=get_explorer(),
         ),
         trajectory=get_heterogeneous_trajectory(capacity, output_size)

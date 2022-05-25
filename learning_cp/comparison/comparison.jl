@@ -24,13 +24,16 @@ function experiment_representation(size, n_episodes, n_instances; feature_sizes,
         min_replay_history=256,
         update_freq=1,
         target_update_freq=8,
-        feature_size=feature_sizes[1],
-        conv_size=8,
-        dense_size=16,
-        output_size=output_size,
-        n_layers_graph=n_layers_graph,
-        n_layers_node=2,
-        n_layers_output=2
+        output_size = output_size,
+        get_default_nn = () -> get_default_cpnn(
+            feature_size=feature_sizes[1],
+            conv_size=8,
+            dense_size=16,
+            output_size=output_size,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2
+        )
     )
     learned_heuristic_default_default = SeaPearl.SimpleLearnedHeuristic{SR_default,reward,SeaPearl.FixedOutput}(agent_default_default)
 
@@ -52,13 +55,16 @@ function experiment_representation(size, n_episodes, n_instances; feature_sizes,
         min_replay_history=256,
         update_freq=1,
         target_update_freq=8,
-        feature_size=feature_sizes[2],
-        conv_size=8,
-        dense_size=16,
-        output_size=output_size,
-        n_layers_graph=n_layers_graph,
-        n_layers_node=2,
-        n_layers_output=2
+        output_size = output_size,
+        get_default_nn = () -> get_default_cpnn(
+            feature_size=feature_sizes[2],
+            conv_size=8,
+            dense_size=16,
+            output_size=output_size,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2
+        )
     )
     learned_heuristic_default_chosen = SeaPearl.SimpleLearnedHeuristic{SR_default,reward,SeaPearl.FixedOutput}(agent_default_chosen; chosen_features=chosen_features)
 
@@ -70,13 +76,16 @@ function experiment_representation(size, n_episodes, n_instances; feature_sizes,
         min_replay_history=256,
         update_freq=1,
         target_update_freq=8,
-        feature_size=feature_sizes[3],
-        conv_size=8,
-        dense_size=16,
-        output_size=output_size,
-        n_layers_graph=n_layers_graph,
-        n_layers_node=2,
-        n_layers_output=2
+        output_size = output_size,
+        get_heterogeneous_nn = () -> get_heterogeneous_cpnn(
+            feature_size=feature_sizes[3],
+            conv_size=8,
+            dense_size=16,
+            output_size=output_size,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2
+        )
     )
     learned_heuristic_heterogeneous = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_heterogeneous; chosen_features=chosen_features)
 
@@ -136,13 +145,16 @@ function experiment_n_conv(n_nodes, n_min_color, density, n_episodes, n_instance
             min_replay_history=256,
             update_freq=1,
             target_update_freq=8,
-            feature_size=feature_size,
-            conv_size=8,
-            dense_size=16,
-            output_size=n_nodes,
-            n_layers_graph=i,
-            n_layers_node=2,
-            n_layers_output=2
+            output_size = output_size,
+            get_heterogeneous_nn = () -> get_heterogeneous_cpnn(
+                feature_size=feature_size,
+                conv_size=8,
+                dense_size=16,
+                output_size=output_size,
+                n_layers_graph=n_layers_graph,
+                n_layers_node=2,
+                n_layers_output=2
+            )
         )
         if !isnothing(chosen_features)
             learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
@@ -207,13 +219,16 @@ function experiment_chosen_features_heterogeneous(size, n_episodes, n_instances;
             min_replay_history=256,
             update_freq=1,
             target_update_freq=8,
-            feature_size=feature_size,
-            conv_size=8,
-            dense_size=16,
-            output_size=output_size,
-            n_layers_graph=i,
-            n_layers_node=2,
-            n_layers_output=2
+            output_size = output_size,
+            get_heterogeneous_nn = () -> get_heterogeneous_cpnn(
+                feature_size=feature_size,
+                conv_size=8,
+                dense_size=16,
+                output_size=output_size,
+                n_layers_graph=n_layers_graph,
+                n_layers_node=2,
+                n_layers_output=2
+            )
         )
         learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
         learnedHeuristics["heterogeneous_" *string(i)] = learned_heuristic
@@ -281,13 +296,16 @@ function experiment_heuristic_heterogeneous(size, n_episodes, n_instances; featu
         min_replay_history=256,
         update_freq=1,
         target_update_freq=8,
-        feature_size=feature_size,
-        conv_size=8,
-        dense_size=16,
-        output_size=output_size,
-        n_layers_graph=n_layers_graph,
-        n_layers_node=2,
-        n_layers_output=2
+        output_size = output_size,
+        get_heterogeneous_nn = () -> get_heterogeneous_cpnn(
+            feature_size=feature_size,
+            conv_size=8,
+            dense_size=16,
+            output_size=output_size,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2
+        )
     )
     learned_heuristic_simple = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent_simple; chosen_features=chosen_features)
 
@@ -299,13 +317,16 @@ function experiment_heuristic_heterogeneous(size, n_episodes, n_instances; featu
         min_replay_history=256,
         update_freq=1,
         target_update_freq=8,
-        feature_size=feature_size,
-        conv_size=8,
-        dense_size=16,
-        output_size=output_size,
-        n_layers_graph=n_layers_graph,
-        n_layers_node=2,
-        n_layers_output=2
+        output_size = output_size,
+        get_heterogeneous_nn = () -> get_heterogeneous_cpnn(
+            feature_size=feature_size,
+            conv_size=8,
+            dense_size=16,
+            output_size=output_size,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2
+        )
     )
     learned_heuristic_supervised = SeaPearl.SupervisedLearnedHeuristic{SR_heterogeneous,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent_supervised; chosen_features=chosen_features, eta_init=eta_init, eta_stable=eta_stable, decay_steps=eta_decay_steps, helpValueHeuristic=helpValueHeuristic)
     
@@ -345,3 +366,92 @@ end
 #########  
 ######### 
 ###############################################################################
+
+function experiment_explorer_heterogeneous(size, n_episodes, n_instances; feature_size, output_size, n_eval=10, generator, type="", expParameters=Dict{String,Any}()::Dict{String,Any}, eval_timeout=nothing, chosen_features=nothing, basicHeuristics, reward=SeaPearl.GeneralReward, n_layers_graph=3, decay_steps=2000, c=2.0)
+    """
+    Compares the impact of the action explorer for the heterogeneous representation.
+    """
+    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+
+    if isnothing(chosen_features)
+        chosen_features = Dict(
+            "constraint_activity" => true,
+            "constraint_type" => true,
+            "variable_initial_domain_size" => true,
+            "variable_domain_size" => true,
+            "values_raw" => true,
+        )
+    end
+
+    agent_epsilon_greedy = get_heterogeneous_agent(;
+        capacity=2000,
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=16,
+        update_horizon=8,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=8,
+        output_size = output_size,
+        get_heterogeneous_nn = () -> get_heterogeneous_cpnn(
+            feature_size=feature_size,
+            conv_size=8,
+            dense_size=16,
+            output_size=output_size,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2
+        )
+    )
+    learned_heuristic_epsilon_greedy = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_epsilon_greedy; chosen_features=chosen_features)
+
+    agent_ucb = get_heterogeneous_agent(;
+        capacity=2000,
+        get_explorer = () -> get_ucb_explorer(c, output_size),
+        batch_size=16,
+        update_horizon=8,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=8,
+        output_size = output_size,
+        get_heterogeneous_nn = () -> get_heterogeneous_cpnn(
+            feature_size=feature_size,
+            conv_size=8,
+            dense_size=16,
+            output_size=output_size,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2
+        )
+    )
+    learned_heuristic_ucb = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ucb; chosen_features=chosen_features)
+    
+    learnedHeuristics = OrderedDict(
+        "epsilon_greedy" => learned_heuristic_epsilon_greedy,
+        "ucb" => learned_heuristic_ucb,
+    )
+
+    if isnothing(basicHeuristics)
+        basicHeuristics = OrderedDict(
+            "random" => SeaPearl.RandomHeuristic()
+        )
+    end
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+
+    metricsArray, eval_metricsArray = trytrain(
+        nbEpisodes=n_episodes,
+        evalFreq=Int(floor(n_episodes / n_eval)),
+        nbInstances=n_instances,
+        restartPerInstances=1,
+        generator=generator,
+        variableHeuristic=variableHeuristic,
+        learnedHeuristics=learnedHeuristics,
+        basicHeuristics=basicHeuristics;
+        out_solver=true,
+        verbose=true,
+        expParameters=expParameters,
+        nbRandomHeuristics=0,
+        exp_name= type * "_heterogeneous_explorer_" * string(n_episodes) * "_" * string(size) * "_",
+        eval_timeout=eval_timeout
+    )
+    nothing
+end
