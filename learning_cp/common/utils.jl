@@ -74,7 +74,7 @@ function get_ucb_explorer(c, n_actions)
     return RL.UCBExplorer(n_actions; c=c)
 end
 
-function get_default_trajectory(capacity, n_actions)
+function get_default_slart_trajectory(; capacity, n_actions)
     return RL.CircularArraySLARTTrajectory(
         capacity=capacity,
         state=SeaPearl.DefaultTrajectoryState[] => (),
@@ -82,13 +82,20 @@ function get_default_trajectory(capacity, n_actions)
     )
 end
 
-function get_default_agent(; capacity, get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, output_size, get_default_nn)
+function get_default_sart_trajectory(; capacity)
+    return RL.CircularArraySARTTrajectory(
+        capacity=capacity,
+        state=SeaPearl.DefaultTrajectoryState[] => (),
+    )
+end
+
+function get_default_agent(;get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_default_nn, get_default_trajectory)
     return RL.Agent(
         policy=RL.QBasedPolicy(
             learner=get_default_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_default_nn),
             explorer=get_explorer(),
         ),
-        trajectory=get_default_trajectory(capacity, output_size)
+        trajectory=get_default_trajectory()
     )
 end
 
@@ -285,7 +292,7 @@ function get_heterogeneous_learner(batch_size, update_horizon, min_replay_histor
     )
 end
 
-function get_heterogeneous_trajectory(capacity, n_actions)
+function get_heterogeneous_slart_trajectory(; capacity, n_actions)
     return RL.CircularArraySLARTTrajectory(
         capacity=capacity,
         state=SeaPearl.HeterogeneousTrajectoryState[] => (),
@@ -293,12 +300,19 @@ function get_heterogeneous_trajectory(capacity, n_actions)
     )
 end
 
-function get_heterogeneous_agent(; capacity, get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, output_size, get_heterogeneous_nn)
+function get_heterogeneous_sart_trajectory(; capacity)
+    return RL.CircularArraySARTTrajectory(
+        capacity=capacity,
+        state=SeaPearl.HeterogeneousTrajectoryState[] => (),
+    )
+end
+
+function get_heterogeneous_agent(; get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_heterogeneous_trajectory, get_heterogeneous_nn)
     return RL.Agent(
         policy=RL.QBasedPolicy(
             learner=get_heterogeneous_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_heterogeneous_nn),
             explorer=get_explorer(),
         ),
-        trajectory=get_heterogeneous_trajectory(capacity, output_size)
+        trajectory=get_heterogeneous_trajectory()
     )
 end
