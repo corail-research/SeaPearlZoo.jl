@@ -90,7 +90,7 @@ function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episo
         ),
     )
 
-    experiment_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances;
+    experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
         generator=nqueens_generator,
         SR=SR_default,
@@ -112,7 +112,7 @@ function experiment_default_default_n_conv(board_size, n_episodes, n_instances; 
         ),
     )
 
-    experiment_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances;
+    experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
         generator=nqueens_generator,
         SR=SR_default,

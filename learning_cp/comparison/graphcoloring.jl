@@ -58,7 +58,7 @@ function experiment_heterogeneous_n_conv(n_nodes, n_min_color, density, n_episod
         "values_onehot" => true,
     )
 
-    experiment_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances;
+    experiment_n_conv(n_nodes, n_episodes, n_instances;
         n_eval=n_eval,
         generator=coloring_generator,
         SR=SR_heterogeneous,
@@ -80,7 +80,7 @@ function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episo
         "values_onehot" => true,
     )
 
-    experiment_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances;
+    experiment_n_conv(n_nodes, n_episodes, n_instances;
         n_eval=n_eval,
         generator=coloring_generator,
         SR=SR_default,
@@ -96,7 +96,7 @@ function experiment_default_default_n_conv(n_nodes, n_min_color, density, n_epis
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
-    experiment_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances;
+    experiment_n_conv(n_nodes, n_episodes, n_instances;
         n_eval=n_eval,
         generator=coloring_generator,
         SR=SR_default,

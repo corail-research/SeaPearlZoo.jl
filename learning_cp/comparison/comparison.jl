@@ -146,8 +146,6 @@ Compares the impact of the number of convolution layers for the heterogeneous re
 
 function experiment_n_conv(
     n_nodes, 
-    n_min_color, 
-    density, 
     n_episodes, 
     n_instances; 
     n_eval=10, 
