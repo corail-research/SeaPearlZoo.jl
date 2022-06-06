@@ -173,7 +173,7 @@ function experiment_n_conv(
                 conv_size=8,
                 dense_size=16,
                 output_size=output_size,
-                n_layers_graph=n_layers_graph,
+                n_layers_graph=i,
                 n_layers_node=2,
                 n_layers_output=2
             )
