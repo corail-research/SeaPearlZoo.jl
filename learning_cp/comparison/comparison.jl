@@ -155,6 +155,9 @@ function experiment_n_conv(
     feature_size, 
     type="", 
     trajectory_capacity=2000
+    output_size, 
+    expParameters, 
+    reward=SeaPearl.GeneralReward, 
 )
     get_agent = (SR <: SeaPearl.DefaultStateRepresentation) ? get_default_agent : get_heterogeneous_agent
 

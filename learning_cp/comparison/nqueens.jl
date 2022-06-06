@@ -68,7 +68,9 @@ function experiment_heterogeneous_n_conv(board_size, n_episodes, n_instances; n_
         SR=SR_heterogeneous,
         chosen_features=chosen_features,
         feature_size=[1, 2, board_size],
-        type="heterogeneous")
+        type="heterogeneous",
+        output_size = board_size, 
+        expParameters = expParameters)
 end
 
 function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
@@ -96,7 +98,9 @@ function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episo
         SR=SR_default,
         chosen_features=chosen_features,
         feature_size=6 + n_nodes,
-        type="default_chosen")
+        type="default_chosen",
+        output_size = board_size, 
+        expParameters = expParameters)
 end
 
 function experiment_default_default_n_conv(board_size, n_episodes, n_instances; n_eval=10)
@@ -118,7 +122,9 @@ function experiment_default_default_n_conv(board_size, n_episodes, n_instances; 
         SR=SR_default,
         feature_size=3,
         chosen_features=nothing,
-        type="default_default")
+        type="default_default",
+        output_size = board_size, 
+        expParameters = expParameters)
 end
 
 ###############################################################################

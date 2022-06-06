@@ -65,15 +65,18 @@ function experiment_heterogeneous_n_conv(board_size, density, n_episodes, n_inst
         generator=coloring_generator,
         SR=SR_heterogeneous,
         chosen_features=chosen_features,
-        feature_size=[1, 2, n_nodes],
-        type="heterogeneous")
+        feature_size=[1, 2, board_size],
+        type="heterogeneous", 
+        output_size = board_size, 
+        )
 end
 
-function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+function experiment_default_chosen_n_conv(board_size, density,  n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the default representation.
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
     chosen_features = Dict(
@@ -84,27 +87,32 @@ function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episo
 
     experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
-        generator=coloring_generator,
+        generator=latin_generator,
         SR=SR_default,
         chosen_features=chosen_features,
-        feature_size=6 + n_nodes,
-        type="default_chosen")
+        feature_size= 6 + board_size,
+        type="default_chosen",
+        output_size = board_size, 
+        )
 end
 
-function experiment_default_default_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+function experiment_default_default_n_conv(board_size, density, n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the default representation.
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
     experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
-        generator=coloring_generator,
+        generator=latin_generator,
         SR=SR_default,
         feature_size=3,
         chosen_features=nothing,
-        type="default_default")
+        type="default_default",
+        output_size = board_size, 
+        )
 end
 
 ###############################################################################
@@ -113,6 +121,89 @@ end
 ######### 
 ###############################################################################
 
+
+function experiment_chosen_features_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+
+
+    chosen_features_list = [
+        [
+            Dict(
+                "constraint_type" => true,
+                "variable_initial_domain_size" => true,
+                "values_onehot" => true,
+            ), 
+            [1, 2, n_nodes]
+        ],
+        [
+            Dict(
+                "constraint_type" => true,
+                "variable_initial_domain_size" => true,
+                "values_raw" => true,
+            ), 
+            [1, 2, 1]
+        ],
+        [
+            Dict(
+                "constraint_type" => true,
+                "variable_initial_domain_size" => true,
+                "variable_domain_size" => true,
+                "values_onehot" => true,
+            ), 
+            [2, 2, n_nodes]
+        ],
+        [
+            Dict(
+                "constraint_activity" => true,
+                "constraint_type" => true,
+                "variable_initial_domain_size" => true,
+                "values_onehot" => true,
+            ), 
+            [1, 3, n_nodes]
+        ],
+        [
+            Dict(
+                "constraint_activity" => true,
+                "constraint_type" => true,
+                "variable_initial_domain_size" => true,
+                "variable_domain_size" => true,
+                "values_raw" => true,
+            ), 
+            [2, 3, 1]
+        ],
+        [
+            Dict(
+                "constraint_activity" => true,
+                "constraint_type" => true,
+                "nb_not_bounded_variable" => true,
+                "variable_initial_domain_size" => true,
+                "variable_domain_size" => true,
+                "variable_is_bound" => true,
+                "values_raw" => true,
+            ), 
+            [3, 4, 1]
+        ],
+    ]
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
+
+    experiment_chosen_features_heterogeneous(board_size, n_episodes, n_instances;
+        n_eval=n_eval,
+        generator=latin_generator,
+        chosen_features_list=chosen_features_list,
+        type="latin",
+        expParameters = expParameters,
+        output_size = board_size
+        )
+end
 
 ###############################################################################
 ######### Experiment Type 4
