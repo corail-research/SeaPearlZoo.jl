@@ -11,112 +11,13 @@ using Random
 using LightGraphs
 using OrderedCollections
 using ArgParse
-
-#####################
-# Argument Parsing
-#####################
-
-s = ArgParseSettings()
-@add_arg_table s begin
-    "--episode", "-e"
-    help = "number of episodes"
-    arg_type = Int
-    "--eval-freq", "-f"
-    help = "number of episodes between each evaluation."
-    arg_type = Int
-    "--instance", "-i"
-    help = "number of instances per evaluation."
-    arg_type = Int
-    "--restart"
-    help = "number of restart per instances."
-    arg_type = Int
-    "--random", "-r"
-    help = "number of random heuristic."
-    arg_type = Int
-    "--size", "-s"
-    help = "size of the problem."
-    arg_type = Int
-    "--batch-size"
-    help = "size of batches."
-    arg_type = Int
-    "--update-horizon"
-    help = "update horizon."
-    arg_type = Int
-    "--min-replay-history"
-    arg_type = Int
-    "--update-freq"
-    arg_type = Int
-    "--target-update-freq"
-    arg_type = Int
-    "--decay-steps"
-    arg_type = Int
-    "--capacity"
-    arg_type = Int
-    "--conv-size"
-    arg_type = Int
-    "--dense-size"
-    arg_type = Int
-    "--verbose"
-    help = "verbose output"
-    action = :store_true
-end
-
-args = parse_args(s)
-if !isnothing(args["episode"])
-    NB_EPISODES = args["episode"]
-end
-if !isnothing(args["eval-freq"])
-    EVAL_FREQ = args["eval-freq"]
-end
-if !isnothing(args["instance"])
-    NB_INSTANCES = args["instance"]
-end
-if !isnothing(args["random"])
-    NB_RANDOM_HEURISTICS = args["random"]
-end
-if !isnothing(args["restart"])
-    RESTART_PER_INSTANCES = args["restart"]
-end
-if !isnothing(args["size"])
-    SIZE = args["size"]
-end
-if !isnothing(args["batch-size"])
-    BATCH_SIZE = args["batch-size"]
-end
-if !isnothing(args["update-horizon"])
-    UPDATE_HORIZON = args["update-horizon"]
-end
-if !isnothing(args["min-replay-history"])
-    MIN_REPLAY_HISTORY = args["min-replay-history"]
-end
-if !isnothing(args["update-freq"])
-    UPDATE_FREQ = args["update-freq"]
-end
-if !isnothing(args["target-update-freq"])
-    TARGET_UPDATE_FREQ = args["target-update-freq"]
-end
-if !isnothing(args["decay-steps"])
-    DECAY_STEPS = args["decay-steps"]
-end
-if !isnothing(args["capacity"])
-    CAPACITY = args["capacity"]
-end
-if !isnothing(args["conv-size"])
-    CONV_SIZE = args["conv-size"]
-end
-if !isnothing(args["dense-size"])
-    DENSE_SIZE = args["dense-size"]
-end
-if args["verbose"]
-    VERBOSE = true
-end
+using CircularArrayBuffers
 
 # -------------------
 # -------------------
 # Core function
 # -------------------
 # -------------------
-using CircularArrayBuffers
 
 function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection, learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, expParameters=Dict{String,Any}()::Dict{String,Any}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int, eval_timeout=nothing::Union{Nothing, Int})
     experienceTime = now()

@@ -629,9 +629,9 @@ function experiment_nn_heterogeneous(
     
 
     learnedHeuristics = OrderedDict(
-        #"cpnn" => learned_heuristic_cpnn,
-        #"fullfeaturedcpnn" => learned_heuristic_fullfeaturedcpnn,
-        "variableoutputcpnn" => learned_heuristic_variableoutputcpnn,
+        "cpnn" => learned_heuristic_cpnn,
+        "fullfeaturedcpnn" => learned_heuristic_fullfeaturedcpnn,
+        # "variableoutputcpnn" => learned_heuristic_variableoutputcpnn,
     )
 
     if isnothing(basicHeuristics)
