@@ -155,7 +155,7 @@ function experiment_n_conv(
     feature_size, 
     type="", 
     trajectory_capacity=2000
-    output_size, 
+    output_size = n_nodes, 
     expParameters, 
     reward=SeaPearl.GeneralReward, 
 )
@@ -232,7 +232,7 @@ function experiment_chosen_features_heterogeneous(
     size, 
     n_episodes, 
     n_instances; 
-    output_size, 
+    output_size = size, 
     n_layers_graph=3, 
     n_eval=10, 
     generator, 
