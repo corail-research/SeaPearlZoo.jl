@@ -210,3 +210,65 @@ end
 #########  
 ######### 
 ###############################################################################
+
+
+###############################################################################
+######### Experiment Type 8
+#########  
+######### 
+###############################################################################
+
+
+function experiment_chosen_features_hetcpnn_latin(chosen_features_list, board_size, density, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    coloring_generator = SeaPearl.LatinGenerator(board_size, density)
+    restartPerInstances = 1
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => board_size,
+            :density => density
+        ),
+    )
+
+    experiment_chosen_features_hetcpnn(size,
+        size=board_size+1,
+        n_episodes=n_episodes,
+        n_instances=n_instances,
+        restartPerInstances=restartPerInstances;
+        output_size = board_size, 
+        generator=generator,
+        chosen_features_list=chosen_features_list, 
+        type="latin_"*string(board_size),
+        expParameters=expParameters, 
+        )
+end
+
+function experiment_chosen_features_hetffcpnn_latin(chosen_features_list, board_size, density, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    coloring_generator = SeaPearl.LatinGenerator(board_size, density)
+    restartPerInstances = 1
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => board_size,
+            :density => density
+        ),
+    )
+
+    experiment_chosen_features_hetffcpnn(size,
+        size=board_size+1,
+        n_episodes=n_episodes,
+        n_instances=n_instances,
+        restartPerInstances=restartPerInstances;
+        output_size = board_size, 
+        generator=generator,
+        chosen_features_list=chosen_features_list, 
+        type="latin_"*string(board_size),
+        expParameters=expParameters, 
+        )
+end

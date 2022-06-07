@@ -287,3 +287,62 @@ function experiment_nn_heterogeneous_nqueens(board_size, n_episodes, n_instances
         basicHeuristics=nothing
     )
 end
+
+
+###############################################################################
+######### Experiment Type 8
+#########  
+######### 
+###############################################################################
+
+
+function experiment_chosen_features_hetcpnn_nqueens(chosen_features_list, board_size, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    coloring_generator = SeaPearl.NqueensGenerator(board_size)
+    restartPerInstances = 1
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => board_size,
+        ),
+    )
+
+    experiment_chosen_features_hetcpnn(size,
+        size=board_size+1,
+        n_episodes=n_episodes,
+        n_instances=n_instances,
+        restartPerInstances=restartPerInstances;
+        output_size = board_size, 
+        generator=generator,
+        chosen_features_list=chosen_features_list, 
+        type="nqueens_"*string(board_size),
+        expParameters=expParameters, 
+        )
+end
+function experiment_chosen_features_hetffcpnn_nqueens(chosen_features_list, board_size, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    coloring_generator = SeaPearl.NqueensGenerator(board_size)
+    restartPerInstances = 1
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => board_size,
+        ),
+    )
+
+    experiment_chosen_features_hetffcpnn(size,
+        size=board_size+1,
+        n_episodes=n_episodes,
+        n_instances=n_instances,
+        restartPerInstances=restartPerInstances;
+        output_size = board_size, 
+        generator=generator,
+        chosen_features_list=chosen_features_list, 
+        type="nqueens_"*string(board_size),
+        expParameters=expParameters, 
+        )
+end
