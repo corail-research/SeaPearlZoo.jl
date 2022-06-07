@@ -382,3 +382,66 @@ function experiment_pooling_heterogeneous_graphcoloring(n_nodes, n_min_color, de
         c=2.0
     )
 end
+
+###############################################################################
+######### Experiment Type 8
+#########  
+######### 
+###############################################################################
+
+
+function experiment_chosen_features_hetcpnn_graphcoloring(chosen_features_list, n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    restartPerInstances = 1
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :nbMinColor => n_min_color,
+            :density => density
+        ),
+    )
+
+    experiment_chosen_features_hetcpnn(size,
+        size=n_nodes+1,
+        n_episodes=n_episodes,
+        n_instances=n_instances,
+        restartPerInstances=restartPerInstances;
+        output_size = n_nodes, 
+        generator=generator,
+        chosen_features_list=chosen_features_list, 
+        type="graphcoloring_"*string(size),
+        expParameters=expParameters, 
+        )
+end
+
+function experiment_chosen_features_hetffcpnn_graphcoloring(chosen_features_list, n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    restartPerInstances = 1
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :nbMinColor => n_min_color,
+            :density => density
+        ),
+    )
+
+    experiment_chosen_features_hetffcpnn(size,
+        size=n_nodes+1,
+        n_episodes=n_episodes,
+        n_instances=n_instances,
+        restartPerInstances=restartPerInstances;
+        output_size = n_nodes, 
+        generator=generator,
+        chosen_features_list=chosen_features_list, 
+        type="graphcoloring_"*string(size),
+        expParameters=expParameters, 
+        )
+end
