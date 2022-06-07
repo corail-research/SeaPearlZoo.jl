@@ -27,7 +27,7 @@ function experiment_representation_latin(board_size, density, n_episodes, n_inst
 
     experiment_representation(board_size, n_episodes, n_instances;
         chosen_features=nothing,
-        feature_sizes = [3, 12, [2, 6, 1]], 
+        feature_sizes = [3, 9, [2, 3, 1]], 
         output_size = board_size, 
         generator = latin_generator, 
         expParameters = expParameters, 
@@ -46,7 +46,7 @@ end
 ###############################################################################
 
 
-function experiment_heterogeneous_n_conv(board_size, density, n_episodes, n_instances; n_eval=10)
+function experiment_heterogeneous_n_conv_latin(board_size, density, n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
@@ -60,18 +60,25 @@ function experiment_heterogeneous_n_conv(board_size, density, n_episodes, n_inst
         "values_onehot" => true,
     )
 
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
+
     experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
-        generator=coloring_generator,
+        generator=latin_generator,
         SR=SR_heterogeneous,
         chosen_features=chosen_features,
         feature_size=[1, 2, board_size],
         type="heterogeneous", 
         output_size = board_size, 
-        )
+        expParameters = expParameters)
 end
 
-function experiment_default_chosen_n_conv(board_size, density,  n_episodes, n_instances; n_eval=10)
+function experiment_default_chosen_n_conv_latin(board_size, density,  n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the default representation.
     """
@@ -85,6 +92,13 @@ function experiment_default_chosen_n_conv(board_size, density,  n_episodes, n_in
         "values_onehot" => true,
     )
 
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
+
     experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
         generator=latin_generator,
@@ -93,16 +107,23 @@ function experiment_default_chosen_n_conv(board_size, density,  n_episodes, n_in
         feature_size= 6 + board_size,
         type="default_chosen",
         output_size = board_size, 
-        )
+        expParameters = expParameters)
 end
 
-function experiment_default_default_n_conv(board_size, density, n_episodes, n_instances; n_eval=10)
+function experiment_default_default_n_conv_latin(board_size, density, n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the default representation.
     """
     latin_generator = SeaPearl.LatinGenerator(board_size, density)
 
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
 
     experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
@@ -112,7 +133,7 @@ function experiment_default_default_n_conv(board_size, density, n_episodes, n_in
         chosen_features=nothing,
         type="default_default",
         output_size = board_size, 
-        )
+        expParameters = expParameters)
 end
 
 ###############################################################################
@@ -136,7 +157,7 @@ function experiment_chosen_features_heterogeneous_latin(board_size, density, n_e
                 "variable_initial_domain_size" => true,
                 "values_onehot" => true,
             ), 
-            [1, 2, n_nodes]
+            [1, 2, board_size]
         ],
         [
             Dict(
@@ -153,7 +174,7 @@ function experiment_chosen_features_heterogeneous_latin(board_size, density, n_e
                 "variable_domain_size" => true,
                 "values_onehot" => true,
             ), 
-            [2, 2, n_nodes]
+            [2, 2, board_size]
         ],
         [
             Dict(
@@ -162,7 +183,7 @@ function experiment_chosen_features_heterogeneous_latin(board_size, density, n_e
                 "variable_initial_domain_size" => true,
                 "values_onehot" => true,
             ), 
-            [1, 3, n_nodes]
+            [1, 3, board_size]
         ],
         [
             Dict(
@@ -210,3 +231,145 @@ end
 #########  
 ######### 
 ###############################################################################
+
+
+function experiment_heuristic_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    """
+    Compares the simple and the supervised learned heuristic for the heterogeneous representation.
+    """
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+        basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_heuristic_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = board_size, 
+        generator = latin_generator, 
+        expParameters = expParameters, 
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "latin",
+        eta_decay_steps = Int(floor(n_episodes/1.5)),
+        helpValueHeuristic = heuristic_min,
+        eta_init = 1.0,
+        eta_stable = 0.0
+    )
+end
+
+###############################################################################
+######### Experiment Type 5
+#########  
+######### 
+###############################################################################
+
+function experiment_explorer_heterogeneous_graphcoloring(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    """
+    Compares different action explorers for the heterogeneous representation.
+        - an agent with the epsilon_greedy explorer 
+        - an agent with the upper confident bound explorer
+    """
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+        basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_explorer_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = board_size, 
+        generator = latin_generator, 
+        expParameters = expParameters, 
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "latin",
+        decay_steps=2000,
+        c=2.0
+    )
+###############################################################################
+######### Experiment Type 8
+#########  
+######### 
+###############################################################################
+
+
+function experiment_chosen_features_hetcpnn_latin(chosen_features_list, board_size, density, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    coloring_generator = SeaPearl.LatinGenerator(board_size, density)
+    restartPerInstances = 1
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => board_size,
+            :density => density
+        ),
+    )
+
+    experiment_chosen_features_hetcpnn(size,
+        size=board_size+1,
+        n_episodes=n_episodes,
+        n_instances=n_instances,
+        restartPerInstances=restartPerInstances;
+        output_size = board_size, 
+        generator=generator,
+        chosen_features_list=chosen_features_list, 
+        type="latin_"*string(board_size),
+        expParameters=expParameters, 
+        )
+end
+
+function experiment_chosen_features_hetffcpnn_latin(chosen_features_list, board_size, density, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    coloring_generator = SeaPearl.LatinGenerator(board_size, density)
+    restartPerInstances = 1
+
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => board_size,
+            :density => density
+        ),
+    )
+
+    experiment_chosen_features_hetffcpnn(size,
+        size=board_size+1,
+        n_episodes=n_episodes,
+        n_instances=n_instances,
+        restartPerInstances=restartPerInstances;
+        output_size = board_size, 
+        generator=generator,
+        chosen_features_list=chosen_features_list, 
+        type="latin_"*string(board_size),
+        expParameters=expParameters, 
+        )
+end
