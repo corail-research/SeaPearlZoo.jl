@@ -23,6 +23,17 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
     experienceTime = now()
     dir = mkdir(string("exp_", exp_name, Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
     lh = last(collect(values(learnedHeuristics)))
+    if isa(lh.agent.policy.explorer,RL.EpsilonGreedyExplorer)
+        explorer_params =  :explorerParameters => Dict(
+            :ϵ_stable => lh.agent.policy.explorer.ϵ_stable,
+            :decay_steps => lh.agent.policy.explorer.decay_steps,
+        )
+    elseif isa(lh.agent.policy.explorer,RL.UCBExplorer)
+        explorer_params =  :explorerParameters => Dict(
+            :actioncounts => lh.agent.policy.explorer.actioncounts,
+            :c => lh.agent.policy.explorer.c,
+        )
+    end
     commonExpParameters = Dict(
         :experimentParameters => Dict(
             :nbEpisodes => nbEpisodes,
@@ -44,10 +55,7 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
             :update_freq => lh.agent.policy.learner.update_freq,
             :target_update_freq => lh.agent.policy.learner.target_update_freq,
         ),
-        :explorerParameters => Dict(
-            :ϵ_stable => lh.agent.policy.explorer.ϵ_stable,
-            :decay_steps => lh.agent.policy.explorer.decay_steps,
-        ),
+        explorer_params,
         :trajectoryParameters => Dict(
             :trajectoryType => typeof(lh.agent.trajectory),
             :capacity => CircularArrayBuffers.capacity(lh.agent.trajectory.traces.action) - 1

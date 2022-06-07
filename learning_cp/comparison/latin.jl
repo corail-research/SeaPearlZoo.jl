@@ -231,3 +231,86 @@ end
 #########  
 ######### 
 ###############################################################################
+
+
+function experiment_heuristic_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    """
+    Compares the simple and the supervised learned heuristic for the heterogeneous representation.
+    """
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+        basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_heuristic_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = board_size, 
+        generator = latin_generator, 
+        expParameters = expParameters, 
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "latin",
+        eta_decay_steps = Int(floor(n_episodes/1.5)),
+        helpValueHeuristic = heuristic_min,
+        eta_init = 1.0,
+        eta_stable = 0.0
+    )
+end
+
+###############################################################################
+######### Experiment Type 5
+#########  
+######### 
+###############################################################################
+
+function experiment_explorer_heterogeneous_graphcoloring(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    """
+    Compares different action explorers for the heterogeneous representation.
+        - an agent with the epsilon_greedy explorer 
+        - an agent with the upper confident bound explorer
+    """
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+        basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_explorer_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = board_size, 
+        generator = latin_generator, 
+        expParameters = expParameters, 
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "latin",
+        decay_steps=2000,
+        c=2.0
+    )
+end
