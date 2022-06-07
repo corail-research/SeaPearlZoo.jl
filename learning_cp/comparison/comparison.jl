@@ -146,8 +146,6 @@ Compares the impact of the number of convolution layers for the heterogeneous re
 
 function experiment_n_conv(
     n_nodes, 
-    n_min_color, 
-    density, 
     n_episodes, 
     n_instances; 
     n_eval=10, 
@@ -157,6 +155,9 @@ function experiment_n_conv(
     feature_size, 
     type="", 
     trajectory_capacity=2000
+    output_size = n_nodes, 
+    expParameters, 
+    reward=SeaPearl.GeneralReward, 
 )
     get_agent = (SR <: SeaPearl.DefaultStateRepresentation) ? get_default_agent : get_heterogeneous_agent
 
@@ -175,7 +176,7 @@ function experiment_n_conv(
                 conv_size=8,
                 dense_size=16,
                 output_size=output_size,
-                n_layers_graph=n_layers_graph,
+                n_layers_graph=i,
                 n_layers_node=2,
                 n_layers_output=2
             )
@@ -231,7 +232,7 @@ function experiment_chosen_features_heterogeneous(
     size, 
     n_episodes, 
     n_instances; 
-    output_size, 
+    output_size = size, 
     n_layers_graph=3, 
     n_eval=10, 
     generator, 
