@@ -154,7 +154,7 @@ function experiment_n_conv(
     chosen_features, 
     feature_size, 
     type="", 
-    trajectory_capacity=2000
+    trajectory_capacity=2000,
     output_size = n_nodes, 
     expParameters, 
     reward=SeaPearl.GeneralReward, 
