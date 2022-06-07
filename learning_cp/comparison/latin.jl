@@ -277,7 +277,7 @@ end
 ######### 
 ###############################################################################
 
-function experiment_explorer_heterogeneous_graphcoloring(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_explorer_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
     """
     Compares different action explorers for the heterogeneous representation.
         - an agent with the epsilon_greedy explorer 
@@ -311,8 +311,60 @@ function experiment_explorer_heterogeneous_graphcoloring(board_size, density, n_
         reward = reward, 
         type = "latin",
         decay_steps=2000,
-        c=2.0
+        c=2.0,
     )
+end
+
+###############################################################################
+######### Experiment Type 6
+#########  
+######### 
+###############################################################################
+
+function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    """
+    Compares different CPNNs for the heterogeneous representation.
+    """
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
+
+    chosen_features = Dict(
+        "constraint_activity" => true,
+        "constraint_type" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "values_raw" => true,
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_nn_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features = chosen_features,
+        feature_size = [2, 3, 1], 
+        output_size = board_size, 
+        generator = latin_generator, 
+        expParameters = expParameters, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "latin",
+        decay_steps=2000,
+        c=2.0,
+        basicHeuristics=basicHeuristics
+    )
+end
+
 ###############################################################################
 ######### Experiment Type 8
 #########  
@@ -324,23 +376,22 @@ function experiment_chosen_features_hetcpnn_latin(chosen_features_list, board_si
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    coloring_generator = SeaPearl.LatinGenerator(board_size, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
     restartPerInstances = 1
 
     expParameters = Dict(
         :generatorParameters => Dict(
-            :nbNodes => board_size,
-            :density => density
+            :boardSize => board_size,
+            :density => density,
         ),
     )
-
     experiment_chosen_features_hetcpnn(size,
         size=board_size+1,
         n_episodes=n_episodes,
         n_instances=n_instances,
         restartPerInstances=restartPerInstances;
         output_size = board_size, 
-        generator=generator,
+        generator=latin_generator,
         chosen_features_list=chosen_features_list, 
         type="latin_"*string(board_size),
         expParameters=expParameters, 
@@ -351,7 +402,7 @@ function experiment_chosen_features_hetffcpnn_latin(chosen_features_list, board_
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    coloring_generator = SeaPearl.LatinGenerator(board_size, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
     restartPerInstances = 1
 
     expParameters = Dict(
@@ -367,9 +418,11 @@ function experiment_chosen_features_hetffcpnn_latin(chosen_features_list, board_
         n_instances=n_instances,
         restartPerInstances=restartPerInstances;
         output_size = board_size, 
-        generator=generator,
+        generator=latin_generator,
         chosen_features_list=chosen_features_list, 
         type="latin_"*string(board_size),
         expParameters=expParameters, 
         )
 end
+
+
