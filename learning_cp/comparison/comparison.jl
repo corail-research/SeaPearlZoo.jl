@@ -744,7 +744,7 @@ function experiment_pooling_heterogeneous(
 
     learnedHeuristics = OrderedDict(
         "sum" => learned_heuristic_sum,
-        # "mean" => learned_heuristic_mean,
+        "mean" => learned_heuristic_mean,
     )
 
     if isnothing(basicHeuristics)
