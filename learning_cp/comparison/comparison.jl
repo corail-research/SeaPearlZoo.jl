@@ -153,17 +153,36 @@ function experiment_n_conv(
     SR, 
     chosen_features, 
     feature_size, 
-    type="", 
-    trajectory_capacity=2000
+    type = "", 
+    trajectory_capacity = 2000,
     output_size = n_nodes, 
+    reward = SeaPearl.GeneralReward,
     expParameters, 
-    reward=SeaPearl.GeneralReward, 
-)
-    get_agent = (SR <: SeaPearl.DefaultStateRepresentation) ? get_default_agent : get_heterogeneous_agent
+    )
 
     learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
     for i in 1:3
-        agent = get_agent(;
+        if SR <: SeaPearl.DefaultStateRepresentation
+            agent = get_default_agent(;
+            get_default_trajectory = () -> get_default_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+            get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
+            batch_size=16,
+            update_horizon=8,
+            min_replay_history=256,
+            update_freq=1,
+            target_update_freq=8,
+            get_default_nn = () -> get_default_cpnn(
+                feature_size=feature_size,
+                conv_size=8,
+                dense_size=16,
+                output_size=output_size,
+                n_layers_graph=i,
+                n_layers_node=2,
+                n_layers_output=2
+            )
+        )
+        else 
+            agent = get_heterogeneous_agent(;
             get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
             get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
             batch_size=16,
@@ -181,6 +200,8 @@ function experiment_n_conv(
                 n_layers_output=2
             )
         )
+        end
+        
         if !isnothing(chosen_features)
             learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
         else
@@ -745,7 +766,7 @@ function experiment_pooling_heterogeneous(
 
     learnedHeuristics = OrderedDict(
         "sum" => learned_heuristic_sum,
-        # "mean" => learned_heuristic_mean,
+        "mean" => learned_heuristic_mean,
     )
 
     if isnothing(basicHeuristics)
