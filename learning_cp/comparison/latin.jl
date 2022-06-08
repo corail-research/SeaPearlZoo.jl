@@ -272,13 +272,6 @@ function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_in
     Compares different CPNNs for the heterogeneous representation.
     """
     latin_generator = SeaPearl.LatinGenerator(board_size, density)
-    
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-            :density => density,
-        ),
-    )
 
     chosen_features = Dict(
         "constraint_activity" => true,
@@ -299,8 +292,7 @@ function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_in
         chosen_features = chosen_features,
         feature_size = [2, 3, 1], 
         output_size = board_size, 
-        generator = latin_generator, 
-        expParameters = expParameters, 
+        generator = latin_generator,  
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
         reward = reward, 
