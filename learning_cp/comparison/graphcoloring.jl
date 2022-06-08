@@ -264,7 +264,7 @@ end
 ######### 
 ###############################################################################
 
-function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
     """
     Compare three agents:
         - an agent with the default representation and default features;
@@ -272,6 +272,15 @@ function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density
         - an agent with the heterogeneous representation and chosen features.
     """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :nbMinColor => n_min_color,
+            :density => density
+        ),
+        :pooling => string(pool)
+    )
 
     # Basic value-selection heuristic
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -291,7 +300,8 @@ function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density
         type = "graphcoloring",
         decay_steps=2000,
         c=2.0,
-        basicHeuristics=basicHeuristics
+        basicHeuristics=basicHeuristics,
+        pool = pool
     )
 end
 
@@ -377,4 +387,42 @@ function experiment_chosen_features_hetffcpnn_graphcoloring(chosen_features_list
         chosen_features_list=chosen_features_list, 
         type="graphcoloring_"*string(n_nodes)
         )
+end
+
+###############################################################################
+######### Experiment Type 9
+#########  
+######### 
+###############################################################################
+
+function experiment_transfer_heterogeneous_graphcoloring(n_nodes, n_nodes_transfered, n_min_color, density, n_episodes, n_episodes_transfered, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, decay_steps=2000, trajectory_capacity=2000)
+    """
+    
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    coloring_generator_transfered = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes_transfered, n_min_color, density)
+    
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_transfer_heterogeneous(n_nodes, n_nodes_transfered, n_episodes, n_episodes_transfered, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = n_nodes,
+        output_size_transfered = n_nodes_transfered,
+        generator = coloring_generator, 
+        generator_transfered = coloring_generator_transfered,
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "graphcoloring",
+        decay_steps=decay_steps,
+        trajectory_capacity=trajectory_capacity
+    )
 end

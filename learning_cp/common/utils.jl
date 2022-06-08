@@ -403,7 +403,7 @@ function get_heterogeneous_cpnn(;feature_size, conv_size=8, dense_size=16, outpu
     )
 end
 
-function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_size=8, dense_size=16, output_size, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.sumPooling())
+function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.sumPooling())
     return SeaPearl.HeterogeneousFullFeaturedCPNN(
         get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool),
         get_dense_chain(conv_size, dense_size, dense_size, n_layers_node),
@@ -412,7 +412,7 @@ function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_size=8, dense_si
     )
 end
 
-function get_heterogeneous_variableoutputcpnn(;feature_size, conv_size=8, dense_size=16, output_size, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.sumPooling())
+function get_heterogeneous_variableoutputcpnn(;feature_size, conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.sumPooling())
     return SeaPearl.HeterogeneousVariableOutputCPNN(
         get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool),
         get_dense_chain(conv_size, dense_size, dense_size, n_layers_node),
@@ -462,7 +462,7 @@ function get_heterogeneous_sart_trajectory(; capacity)
     )
 end
 
-function get_heterogeneous_agent(; get_explorer, batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_heterogeneous_trajectory, get_heterogeneous_nn)
+function get_heterogeneous_agent(; get_explorer, batch_size=16, update_horizon, min_replay_history, update_freq=1, target_update_freq=200, get_heterogeneous_trajectory, get_heterogeneous_nn)
     return RL.Agent(
         policy=RL.QBasedPolicy(
             learner=get_heterogeneous_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_heterogeneous_nn),
