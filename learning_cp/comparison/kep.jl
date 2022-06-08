@@ -95,12 +95,6 @@ function experiment_representation(n_nodes, density, n_episodes, n_instances; n_
     # -------------------
     variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
 
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :nbNodes => n_nodes,
-            :density => density
-        ),
-    )
 
     metricsArray, eval_metricsArray = trytrain(
         nbEpisodes=n_episodes,
@@ -113,7 +107,6 @@ function experiment_representation(n_nodes, density, n_episodes, n_instances; n_
         basicHeuristics=basicHeuristics;
         out_solver=true,
         verbose=true,
-        expParameters=expParameters,
         nbRandomHeuristics=0,
         exp_name="kep_representation_" * string(n_episodes) * "_" * string(n_nodes) * "_",
         eval_timeout=eval_timeout
@@ -191,12 +184,6 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
         ],
     ]
 
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :nbNodes => n_nodes,
-            :density => density
-        ),
-    )
 
     experiment_chosen_features_heterogeneous(n_nodes, n_episodes, n_instances;
         n_eval=n_eval,
@@ -204,6 +191,5 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
         chosen_features_list=chosen_features_list,
         type="kep",
         output_size=2,
-        expParameters=expParameters,
         eval_timeout=eval_timeout)
 end
