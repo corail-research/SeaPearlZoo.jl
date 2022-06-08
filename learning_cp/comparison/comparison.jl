@@ -572,9 +572,10 @@ function experiment_nn_heterogeneous(
     basicHeuristics, 
     reward=SeaPearl.GeneralReward, 
     n_layers_graph=3, 
-    decay_steps=2000, 
+    decay_steps=n_episodes*size*0.8, 
     c=2.0, 
-    trajectory_capacity=2000
+    trajectory_capacity=2000,
+    pool=SeaPearl.sumPooling()
 )
 
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
@@ -604,7 +605,8 @@ function experiment_nn_heterogeneous(
             output_size=output_size,
             n_layers_graph=n_layers_graph,
             n_layers_node=2,
-            n_layers_output=2
+            n_layers_output=2,
+            pool=pool
         )
     )
     learned_heuristic_cpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_cpnn; chosen_features=chosen_features)
@@ -624,7 +626,8 @@ function experiment_nn_heterogeneous(
             output_size=1,
             n_layers_graph=n_layers_graph,
             n_layers_node=2,
-            n_layers_output=2
+            n_layers_output=2,
+            pool=pool
         )
     )
     learned_heuristic_fullfeaturedcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_fullfeaturedcpnn; chosen_features=chosen_features)
