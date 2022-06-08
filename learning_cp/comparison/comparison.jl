@@ -927,13 +927,13 @@ function experiment_chosen_features_hetffcpnn(
                 feature_size=feature_size,
                 conv_size=8,
                 dense_size=16,
-                output_size=output_size,
+                output_size=1,
                 n_layers_graph=n_layers_graph,
                 n_layers_node=2,
                 n_layers_output=2
             )
         )
-        learned_heuristic_hetcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_hetcpnn; chosen_features=chosen_features)
+        learned_heuristic_hetffcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_hetcpnn; chosen_features=chosen_features)
         learnedHeuristics["hetffcpnn_" *string(i)] = learned_heuristic_hetffcpnn
     end
     agent_default = get_default_agent(;

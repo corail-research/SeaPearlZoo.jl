@@ -255,11 +255,12 @@ function experiment_chosen_features_hetcpnn_nqueens(chosen_features_list, board_
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    generator = SeaPearl.NqueensGenerator(board_size)
+    generator = SeaPearl.NQueensGenerator(board_size)
     restartPerInstances = 1
 
     experiment_chosen_features_hetcpnn(
-        board_size+1,
+        board_size,
+        board_size-5,
         n_episodes,
         n_instances,
         restartPerInstances;
@@ -273,11 +274,12 @@ function experiment_chosen_features_hetffcpnn_nqueens(chosen_features_list, boar
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    generator = SeaPearl.NqueensGenerator(board_size)
+    generator = SeaPearl.NQueensGenerator(board_size)
     restartPerInstances = 1
 
     experiment_chosen_features_hetffcpnn(
-        board_size+1,
+        board_size,
+        board_size-5,
         n_episodes,
         n_instances,
         restartPerInstances;

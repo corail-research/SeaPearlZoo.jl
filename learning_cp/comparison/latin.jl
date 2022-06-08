@@ -327,10 +327,11 @@ function experiment_chosen_features_hetcpnn_latin(chosen_features_list, board_si
 
 
     experiment_chosen_features_hetcpnn(
-        size=board_size+1,
-        n_episodes=n_episodes,
-        n_instances=n_instances,
-        restartPerInstances=restartPerInstances;
+        board_size+1,
+        board_size,
+        n_episodes,
+        n_instances,
+        restartPerInstances;
         output_size = board_size, 
         generator=latin_generator,
         chosen_features_list=chosen_features_list, 
@@ -346,11 +347,12 @@ function experiment_chosen_features_hetffcpnn_latin(chosen_features_list, board_
     restartPerInstances = 1
 
 
-    experiment_chosen_features_hetffcpnn(size,
-        size=board_size+1,
-        n_episodes=n_episodes,
-        n_instances=n_instances,
-        restartPerInstances=restartPerInstances;
+    experiment_chosen_features_hetffcpnn(
+        board_size+1,
+        board_size,
+        n_episodes,
+        n_instances,
+        restartPerInstances;
         output_size = board_size, 
         generator=latin_generator,
         chosen_features_list=chosen_features_list, 
