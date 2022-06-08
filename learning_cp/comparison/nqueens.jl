@@ -8,27 +8,21 @@ include("comparison.jl")
 ######### 
 ###############################################################################
 
+"""
+Compares three agents:
+    - an agent with the default graph representation and default features;
+    - an agent with the default graph representation and chosen features;
+    - an agent with the heterogeneous graph representation and chosen features.
+"""
 function experiment_representation_nqueens(board_size, n_episodes, n_instances; n_layers_graph=2, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
+    
     nqueens_generator = SeaPearl.NQueensGenerator(board_size)
-
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-        ),
-    )
 
     experiment_representation(board_size, n_episodes, n_instances;
         chosen_features=nothing,
         feature_sizes = [3, 12, [2, 6, 1]], 
         output_size = board_size, 
         generator = nqueens_generator, 
-        expParameters = expParameters, 
         basicHeuristics=nothing, 
         n_layers_graph=n_layers_graph, 
         n_eval=n_eval, 
@@ -43,10 +37,11 @@ end
 ######### 
 ###############################################################################
 
+"""
+Compares the impact of the number of convolution layers for the heterogeneous representation.
+"""
 function experiment_heterogeneous_n_conv(board_size, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the heterogeneous representation.
-    """
+   
     nqueens_generator = SeaPearl.ClusterizedGraphColoringGenerator(board_size)
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
 
@@ -56,12 +51,6 @@ function experiment_heterogeneous_n_conv(board_size, n_episodes, n_instances; n_
         "values_onehot" => true,
     )
 
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-        ),
-    )
-
     experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
         generator=nqueens_generator,
@@ -69,14 +58,14 @@ function experiment_heterogeneous_n_conv(board_size, n_episodes, n_instances; n_
         chosen_features=chosen_features,
         feature_size=[1, 2, board_size],
         type="heterogeneous",
-        output_size = board_size, 
-        expParameters = expParameters)
+        output_size = board_size)
 end
 
+"""
+Compares the impact of the number of convolution layers for the default representation.
+"""
 function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the default representation.
-    """
+    
     nqueens_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
@@ -86,11 +75,7 @@ function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episo
         "values_onehot" => true,
     )
 
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-        ),
-    )
+
 
     experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
@@ -99,22 +84,17 @@ function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episo
         chosen_features=chosen_features,
         feature_size=6 + n_nodes,
         type="default_chosen",
-        output_size = board_size, 
-        expParameters = expParameters)
+        output_size = board_size)
 end
 
+"""
+Compares the impact of the number of convolution layers for the default representation.
+"""
 function experiment_default_default_n_conv(board_size, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the default representation.
-    """
+    
     nqueens_generator = SeaPearl.ClusterizedGraphColoringGenerator(board_size)
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
-    
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-        ),
-    )
+
 
     experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
@@ -123,8 +103,7 @@ function experiment_default_default_n_conv(board_size, n_episodes, n_instances; 
         feature_size=3,
         chosen_features=nothing,
         type="default_default",
-        output_size = board_size, 
-        expParameters = expParameters)
+        output_size = board_size)
 end
 
 ###############################################################################
@@ -132,11 +111,11 @@ end
 #########  
 ######### 
 ###############################################################################
-
+"""
+Compares the impact of the chosen features for the heterogeneous representation.
+"""
 function experiment_chosen_features_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compares the impact of the number of convolution layers for the heterogeneous representation.
-    """
+    
     nqueens_generator = SeaPearl.NQueensGenerator(board_size)
 
     chosen_features_list = [
@@ -198,11 +177,6 @@ function experiment_chosen_features_heterogeneous_nqueens(board_size, n_episodes
         ],
     ]
 
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-        ),
-    )
 
     experiment_chosen_features_heterogeneous(board_size, n_episodes, n_instances;
         n_eval=n_eval,
@@ -210,7 +184,6 @@ function experiment_chosen_features_heterogeneous_nqueens(board_size, n_episodes
         chosen_features_list=chosen_features_list,
         type="nqueens",
         output_size=board_size,
-        expParameters=expParameters,
         reward=reward)
 end
 
@@ -219,28 +192,18 @@ end
 #########  
 ######### 
 ###############################################################################
-
+"""
+Compares different action explorers with the heterogeneous representation for the nqueens problem.
+"""
 function experiment_explorer_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
+
     nqueens_generator = SeaPearl.NQueensGenerator(board_size)
-    
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-        ),
-    )
 
     experiment_explorer_heterogeneous(board_size, n_episodes, n_instances;
         chosen_features=nothing,
         feature_size = [2, 6, 1], 
         output_size = board_size, 
-        generator = nqueens_generator, 
-        expParameters = expParameters, 
+        generator = nqueens_generator,  
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
         reward = reward, 
@@ -256,28 +219,19 @@ end
 #########  
 ######### 
 ###############################################################################
+"""
+Compares different CPNNs with the heterogeneous representation for the nqueens problem.
 
+"""
 function experiment_nn_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
+
     nqueens_generator = SeaPearl.NQueensGenerator(board_size)
-    
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-        ),
-    )
 
     experiment_nn_heterogeneous(board_size, n_episodes, n_instances;
         chosen_features=nothing,
         feature_size = [2, 6, 1], 
         output_size = board_size, 
-        generator = nqueens_generator, 
-        expParameters = expParameters, 
+        generator = nqueens_generator,
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
         reward = reward, 
@@ -300,49 +254,37 @@ function experiment_chosen_features_hetcpnn_nqueens(chosen_features_list, board_
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    coloring_generator = SeaPearl.NqueensGenerator(board_size)
+    generator = SeaPearl.NQueensGenerator(board_size)
     restartPerInstances = 1
 
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :nbNodes => board_size,
-        ),
-    )
-
-    experiment_chosen_features_hetcpnn(size,
-        size=board_size+1,
-        n_episodes=n_episodes,
-        n_instances=n_instances,
-        restartPerInstances=restartPerInstances;
+    experiment_chosen_features_hetcpnn(
+        board_size,
+        board_size-5,
+        n_episodes,
+        n_instances,
+        restartPerInstances;
         output_size = board_size, 
-        generator=generator,
-        chosen_features_list=chosen_features_list, 
-        type="nqueens_"*string(board_size),
-        expParameters=expParameters, 
+        generator = generator,
+        chosen_features_list = chosen_features_list, 
+        type = "nqueens_"*string(board_size)
         )
 end
 function experiment_chosen_features_hetffcpnn_nqueens(chosen_features_list, board_size, n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    coloring_generator = SeaPearl.NqueensGenerator(board_size)
+    generator = SeaPearl.NQueensGenerator(board_size)
     restartPerInstances = 1
 
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :nbNodes => board_size,
-        ),
-    )
-
-    experiment_chosen_features_hetffcpnn(size,
-        size=board_size+1,
-        n_episodes=n_episodes,
-        n_instances=n_instances,
-        restartPerInstances=restartPerInstances;
+    experiment_chosen_features_hetffcpnn(
+        board_size,
+        board_size-5,
+        n_episodes,
+        n_instances,
+        restartPerInstances;
         output_size = board_size, 
         generator=generator,
         chosen_features_list=chosen_features_list, 
-        type="nqueens_"*string(board_size),
-        expParameters=expParameters, 
+        type = "nqueens_"*string(board_size)
         )
 end
