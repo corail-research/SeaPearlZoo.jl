@@ -742,7 +742,7 @@ function experiment_pooling_heterogeneous(
             feature_size=feature_size,
             conv_size=8,
             dense_size=16,
-            output_size=1,
+            output_size=output_size,
             n_layers_graph=n_layers_graph,
             n_layers_node=2,
             n_layers_output=2;
