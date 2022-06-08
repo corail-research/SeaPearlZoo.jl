@@ -98,16 +98,6 @@ function experiment_representation(k, n, α, r, p, n_episodes, n_instances; n_la
     # variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
     variableHeuristic = SeaPearl.RandomVariableSelection{false}()
 
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :k => k,
-            :n => n,
-            :α => α,
-            :r => r,
-            :p => p
-        ),
-    )
-
     metricsArray, eval_metricsArray = trytrain(
         nbEpisodes=n_episodes,
         evalFreq=Int(floor(n_episodes / n_eval)),
@@ -119,7 +109,6 @@ function experiment_representation(k, n, α, r, p, n_episodes, n_instances; n_la
         basicHeuristics=basicHeuristics;
         out_solver=true,
         verbose=false,
-        expParameters=expParameters,
         nbRandomHeuristics=0,
         exp_name="rb_representation_" * string(n_episodes) * "_" * string(rb_generator.d) * "_"
     )

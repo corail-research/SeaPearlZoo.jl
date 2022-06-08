@@ -8,28 +8,29 @@ include("comparison.jl")
 ######### 
 ###############################################################################
 
-function experiment_representation_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_representation_latin(board_size, density, n_episodes, n_instances; n_layers_graph=2, n_eval=10, reward=SeaPearl.GeneralReward)
     """
     Compare three agents:
         - an agent with the default representation and default features;
         - an agent with the default representation and chosen features;
         - an agent with the heterogeneous representation and chosen features.
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
 
 
-    experiment_representation(n_nodes, n_episodes, n_instances;
+    experiment_representation(board_size, n_episodes, n_instances;
         chosen_features=nothing,
         feature_sizes = [3, 9, [2, 3, 1]], 
-        output_size = n_nodes, 
-        generator = coloring_generator, 
+        output_size = board_size, 
+        generator = latin_generator, 
         basicHeuristics=nothing, 
         n_layers_graph=n_layers_graph, 
         n_eval=n_eval, 
         reward=reward, 
-        type="graphcoloring", 
+        type="latin", 
     )
-end
+end 
 
 ###############################################################################
 ######### Experiment Type 2
@@ -37,11 +38,13 @@ end
 ######### 
 ###############################################################################
 
-function experiment_heterogeneous_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+
+function experiment_heterogeneous_n_conv_latin(board_size, density, n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
 
     chosen_features = Dict(
@@ -50,21 +53,22 @@ function experiment_heterogeneous_n_conv(n_nodes, n_min_color, density, n_episod
         "values_onehot" => true,
     )
 
-    experiment_n_conv(n_nodes, n_episodes, n_instances;
+    experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
-        generator=coloring_generator,
+        generator=latin_generator,
         SR=SR_heterogeneous,
         chosen_features=chosen_features,
-        feature_size=[1, 2, n_nodes],
-        type="heterogeneous",
-        output_size = n_nodes)
+        feature_size=[1, 2, board_size],
+        type="heterogeneous", 
+        output_size = board_size)
 end
 
-function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+function experiment_default_chosen_n_conv_latin(board_size, density,  n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the default representation.
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
     chosen_features = Dict(
@@ -73,44 +77,48 @@ function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episo
         "values_onehot" => true,
     )
 
-    experiment_n_conv(n_nodes, n_episodes, n_instances;
+    experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
-        generator=coloring_generator,
+        generator=latin_generator,
         SR=SR_default,
         chosen_features=chosen_features,
-        feature_size=6 + n_nodes,
+        feature_size= 6 + board_size,
         type="default_chosen",
-        output_size = n_nodes)
+        output_size = board_size)
 end
 
-function experiment_default_default_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+function experiment_default_default_n_conv_latin(board_size, density, n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the default representation.
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
-    experiment_n_conv(n_nodes, n_episodes, n_instances;
+
+    experiment_n_conv(board_size, n_episodes, n_instances;
         n_eval=n_eval,
-        generator=coloring_generator,
+        generator=latin_generator,
         SR=SR_default,
         feature_size=3,
         chosen_features=nothing,
         type="default_default",
-        output_size = n_nodes)
+        output_size = board_size)
 end
 
 ###############################################################################
 ######### Experiment Type 3
-#########  
+######### 
 ######### 
 ###############################################################################
 
-function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+
+function experiment_chosen_features_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+
 
     chosen_features_list = [
         [
@@ -119,7 +127,7 @@ function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_c
                 "variable_initial_domain_size" => true,
                 "values_onehot" => true,
             ), 
-            [1, 2, n_nodes]
+            [1, 2, board_size]
         ],
         [
             Dict(
@@ -136,7 +144,7 @@ function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_c
                 "variable_domain_size" => true,
                 "values_onehot" => true,
             ), 
-            [2, 2, n_nodes]
+            [2, 2, board_size]
         ],
         [
             Dict(
@@ -145,7 +153,7 @@ function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_c
                 "variable_initial_domain_size" => true,
                 "values_onehot" => true,
             ), 
-            [1, 3, n_nodes]
+            [1, 3, board_size]
         ],
         [
             Dict(
@@ -171,13 +179,12 @@ function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_c
         ],
     ]
 
-
-    experiment_chosen_features_heterogeneous(n_nodes, n_episodes, n_instances;
+    experiment_chosen_features_heterogeneous(board_size, n_episodes, n_instances;
         n_eval=n_eval,
-        generator=coloring_generator,
+        generator=latin_generator,
         chosen_features_list=chosen_features_list,
-        type="graphcoloring",
-        output_size = n_nodes
+        type="latin",
+        output_size = board_size
         )
 end
 
@@ -187,14 +194,12 @@ end
 ######### 
 ###############################################################################
 
-function experiment_heuristic_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+
+function experiment_heuristic_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
     """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
+    Compares the simple and the supervised learned heuristic for the heterogeneous representation.
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
 
     # Basic value-selection heuristic
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -203,16 +208,16 @@ function experiment_heuristic_heterogeneous_graphcoloring(n_nodes, n_min_color, 
         "min" => heuristic_min
     )
 
-    experiment_heuristic_heterogeneous(n_nodes, n_episodes, n_instances;
+    experiment_heuristic_heterogeneous(board_size, n_episodes, n_instances;
         chosen_features=nothing,
         feature_size = [2, 3, 1], 
-        output_size = n_nodes, 
-        generator = coloring_generator,  
+        output_size = board_size, 
+        generator = latin_generator, 
         basicHeuristics = basicHeuristics, 
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
         reward = reward, 
-        type = "graphcoloring",
+        type = "latin",
         eta_decay_steps = Int(floor(n_episodes/1.5)),
         helpValueHeuristic = heuristic_min,
         eta_init = 1.0,
@@ -226,15 +231,13 @@ end
 ######### 
 ###############################################################################
 
-function experiment_explorer_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_explorer_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
     """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
+    Compares different action explorers for the heterogeneous representation.
+        - an agent with the epsilon_greedy explorer 
+        - an agent with the upper confident bound explorer
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
-    
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
 
     # Basic value-selection heuristic
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -243,18 +246,18 @@ function experiment_explorer_heterogeneous_graphcoloring(n_nodes, n_min_color, d
         "min" => heuristic_min
     )
 
-    experiment_explorer_heterogeneous(n_nodes, n_episodes, n_instances;
+    experiment_explorer_heterogeneous(board_size, n_episodes, n_instances;
         chosen_features=nothing,
         feature_size = [2, 3, 1], 
-        output_size = n_nodes, 
-        generator = coloring_generator, 
+        output_size = board_size, 
+        generator = latin_generator,
         basicHeuristics = basicHeuristics, 
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
         reward = reward, 
-        type = "graphcoloring",
+        type = "latin",
         decay_steps=2000,
-        c=2.0
+        c=2.0,
     )
 end
 
@@ -264,14 +267,26 @@ end
 ######### 
 ###############################################################################
 
-function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
     """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
+    Compares different CPNNs for the heterogeneous representation.
     """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :boardSize => board_size,
+            :density => density,
+        ),
+    )
+
+    chosen_features = Dict(
+        "constraint_activity" => true,
+        "constraint_type" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "values_raw" => true,
+    )
 
     # Basic value-selection heuristic
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -280,55 +295,19 @@ function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density
         "min" => heuristic_min
     )
 
-    experiment_nn_heterogeneous(n_nodes, n_episodes, n_instances;
-        chosen_features=nothing,
+    experiment_nn_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features = chosen_features,
         feature_size = [2, 3, 1], 
-        output_size = n_nodes, 
-        generator = coloring_generator, 
+        output_size = board_size, 
+        generator = latin_generator, 
+        expParameters = expParameters, 
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
         reward = reward, 
-        type = "graphcoloring",
+        type = "latin",
         decay_steps=2000,
         c=2.0,
         basicHeuristics=basicHeuristics
-    )
-end
-
-###############################################################################
-######### Experiment Type 7
-#########  
-######### 
-###############################################################################
-
-function experiment_pooling_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
-    
-    # Basic value-selection heuristic
-    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
-    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
-    basicHeuristics = OrderedDict(
-        "min" => heuristic_min
-    )
-
-    experiment_pooling_heterogeneous(n_nodes, n_episodes, n_instances;
-        chosen_features=nothing,
-        feature_size = [2, 3, 1], 
-        output_size = n_nodes, 
-        generator = coloring_generator, 
-        basicHeuristics = basicHeuristics, 
-        n_layers_graph = n_layers_graph, 
-        n_eval = n_eval, 
-        reward = reward, 
-        type = "graphcoloring",
-        decay_steps=2000,
-        c=2.0
     )
 end
 
@@ -339,42 +318,46 @@ end
 ###############################################################################
 
 
-function experiment_chosen_features_hetcpnn_graphcoloring(chosen_features_list, n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+function experiment_chosen_features_hetcpnn_latin(chosen_features_list, board_size, density, n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
     restartPerInstances = 1
+
 
     experiment_chosen_features_hetcpnn(
-        n_nodes,
-        n_nodes+1,
+        board_size+1,
+        board_size,
         n_episodes,
         n_instances,
         restartPerInstances;
-        output_size = n_nodes, 
-        generator=generator,
+        output_size = board_size, 
+        generator=latin_generator,
         chosen_features_list=chosen_features_list, 
-        type="graphcoloring_"*string(n_nodes),
+        type="latin_"*string(board_size),
         )
 end
 
-function experiment_chosen_features_hetffcpnn_graphcoloring(chosen_features_list, n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
+function experiment_chosen_features_hetffcpnn_latin(chosen_features_list, board_size, density, n_episodes, n_instances; n_eval=10)
     """
     Compares the impact of the number of convolution layers for the heterogeneous representation.
     """
-    generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
     restartPerInstances = 1
 
+
     experiment_chosen_features_hetffcpnn(
-        n_nodes,
-        n_nodes+1,
+        board_size+1,
+        board_size,
         n_episodes,
         n_instances,
         restartPerInstances;
-        output_size = n_nodes, 
-        generator=generator,
+        output_size = board_size, 
+        generator=latin_generator,
         chosen_features_list=chosen_features_list, 
-        type="graphcoloring_"*string(n_nodes)
+        type="latin_"*string(board_size), 
         )
 end
+
+
