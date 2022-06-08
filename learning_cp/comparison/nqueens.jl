@@ -8,13 +8,14 @@ include("comparison.jl")
 ######### 
 ###############################################################################
 
+"""
+Compares three agents:
+    - an agent with the default graph representation and default features;
+    - an agent with the default graph representation and chosen features;
+    - an agent with the heterogeneous graph representation and chosen features.
+"""
 function experiment_representation_nqueens(board_size, n_episodes, n_instances; n_layers_graph=2, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
+    
     nqueens_generator = SeaPearl.NQueensGenerator(board_size)
 
     expParameters = Dict(
@@ -25,10 +26,10 @@ function experiment_representation_nqueens(board_size, n_episodes, n_instances; 
 
     experiment_representation(board_size, n_episodes, n_instances;
         chosen_features=nothing,
-        feature_sizes = [3, 12, [2, 6, 1]], 
-        output_size = board_size, 
-        generator = nqueens_generator, 
-        expParameters = expParameters, 
+        feature_sizes=[3, 12, [2, 6, 1]], 
+        output_size=board_size, 
+        generator=nqueens_generator, 
+        expParameters=expParameters, 
         basicHeuristics=nothing, 
         n_layers_graph=n_layers_graph, 
         n_eval=n_eval, 
@@ -43,10 +44,11 @@ end
 ######### 
 ###############################################################################
 
+"""
+Compares the impact of the number of convolution layers for the heterogeneous representation.
+"""
 function experiment_heterogeneous_n_conv(board_size, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the heterogeneous representation.
-    """
+   
     nqueens_generator = SeaPearl.ClusterizedGraphColoringGenerator(board_size)
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
 
@@ -71,10 +73,11 @@ function experiment_heterogeneous_n_conv(board_size, n_episodes, n_instances; n_
         type="heterogeneous")
 end
 
+"""
+Compares the impact of the number of convolution layers for the default representation.
+"""
 function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the default representation.
-    """
+    
     nqueens_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
@@ -99,10 +102,11 @@ function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episo
         type="default_chosen")
 end
 
+"""
+Compares the impact of the number of convolution layers for the default representation.
+"""
 function experiment_default_default_n_conv(board_size, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the default representation.
-    """
+    
     nqueens_generator = SeaPearl.ClusterizedGraphColoringGenerator(board_size)
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
     
@@ -126,11 +130,11 @@ end
 #########  
 ######### 
 ###############################################################################
-
+"""
+Compares the impact of the chosen features for the heterogeneous representation.
+"""
 function experiment_chosen_features_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compares the impact of the number of convolution layers for the heterogeneous representation.
-    """
+    
     nqueens_generator = SeaPearl.NQueensGenerator(board_size)
 
     chosen_features_list = [
@@ -213,14 +217,11 @@ end
 #########  
 ######### 
 ###############################################################################
-
+"""
+Compares different action explorers with the heterogeneous representation for the nqueens problem.
+"""
 function experiment_explorer_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
+
     nqueens_generator = SeaPearl.NQueensGenerator(board_size)
     
     expParameters = Dict(
@@ -250,14 +251,12 @@ end
 #########  
 ######### 
 ###############################################################################
+"""
+Compares different CPNNs with the heterogeneous representation for the nqueens problem.
 
+"""
 function experiment_nn_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
+
     nqueens_generator = SeaPearl.NQueensGenerator(board_size)
     
     expParameters = Dict(
