@@ -297,7 +297,7 @@ end
 ######### 
 ###############################################################################
 
-function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
     """
     Compare three agents:
         - an agent with the default representation and default features;
@@ -312,6 +312,7 @@ function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density
             :nbMinColor => n_min_color,
             :density => density
         ),
+        :pooling => string(pool)
     )
 
     # Basic value-selection heuristic
@@ -333,7 +334,8 @@ function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density
         type = "graphcoloring",
         decay_steps=2000,
         c=2.0,
-        basicHeuristics=basicHeuristics
+        basicHeuristics=basicHeuristics,
+        pool = pool
     )
 end
 
