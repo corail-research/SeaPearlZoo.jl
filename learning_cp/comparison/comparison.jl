@@ -629,6 +629,25 @@ function experiment_nn_heterogeneous(
         )
     )
     learned_heuristic_ffcpnnv2 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv2; chosen_features=chosen_features)
+
+    agent_ffcpnnv3 = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=16,
+        update_horizon=8,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=8,
+        get_heterogeneous_nn = () -> get_heterogeneous_ffcpnnv3(
+            feature_size=feature_size,
+            conv_size=8,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_output=2
+        )
+    )
+    learned_heuristic_ffcpnnv3 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv3; chosen_features=chosen_features)
     
     agent_variableoutputcpnn = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=size),
@@ -653,9 +672,10 @@ function experiment_nn_heterogeneous(
 
     learnedHeuristics = OrderedDict(
         #"cpnn" => learned_heuristic_cpnn,
-        #"fullfeaturedcpnn" => learned_heuristic_fullfeaturedcpnn,
+        "fullfeaturedcpnn" => learned_heuristic_fullfeaturedcpnn,
         # "variableoutputcpnn" => learned_heuristic_variableoutputcpnn,
-        "ffcpnnv2" => learned_heuristic_ffcpnnv2
+         "ffcpnnv2" => learned_heuristic_ffcpnnv2,
+        "ffcpnnv3" => learned_heuristic_ffcpnnv3
     )
 
     if isnothing(basicHeuristics)
@@ -675,7 +695,7 @@ function experiment_nn_heterogeneous(
         learnedHeuristics=learnedHeuristics,
         basicHeuristics=basicHeuristics;
         out_solver=true,
-        verbose=true,
+        verbose=false,
         nbRandomHeuristics=0,
         exp_name= type * "_heterogeneous_cpnn_" * string(n_episodes) * "_" * string(size) * "_",
         eval_timeout=eval_timeout
