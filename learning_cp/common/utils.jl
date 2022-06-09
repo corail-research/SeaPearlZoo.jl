@@ -412,6 +412,15 @@ function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_size=8, dense_si
     )
 end
 
+function get_heterogeneous_ffcpnnv2(;feature_size, conv_size=8, dense_size=16, output_size, n_layers_graph=3, n_layers_output=2, pool=SeaPearl.sumPooling())
+    println("feature_size = ", feature_size)
+    return SeaPearl.HeterogeneousFFCPNNv2(
+        get_heterogeneous_graph_chain(feature_size, conv_size, dense_size, n_layers_graph; pool=pool),
+        Flux.Chain(),
+        get_dense_chain(5*dense_size, dense_size, output_size, n_layers_output) #TODO: fix the 'in' argument (hardcoded)
+    )
+end
+
 function get_heterogeneous_variableoutputcpnn(;feature_size, conv_size=8, dense_size=16, output_size, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.sumPooling())
     return SeaPearl.HeterogeneousVariableOutputCPNN(
         get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool),
