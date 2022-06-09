@@ -11,11 +11,15 @@ function get_default_graph_chain(in, mid, out, n_layers)
     layers = []
     if n_layers == 1
         push!(layers, get_default_graph_conv_layer(in, out))
+    elseif n_layers == 2
+        push!(layers, get_default_graph_conv_layer(in, mid))
+        push!(layers, get_default_graph_conv_layer(mid, out))
     else
         push!(layers, get_default_graph_conv_layer(in, mid))
-        for i in 2:n_layers
-            push!(layers, get_default_graph_conv_layer(mid, out))
+        for i in 2:(n_layers-1)
+            push!(layers, get_default_graph_conv_layer(mid, mid))
         end
+        push!(layers, get_default_graph_conv_layer(mid, out))
     end
     return Flux.Chain(layers...)
 end
@@ -25,11 +29,15 @@ function get_dense_chain(in, mid, out, n_layers)
     layers = []
     if n_layers == 1
         push!(layers, Flux.Dense(in, out))
+    elseif n_layers == 2
+        push!(layers, Flux.Dense(in, mid))
+        push!(layers, Flux.Dense(mid, out))
     else
         push!(layers, Flux.Dense(in, mid))
-        for i in 2:n_layers
-            push!(layers, Flux.Dense(mid, out))
+        for i in 2:(n_layers-1)
+            push!(layers, Flux.Dense(mid, mid))
         end
+        push!(layers, Flux.Dense(mid, out))
     end
     return Flux.Chain(layers...)
 end
