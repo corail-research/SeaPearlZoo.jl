@@ -272,13 +272,6 @@ function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_in
     Compares different CPNNs for the heterogeneous representation.
     """
     latin_generator = SeaPearl.LatinGenerator(board_size, density)
-    
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :boardSize => board_size,
-            :density => density,
-        ),
-    )
 
     chosen_features = Dict(
         "constraint_activity" => true,
@@ -299,8 +292,7 @@ function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_in
         chosen_features = chosen_features,
         feature_size = [2, 3, 1], 
         output_size = board_size, 
-        generator = latin_generator, 
-        expParameters = expParameters, 
+        generator = latin_generator,  
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
         reward = reward, 
@@ -360,4 +352,60 @@ function experiment_chosen_features_hetffcpnn_latin(chosen_features_list, board_
         )
 end
 
+###############################################################################
+######### Experiment Type 9
+#########  
+######### 
+###############################################################################
 
+function experiment_transfer_heterogeneous_latin(board_size, board_size_transfered, density, n_episodes, n_episodes_transfered, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, decay_steps=2000, trajectory_capacity=2000)
+    """
+    
+    """
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+    latin_generator_transfered = SeaPearl.LatinGenerator(board_size_transfered, density)
+
+    experiment_transfer_heterogeneous(board_size, board_size_transfered, n_episodes, n_episodes_transfered, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = board_size,
+        output_size_transfered = board_size_transfered,
+        generator = latin_generator, 
+        generator_transfered = latin_generator_transfered,
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "latin",
+        decay_steps=decay_steps,
+        trajectory_capacity=trajectory_capacity,
+    )
+end
+
+###############################################################################
+######### Experiment Type 10
+#########  
+######### Restart
+###############################################################################
+function experiment_restart_heterogeneous_latin(board_size, density, n_episodes, n_instances;
+    restart_list = [1, 5, 10, 20],
+    n_layers_graph=3, 
+    n_eval=10, 
+    reward=SeaPearl.GeneralReward, 
+    decay_steps=2000, 
+    trajectory_capacity=2000)
+
+    latin_generator = SeaPearl.LatinGenerator(board_size, density)
+
+    experiment_restart_heterogeneous(n_nodes, n_episodes, n_instances;
+        restart_list = restart_list,
+        feature_size = [2, 3, 1], 
+        output_size = n_nodes,
+        generator = latin_generator, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "latin",
+        decay_steps=decay_steps,
+        trajectory_capacity=trajectory_capacity
+    )
+end

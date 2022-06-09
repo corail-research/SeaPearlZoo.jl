@@ -288,3 +288,61 @@ function experiment_chosen_features_hetffcpnn_nqueens(chosen_features_list, boar
         type = "nqueens_"*string(board_size)
         )
 end
+
+###############################################################################
+######### Experiment Type 9
+#########  
+######### 
+###############################################################################
+
+function experiment_transfer_heterogeneous_nqueens(board_size, board_size_transfered, n_episodes, n_episodes_transfered, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, decay_steps=2000, trajectory_capacity=2000)
+    """
+    
+    """
+    nqueens_generator = SeaPearl.NQueensGenerator(board_size)
+    nqueens_generator_transfered = SeaPearl.NQueensGenerator(board_size_transfered)
+
+    experiment_transfer_heterogeneous(board_size, board_size_transfered, n_episodes, n_episodes_transfered, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 6, 1], 
+        output_size = board_size,
+        output_size_transfered = board_size_transfered,
+        generator = nqueens_generator, 
+        generator_transfered = nqueens_generator_transfered,
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "nqueens",
+        decay_steps=decay_steps,
+        trajectory_capacity=trajectory_capacity,
+    )
+end
+
+###############################################################################
+######### Experiment Type 10
+#########  
+######### Restart
+###############################################################################
+function experiment_restart_heterogeneous_nqueens(board_size, n_episodes, n_instances;
+    restart_list = [1, 5, 10, 20],
+    n_layers_graph=3, 
+    n_eval=10, 
+    reward=SeaPearl.GeneralReward, 
+    decay_steps=2000, 
+    trajectory_capacity=2000)
+
+    nqueens_generator = SeaPearl.NQueensGenerator(board_size)
+
+    experiment_restart_heterogeneous(n_nodes, n_episodes, n_instances;
+        restart_list = restart_list,
+        feature_size = [2, 6, 1], 
+        output_size = n_nodes,
+        generator = nqueens_generator, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "nqueens",
+        decay_steps=decay_steps,
+        trajectory_capacity=trajectory_capacity
+    )
+end
