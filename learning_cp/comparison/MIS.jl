@@ -64,10 +64,10 @@ function experiment_restart_heterogeneous_mis(n, k, n_episodes, n_instances;
 
     mis_generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
 
-    experiment_restart_heterogeneous(n_nodes, n_episodes, n_instances;
+    experiment_restart_heterogeneous(n, n_episodes, n_instances;
         restart_list = restart_list,
-        feature_size = [2, 6, 1], 
-        output_size = n_nodes,
+        feature_size = [2, 3, 1], 
+        output_size = 2,
         generator = mis_generator, 
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 

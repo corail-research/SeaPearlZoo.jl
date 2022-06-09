@@ -396,10 +396,10 @@ function experiment_restart_heterogeneous_latin(board_size, density, n_episodes,
 
     latin_generator = SeaPearl.LatinGenerator(board_size, density)
 
-    experiment_restart_heterogeneous(n_nodes, n_episodes, n_instances;
+    experiment_restart_heterogeneous(board_size, n_episodes, n_instances;
         restart_list = restart_list,
         feature_size = [2, 3, 1], 
-        output_size = n_nodes,
+        output_size = board_size,
         generator = latin_generator, 
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
