@@ -790,7 +790,7 @@ function experiment_chosen_features_hetcpnn(
     generator,
     chosen_features_list, 
     type="",
-    eval_timeout=300, 
+    eval_timeout=60, 
     reward=SeaPearl.GeneralReward, 
     trajectory_capacity=nothing,
     basicHeuristics = nothing
@@ -827,7 +827,7 @@ function experiment_chosen_features_hetcpnn(
     end
     agent_default = get_default_agent(;
             get_default_trajectory = () -> get_default_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),        
-            get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
+            get_explorer = () -> get_epsilon_greedy_explorer(n_step_per_episode*300, 0.01),
             batch_size=32,
             update_horizon=Int(round(n_step_per_episode//2)),
             min_replay_history=Int(round(32*n_step_per_episode//2)),
@@ -867,7 +867,7 @@ function experiment_chosen_features_hetcpnn(
         learnedHeuristics=learnedHeuristics,
         basicHeuristics=basicHeuristics;
         out_solver=true,
-        verbose=false,
+        verbose=true,
         nbRandomHeuristics=0,
         exp_name= type * "_heterogeneous_cpnn_chosen_features_" * string(n_episodes) * "_" * string(size) * "_",
         eval_timeout=eval_timeout
@@ -887,7 +887,7 @@ function experiment_chosen_features_hetffcpnn(
     generator,
     chosen_features_list, 
     type="",
-    eval_timeout=300, 
+    eval_timeout=60, 
     reward=SeaPearl.GeneralReward, 
     trajectory_capacity=nothing,
     basicHeuristics = nothing
@@ -923,7 +923,7 @@ function experiment_chosen_features_hetffcpnn(
     end
     agent_default = get_default_agent(;
             get_default_trajectory = () -> get_default_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),        
-            get_explorer = () -> get_epsilon_greedy_explorer(2000, 0.01),
+            get_explorer = () -> get_epsilon_greedy_explorer(n_step_per_episode*300, 0.01),
             batch_size=32,
             update_horizon=Int(round(n_step_per_episode//2)),
             min_replay_history=Int(round(32*n_step_per_episode//2)),
@@ -963,7 +963,7 @@ function experiment_chosen_features_hetffcpnn(
         learnedHeuristics=learnedHeuristics,
         basicHeuristics=basicHeuristics;
         out_solver=true,
-        verbose=false,
+        verbose=true,
         nbRandomHeuristics=0,
         exp_name= type * "_heterogeneous_ffcpnn_chosen_features" * string(n_episodes) * "_" * string(size) * "_",
         eval_timeout=eval_timeout
