@@ -1167,7 +1167,7 @@ function experiment_restart_heterogeneous(
             learnedHeuristics=learnedHeuristics,
             basicHeuristics=basicHeuristics;
             verbose=verbose,
-            exp_name= type * "_restart_" * string(i) * "_" * string(n_episodes) * "_" * string(size) * "_",
+            exp_name= type * "_restart_" * string(n_restart) * "_" * string(n_episodes) * "_" * string(size) * "_",
             eval_timeout=eval_timeout
         )
     end
