@@ -319,3 +319,32 @@ function experiment_transfer_heterogeneous_nqueens(board_size, board_size_transf
         trajectory_capacity=trajectory_capacity,
     )
 end
+
+###############################################################################
+######### Experiment Type 10
+#########  
+######### Restart
+###############################################################################
+function experiment_restart_heterogeneous_nqueens(board_size, n_episodes, n_instances;
+    restart_list = [1, 5, 10, 20],
+    n_layers_graph=3, 
+    n_eval=10, 
+    reward=SeaPearl.GeneralReward, 
+    decay_steps=2000, 
+    trajectory_capacity=2000)
+
+    nqueens_generator = SeaPearl.NQueensGenerator(board_size)
+
+    experiment_restart_heterogeneous(board_size, n_episodes, n_instances;
+        restart_list = restart_list,
+        feature_size = [2, 6, 1], 
+        output_size = board_size,
+        generator = nqueens_generator, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "nqueens",
+        decay_steps=decay_steps,
+        trajectory_capacity=trajectory_capacity
+    )
+end
