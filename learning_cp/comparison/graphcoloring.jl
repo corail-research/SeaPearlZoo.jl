@@ -355,6 +355,11 @@ function experiment_chosen_features_hetcpnn_graphcoloring(chosen_features_list, 
     """
     generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     restartPerInstances = 1
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
 
     experiment_chosen_features_hetcpnn(
         n_nodes,
@@ -362,6 +367,7 @@ function experiment_chosen_features_hetcpnn_graphcoloring(chosen_features_list, 
         n_episodes,
         n_instances,
         restartPerInstances;
+        basicHeuristics = basicHeuristics,
         output_size = n_nodes, 
         generator=generator,
         chosen_features_list=chosen_features_list, 
@@ -375,6 +381,11 @@ function experiment_chosen_features_hetffcpnn_graphcoloring(chosen_features_list
     """
     generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     restartPerInstances = 1
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
 
     experiment_chosen_features_hetffcpnn(
         n_nodes,
@@ -382,6 +393,7 @@ function experiment_chosen_features_hetffcpnn_graphcoloring(chosen_features_list
         n_episodes,
         n_instances,
         restartPerInstances;
+        basicHeuristics = basicHeuristics,
         output_size = n_nodes, 
         generator=generator,
         chosen_features_list=chosen_features_list, 
