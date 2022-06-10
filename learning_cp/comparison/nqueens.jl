@@ -263,7 +263,8 @@ function experiment_chosen_features_hetcpnn_nqueens(chosen_features_list, board_
         n_episodes,
         n_instances,
         restartPerInstances;
-        output_size = board_size, 
+        output_size = board_size,
+        update_horizon = board_size-5,
         generator = generator,
         chosen_features_list = chosen_features_list, 
         type = "nqueens_"*string(board_size)
@@ -282,7 +283,8 @@ function experiment_chosen_features_hetffcpnn_nqueens(chosen_features_list, boar
         n_episodes,
         n_instances,
         restartPerInstances;
-        output_size = board_size, 
+        output_size = board_size,
+        update_horizon = board_size-5,
         generator=generator,
         chosen_features_list=chosen_features_list, 
         type = "nqueens_"*string(board_size)
