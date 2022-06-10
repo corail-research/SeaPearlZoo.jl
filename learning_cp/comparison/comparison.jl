@@ -672,10 +672,10 @@ function experiment_nn_heterogeneous(
 
     learnedHeuristics = OrderedDict(
         #"cpnn" => learned_heuristic_cpnn,
-        "fullfeaturedcpnn" => learned_heuristic_fullfeaturedcpnn,
+        "fullfeaturedcpnn"* string(pool) => learned_heuristic_fullfeaturedcpnn,
         # "variableoutputcpnn" => learned_heuristic_variableoutputcpnn,
-         "ffcpnnv2" => learned_heuristic_ffcpnnv2,
-        "ffcpnnv3" => learned_heuristic_ffcpnnv3
+        #"ffcpnnv2" => learned_heuristic_ffcpnnv2,
+        "ffcpnnv3"* string(pool) => learned_heuristic_ffcpnnv3
     )
 
     if isnothing(basicHeuristics)
@@ -697,7 +697,7 @@ function experiment_nn_heterogeneous(
         out_solver=true,
         verbose=false,
         nbRandomHeuristics=0,
-        exp_name= type * "_heterogeneous_cpnn_" * string(n_episodes) * "_" * string(size) * "_",
+        exp_name= type * "_heterogeneous_cpnn_" * string(n_episodes) * "_" * string(size) * "_" * string(pool)* "_",
         eval_timeout=eval_timeout
     )
     nothing
