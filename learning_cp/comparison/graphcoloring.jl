@@ -355,6 +355,11 @@ function experiment_chosen_features_hetcpnn_graphcoloring(chosen_features_list, 
     """
     generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     restartPerInstances = 1
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
 
     experiment_chosen_features_hetcpnn(
         n_nodes,
@@ -362,6 +367,7 @@ function experiment_chosen_features_hetcpnn_graphcoloring(chosen_features_list, 
         n_episodes,
         n_instances,
         restartPerInstances;
+        basicHeuristics = basicHeuristics,
         output_size = n_nodes, 
         generator=generator,
         chosen_features_list=chosen_features_list, 
@@ -375,6 +381,11 @@ function experiment_chosen_features_hetffcpnn_graphcoloring(chosen_features_list
     """
     generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     restartPerInstances = 1
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
 
     experiment_chosen_features_hetffcpnn(
         n_nodes,
@@ -382,6 +393,7 @@ function experiment_chosen_features_hetffcpnn_graphcoloring(chosen_features_list
         n_episodes,
         n_instances,
         restartPerInstances;
+        basicHeuristics = basicHeuristics,
         output_size = n_nodes, 
         generator=generator,
         chosen_features_list=chosen_features_list, 
@@ -457,5 +469,48 @@ function experiment_restart_heterogeneous_graphcoloring(n_nodes, n_min_color, de
         type = "graphcoloring",
         decay_steps=decay_steps,
         trajectory_capacity=trajectory_capacity
+    )
+end
+
+###############################################################################
+######### Experiment Type 11
+#########  
+######### 
+###############################################################################
+function experiment_activation_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
+    """
+    Compare four activation functions.
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :nbMinColor => n_min_color,
+            :density => density
+        ),
+        :pooling => string(pool)
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_activation_heterogeneous(n_nodes, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = n_nodes, 
+        generator = coloring_generator, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "graphcoloring",
+        decay_steps=2000,
+        c=2.0,
+        basicHeuristics=basicHeuristics,
+        pool = pool
     )
 end

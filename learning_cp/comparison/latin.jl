@@ -321,10 +321,11 @@ function experiment_chosen_features_hetcpnn_latin(chosen_features_list, board_si
 
     experiment_chosen_features_hetcpnn(
         board_size+1,
-        board_size,
+        10,
         n_episodes,
         n_instances,
         restartPerInstances;
+        update_horizon=10,
         output_size = board_size, 
         generator=latin_generator,
         chosen_features_list=chosen_features_list, 
@@ -342,10 +343,11 @@ function experiment_chosen_features_hetffcpnn_latin(chosen_features_list, board_
 
     experiment_chosen_features_hetffcpnn(
         board_size+1,
-        board_size,
+        10,
         n_episodes,
         n_instances,
         restartPerInstances;
+        update_horizon=10,
         output_size = board_size, 
         generator=latin_generator,
         chosen_features_list=chosen_features_list, 
