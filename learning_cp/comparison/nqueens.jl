@@ -263,7 +263,8 @@ function experiment_chosen_features_hetcpnn_nqueens(chosen_features_list, board_
         n_episodes,
         n_instances,
         restartPerInstances;
-        output_size = board_size, 
+        output_size = board_size,
+        update_horizon = board_size-5,
         generator = generator,
         chosen_features_list = chosen_features_list, 
         type = "nqueens_"*string(board_size)
@@ -282,7 +283,8 @@ function experiment_chosen_features_hetffcpnn_nqueens(chosen_features_list, boar
         n_episodes,
         n_instances,
         restartPerInstances;
-        output_size = board_size, 
+        output_size = board_size,
+        update_horizon = board_size-5,
         generator=generator,
         chosen_features_list=chosen_features_list, 
         type = "nqueens_"*string(board_size)
@@ -344,5 +346,33 @@ function experiment_restart_heterogeneous_nqueens(board_size, n_episodes, n_inst
         type = "nqueens",
         decay_steps=decay_steps,
         trajectory_capacity=trajectory_capacity
+    )
+end
+
+###############################################################################
+######### Experiment Type11
+#########  
+######### 
+###############################################################################
+"""
+Compares different CPNNs with the heterogeneous representation for the nqueens problem.
+
+"""
+function experiment_activation_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+
+    nqueens_generator = SeaPearl.NQueensGenerator(board_size)
+
+    experiment_activation_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 6, 1], 
+        output_size = board_size, 
+        generator = nqueens_generator,
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "nqueens",
+        decay_steps=2000,
+        c=2.0,
+        basicHeuristics=nothing
     )
 end

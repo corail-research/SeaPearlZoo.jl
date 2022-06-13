@@ -11,25 +11,33 @@ function get_default_graph_chain(in, mid, out, n_layers)
     layers = []
     if n_layers == 1
         push!(layers, get_default_graph_conv_layer(in, out))
+    elseif n_layers == 2
+        push!(layers, get_default_graph_conv_layer(in, mid))
+        push!(layers, get_default_graph_conv_layer(mid, out))
     else
         push!(layers, get_default_graph_conv_layer(in, mid))
-        for i in 2:n_layers
-            push!(layers, get_default_graph_conv_layer(mid, out))
+        for i in 2:(n_layers-1)
+            push!(layers, get_default_graph_conv_layer(mid, mid))
         end
+        push!(layers, get_default_graph_conv_layer(mid, out))
     end
     return Flux.Chain(layers...)
 end
 
-function get_dense_chain(in, mid, out, n_layers)
+function get_dense_chain(in, mid, out, n_layers, σ=NNlib.relu)
     @assert n_layers >= 1
     layers = []
     if n_layers == 1
-        push!(layers, Flux.Dense(in, out))
+        push!(layers, Flux.Dense(in, out, σ))
+    elseif n_layers == 2
+        push!(layers, Flux.Dense(in, mid, σ))
+        push!(layers, Flux.Dense(mid, out, σ))
     else
-        push!(layers, Flux.Dense(in, mid))
-        for i in 2:n_layers
-            push!(layers, Flux.Dense(mid, out))
+        push!(layers, Flux.Dense(in, mid, σ))
+        for i in 2:(n_layers-1)
+            push!(layers, Flux.Dense(mid, mid, σ))
         end
+        push!(layers, Flux.Dense(mid, out))
     end
     return Flux.Chain(layers...)
 end
@@ -403,12 +411,12 @@ function get_heterogeneous_cpnn(;feature_size, conv_size=8, dense_size=16, outpu
     )
 end
 
-function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.sumPooling())
+function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.sumPooling(), σ=NNlib.relu)
     return SeaPearl.HeterogeneousFullFeaturedCPNN(
         get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool),
-        get_dense_chain(conv_size, dense_size, dense_size, n_layers_node),
+        get_dense_chain(conv_size, dense_size, dense_size, n_layers_node, σ),
         Flux.Chain(),
-        get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output)
+        get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output, σ)
     )
 end
 
@@ -417,6 +425,15 @@ function get_heterogeneous_ffcpnnv2(;feature_size, conv_size=8, dense_size=16, o
         get_heterogeneous_graph_chain(feature_size, conv_size, dense_size, n_layers_graph; pool=pool),
         Flux.Chain(),
         get_dense_chain(5*dense_size, dense_size, output_size, n_layers_output) #TODO: fix the 'in' argument (hardcoded)
+    )
+end
+
+function get_heterogeneous_ffcpnnv3(;feature_size, conv_size=8, dense_size=16, output_size, n_layers_graph=3, n_layers_output=2, pool=SeaPearl.sumPooling(), σ=NNlib.relu)
+    return SeaPearl.HeterogeneousFFCPNNv3(
+        get_heterogeneous_graph_chain(feature_size, conv_size, dense_size, n_layers_graph; pool=pool),
+        Flux.Chain(),
+        get_dense_chain(dense_size, 2*dense_size, output_size, n_layers_output, σ);
+        pooling="mean" 
     )
 end
 

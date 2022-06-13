@@ -267,7 +267,7 @@ end
 ######### 
 ###############################################################################
 
-function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling() )
     """
     Compares different CPNNs for the heterogeneous representation.
     """
@@ -299,7 +299,8 @@ function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_in
         type = "latin",
         decay_steps=2000,
         c=2.0,
-        basicHeuristics=basicHeuristics
+        basicHeuristics=basicHeuristics, 
+        pool = pool
     )
 end
 
@@ -320,10 +321,11 @@ function experiment_chosen_features_hetcpnn_latin(chosen_features_list, board_si
 
     experiment_chosen_features_hetcpnn(
         board_size+1,
-        board_size,
+        10,
         n_episodes,
         n_instances,
         restartPerInstances;
+        update_horizon=10,
         output_size = board_size, 
         generator=latin_generator,
         chosen_features_list=chosen_features_list, 
@@ -341,10 +343,11 @@ function experiment_chosen_features_hetffcpnn_latin(chosen_features_list, board_
 
     experiment_chosen_features_hetffcpnn(
         board_size+1,
-        board_size,
+        10,
         n_episodes,
         n_instances,
         restartPerInstances;
+        update_horizon=10,
         output_size = board_size, 
         generator=latin_generator,
         chosen_features_list=chosen_features_list, 
