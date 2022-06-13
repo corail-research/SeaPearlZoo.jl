@@ -48,5 +48,5 @@ exp_*/
 nohup*.out
 
 # all run files
-run*
+run*.jl
 *.sh
