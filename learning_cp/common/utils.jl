@@ -28,10 +28,10 @@ function get_dense_chain(in, mid, out, n_layers, σ=NNlib.relu)
     @assert n_layers >= 1
     layers = []
     if n_layers == 1
-        push!(layers, Flux.Dense(in, out, σ))
+        push!(layers, Flux.Dense(in, out))
     elseif n_layers == 2
         push!(layers, Flux.Dense(in, mid, σ))
-        push!(layers, Flux.Dense(mid, out, σ))
+        push!(layers, Flux.Dense(mid, out))
     else
         push!(layers, Flux.Dense(in, mid, σ))
         for i in 2:(n_layers-1)
