@@ -77,3 +77,32 @@ function experiment_restart_heterogeneous_mis(n, k, n_episodes, n_instances;
         trajectory_capacity=trajectory_capacity
     )
 end
+
+###############################################################################
+######### Experiment Type 11
+#########  
+######### 
+###############################################################################
+"""
+Compares HGT and HeterogeneousGraphConv.
+"""
+
+function experiment_hgt_vs_graphconv_MIS(chosen_features, n, k, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+    restartPerInstances = 1
+
+    experiment_hgt_vs_graphconv(
+        n,
+        n,
+        n_episodes,
+        n_instances,
+        restartPerInstances;
+        output_size = 2, 
+        generator = generator,
+        chosen_features = chosen_features, 
+        type = "MIS_"*string(n)*"_"*string(k)
+        )
+end
