@@ -70,9 +70,9 @@ function experiment_restart_heterogeneous_mis(n, k, n_episodes, n_instances;
         output_size = 2,
         generator = mis_generator, 
         n_layers_graph = n_layers_graph, 
-        n_eval = n_eval, 
+        n_eval = n_eval,
         reward = reward, 
-        type = "mis",
+        type = "MIS_"*string(n)*"_"*string(k),
         decay_steps=decay_steps,
         trajectory_capacity=trajectory_capacity
     )
