@@ -267,7 +267,7 @@ end
 ######### 
 ###############################################################################
 
-function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling() )
     """
     Compares different CPNNs for the heterogeneous representation.
     """
@@ -299,7 +299,8 @@ function experiment_nn_heterogeneous_latin(board_size, density, n_episodes, n_in
         type = "latin",
         decay_steps=2000,
         c=2.0,
-        basicHeuristics=basicHeuristics
+        basicHeuristics=basicHeuristics, 
+        pool = pool
     )
 end
 
