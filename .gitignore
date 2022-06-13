@@ -46,3 +46,7 @@ exp_*/
 
 # nohup output
 nohup*.out
+
+# all run files
+run*
+*.sh
