@@ -37,7 +37,7 @@ function get_dense_chain(in, mid, out, n_layers, σ=NNlib.relu)
         for i in 2:(n_layers-1)
             push!(layers, Flux.Dense(mid, mid, σ))
         end
-        push!(layers, Flux.Dense(mid, out, σ))
+        push!(layers, Flux.Dense(mid, out))
     end
     return Flux.Chain(layers...)
 end
