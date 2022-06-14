@@ -376,3 +376,31 @@ function experiment_activation_heterogeneous_nqueens(board_size, n_episodes, n_i
         basicHeuristics=nothing
     )
 end
+
+###############################################################################
+######### Experiment Type MALIK
+#########  
+######### 
+###############################################################################
+"""
+Compares different RL Agents with the heterogeneous representation for the nqueens problem.
+
+"""
+function experiment_rl_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+
+    nqueens_generator = SeaPearl.NQueensGenerator(board_size)
+
+    experiment_rl_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 6, 1], 
+        output_size = board_size, 
+        generator = nqueens_generator,
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "nqueens",
+        decay_steps=2000,
+        c=2.0,
+        basicHeuristics=nothing
+    )
+end
