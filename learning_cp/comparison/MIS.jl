@@ -106,3 +106,67 @@ function experiment_hgt_vs_graphconv_MIS(chosen_features, n, k, n_episodes, n_in
         type = "MIS_"*string(n)*"_"*string(k)
         )
 end
+
+###############################################################################
+######### Simple MIS experiment
+#########  
+######### 
+###############################################################################
+
+function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, feature_size; n_eval=10, eval_timeout=60)
+    """
+    Runs a single experiment on MIS
+    """
+    n_step_per_episode = Int(round(n//2))+k
+    reward = SeaPearl.GeneralReward
+    generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+    trajectory_capacity = 800*n_step_per_episode
+    update_horizon = Int(round(n_step_per_episode//2))
+    learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
+    agent_hetcpnn = get_heterogeneous_agent(;
+            get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
+            get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.01),
+            batch_size=16,
+            update_horizon=update_horizon,
+            min_replay_history=Int(round(16*n_step_per_episode//2)),
+            update_freq=1,
+            target_update_freq=7*n_step_per_episode,
+            get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+                feature_size=feature_size,
+                conv_size=8,
+                dense_size=16,
+                output_size=1,
+                n_layers_graph=3,
+                n_layers_node=2,
+                n_layers_output=2
+            )
+        )
+    learned_heuristic_hetffcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_hetcpnn; chosen_features=chosen_features)
+    learnedHeuristics["hetffcpnn"] = learned_heuristic_hetffcpnn
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
+    basicHeuristics = OrderedDict(
+        "max" => heuristic_max
+    )
+
+    metricsArray, eval_metricsArray = trytrain(
+        nbEpisodes=n_episodes,
+        evalFreq=Int(floor(n_episodes / n_eval)),
+        nbInstances=n_instances,
+        restartPerInstances=1,
+        eval_strategy = SeaPearl.ILDSearch(2),
+        generator=generator,
+        variableHeuristic=variableHeuristic,
+        learnedHeuristics=learnedHeuristics,
+        basicHeuristics=basicHeuristics;
+        out_solver=true,
+        verbose=true,
+        nbRandomHeuristics=0,
+        exp_name= "MIS_heterogeneous_ffcpnn_" * string(n_episodes) * "_" * string(size) * "_",
+        eval_timeout=eval_timeout
+    )
+    nothing
+
+end
