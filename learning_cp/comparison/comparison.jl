@@ -1499,8 +1499,8 @@ Compares different RL Agents for the heterogeneous representation.
         basicHeuristics, 
         reward=SeaPearl.GeneralReward, 
         n_layers_graph=3, 
-        decay_steps=250*size*0.75,  
-        trajectory_capacity=1000*size*0.75,
+        decay_steps=Int(round(250*size*0.75)),  
+        trajectory_capacity=Int(round(1000*size*0.75)),
         pool=SeaPearl.sumPooling()
     )
     
@@ -1510,10 +1510,10 @@ Compares different RL Agents for the heterogeneous representation.
             get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
             get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
             batch_size=16,
-            update_horizon=Int(size*0.75),
-            min_replay_history=Int(16*size*0.75),
+            update_horizon=Int(round(size*0.75)),
+            min_replay_history=Int(round(16*size*0.75)),
             update_freq=1,
-            target_update_freq=Int(8*size*0.75),
+            target_update_freq=Int(round(8*size*0.75)),
             get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
                 feature_size=feature_size,
                 conv_size=8,
@@ -1527,26 +1527,26 @@ Compares different RL Agents for the heterogeneous representation.
         )
         learned_heuristic_ffcpnn_dqn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, reward, SeaPearl.FixedOutput}(agent_ffcpnn_dqn; chosen_features=chosen_features)
         
-        agent_ffcpnn_priodqn = get_heterogeneous_agent_priodqn(;
-            get_heterogeneous_prioritized_trajectory = () -> get_heterogeneous_prioritized_trajectory(capacity=trajectory_capacity, n_actions=output_size),
-            get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
-            batch_size=16,
-            update_horizon=Int(size*0.75),
-            min_replay_history=Int(16*size*0.75),
-            update_freq=1,
-            target_update_freq=Int(8*size*0.75),
-            get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
-                feature_size=feature_size,
-                conv_size=8,
-                dense_size=16,
-                output_size=1,
-                n_layers_graph=n_layers_graph,
-                n_layers_node=2,
-                n_layers_output=2,
-                pool=pool
-            )
-        )
-        learned_heuristic_ffcpnn_priodqn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, reward, SeaPearl.FixedOutput}(agent_ffcpnn_priodqn; chosen_features=chosen_features)
+        # agent_ffcpnn_priodqn = get_heterogeneous_agent_priodqn(;
+        #     get_heterogeneous_prioritized_trajectory = () -> get_heterogeneous_prioritized_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        #     get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        #     batch_size=16,
+        #     update_horizon=Int(round(size*0.75)),
+        #     min_replay_history=Int(round(16*size*0.75)),
+        #     update_freq=1,
+        #     target_update_freq=Int(round(8*size*0.75)),
+        #     get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+        #         feature_size=feature_size,
+        #         conv_size=8,
+        #         dense_size=16,
+        #         output_size=1,
+        #         n_layers_graph=n_layers_graph,
+        #         n_layers_node=2,
+        #         n_layers_output=2,
+        #         pool=pool
+        #     )
+        # )
+        # learned_heuristic_ffcpnn_priodqn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, reward, SeaPearl.FixedOutput}(agent_ffcpnn_priodqn; chosen_features=chosen_features)
 
         agent_ffcpnn_ppo = get_heterogeneous_agent_ppo(;
             get_heterogeneous_ppo_trajectory = () -> get_heterogeneous_ppo_trajectory(capacity=trajectory_capacity, n_actions=output_size),
@@ -1561,7 +1561,7 @@ Compares different RL Agents for the heterogeneous representation.
                 conv_size=8,
                 dense_size=16,
                 output_size=1,
-                n_layers_graph=n_layers_graph,
+                n_layers_graph=1,
                 n_layers_node=2,
                 n_layers_output=2,
                 pool=pool
@@ -1572,7 +1572,7 @@ Compares different RL Agents for the heterogeneous representation.
                 conv_size=8,
                 dense_size=16,
                 output_size=1,
-                n_layers_graph=n_layers_graph,
+                n_layers_graph=1,
                 n_layers_node=2,
                 n_layers_output=2,
                 pool=pool
@@ -1582,7 +1582,7 @@ Compares different RL Agents for the heterogeneous representation.
 
         learnedHeuristics = OrderedDict(
             "ffcpnn_dqn"* string(pool) => learned_heuristic_ffcpnn_dqn,
-            "ffcpnn_priodqn"* string(pool) => learned_heuristic_ffcpnn_priodqn,
+            # "ffcpnn_priodqn"* string(pool) => learned_heuristic_ffcpnn_priodqn,
             "ffcpnn_ppo"* string(pool) => learned_heuristic_ffcpnn_ppo
         )
 

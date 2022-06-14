@@ -596,3 +596,43 @@ function simple_experiment_graphcoloring(n, density, min_nodes, n_episodes, n_in
     nothing
 
 end
+
+###############################################################################
+######### Experiment Type MALIK
+#########  
+######### 
+###############################################################################
+
+function experiment_rl_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    """
+    Compare rl agents
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    chosen_features = Dict(
+        "variable_initial_domain_size" => true,
+        "constraint_type" => true,
+        "variable_domain_size" => true,
+        "values_raw" => true)
+
+    feature_size = [2,2,1]
+    
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+    n_step_per_episode = Int(round(n_nodes*0.75))
+    experiment_rl_heterogeneous(n_nodes, n_episodes, n_instances;
+        chosen_features=chosen_features,
+        feature_size = feature_size, 
+        output_size = n_nodes, 
+        generator = coloring_generator, 
+        basicHeuristics = nothing, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "graphcoloring",
+        decay_steps=250*n_step_per_episode,
+    )
+end
