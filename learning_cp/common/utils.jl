@@ -637,6 +637,31 @@ function get_heterogeneous_slart_trajectory(; capacity, n_actions)
     )
 end
 
+function get_heterogeneous_ppo_trajectory(; capacity, n_actions)
+    return RL.MaskedPPOTrajectory(
+        capacity=capacity,
+        state=SeaPearl.HeterogeneousTrajectoryState[] => (),
+        legal_actions_mask=Matrix{Bool} => (n_actions,1),
+        action = Vector{Int} => (1,),
+        action_log_prob=Vector{Float32} => (1,),
+        reward =  Vector{Float32} => (1,),
+        terminal = Vector{Bool} => (1,),
+    )
+end
+
+CircularArrayPSLARTTrajectory(; capacity, kwargs...) = RL.PrioritizedTrajectory(
+    RL.CircularArraySLARTTrajectory(; capacity = capacity, kwargs...),
+    RL.SumTree(capacity),
+)
+
+function get_heterogeneous_prioritized_trajectory(; capacity, n_actions)
+    return CircularArrayPSLARTTrajectory(
+        capacity=capacity,
+        state=SeaPearl.HeterogeneousTrajectoryState[] => (),
+        legal_actions_mask=Vector{Bool} => (n_actions,),
+    )
+end
+
 function get_heterogeneous_sart_trajectory(; capacity)
     return RL.CircularArraySARTTrajectory(
         capacity=capacity,
@@ -651,5 +676,44 @@ function get_heterogeneous_agent(; get_explorer, batch_size=16, update_horizon, 
             explorer=get_explorer(),
         ),
         trajectory=get_heterogeneous_trajectory()
+    )
+end
+
+function get_heterogeneous_agent_priodqn(; get_explorer, batch_size=16, update_horizon, min_replay_history, update_freq=1, target_update_freq=200, get_heterogeneous_prioritized_trajectory, get_heterogeneous_nn)
+    return RL.Agent(
+        policy=RL.QBasedPolicy(
+            learner=get_heterogeneous_learner(batch_size, update_horizon, min_replay_history, update_freq, target_update_freq, get_heterogeneous_nn),
+            explorer=get_explorer(),
+        ),
+        trajectory=get_heterogeneous_prioritized_trajectory()
+    )
+end
+
+function get_ppo_approximator(get_heterogeneous_nn_actor,get_heterogeneous_nn_critic)
+    return(
+        RL.ActorCritic(
+            actor =get_heterogeneous_nn_actor(),
+            critic =get_heterogeneous_nn_critic(),
+            optimizer = ADAM(),
+        )
+    )
+end
+
+function get_heterogeneous_agent_ppo(; n_epochs, n_microbatches, critic_loss_weight = 1.0f0, entropy_loss_weight = 0.01f0, update_freq, get_heterogeneous_ppo_trajectory, get_heterogeneous_nn_actor,get_heterogeneous_nn_critic)
+    return RL.Agent(
+        policy=RL.PPOPolicy(
+            approximator = get_ppo_approximator(get_heterogeneous_nn_actor,get_heterogeneous_nn_critic),
+            γ = 0.99f0,
+            λ = 0.95f0,
+            clip_range = 0.2f0,
+            max_grad_norm = 0.5f0,
+            n_epochs = n_epochs,
+            n_microbatches = n_microbatches,
+            actor_loss_weight = 1.0f0,
+            critic_loss_weight = critic_loss_weight,
+            entropy_loss_weight = entropy_loss_weight,
+            update_freq  =  update_freq,
+        ),
+        trajectory=get_heterogeneous_ppo_trajectory()
     )
 end
