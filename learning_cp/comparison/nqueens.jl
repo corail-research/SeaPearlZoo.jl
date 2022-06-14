@@ -452,7 +452,7 @@ function simple_experiment_nqueens(n, n_episodes, n_instances, variable_selectio
         out_solver=true,
         verbose=true,
         nbRandomHeuristics=0,
-        exp_name= "nqueens_heterogeneous_ffcpnn_" * string(n_episodes) * "_" * string(size) * "_",
+        exp_name= "nqueens_"*string(n)*"_heterogeneous_ffcpnn_"*string(n_episodes) * "_" * string(size) * "_",
         eval_timeout=eval_timeout
     )
     nothing

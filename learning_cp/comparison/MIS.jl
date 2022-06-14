@@ -169,7 +169,7 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, f
     learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
     agent_hetcpnn = get_heterogeneous_agent(;
             get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
-            get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.01),
+            get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.1),
             batch_size=16,
             update_horizon=update_horizon,
             min_replay_history=Int(round(16*n_step_per_episode//2)),
@@ -207,7 +207,7 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, f
         out_solver=true,
         verbose=true,
         nbRandomHeuristics=0,
-        exp_name= "MIS_heterogeneous_ffcpnn_" * string(n_episodes) * "_" * string(size) * "_",
+        exp_name= "MIS_"*string(n)*"_"*string(k)*"_heterogeneous_ffcpnn_" * string(n_episodes),
         eval_timeout=eval_timeout
     )
     nothing
