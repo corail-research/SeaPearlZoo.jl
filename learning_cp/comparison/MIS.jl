@@ -48,6 +48,37 @@ function experiment_chosen_features_hetffcpnn_MIS(chosen_features_list, n, k, n_
         )
 end
 
+###############################################################################
+######### Experiment Type 9
+#########  
+######### Transfer Learning
+###############################################################################
+function experiment_transfer_heterogeneous_mis(n, n_transfered, k, k_transfered, n_episodes, n_episodes_transfered, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, decay_steps=2000, trajectory_capacity=2000)
+    mis_generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
+    mis_generator_transfered = SeaPearl.MaximumIndependentSetGenerator(n_transfered, k_transfered)
+    
+    # Basic value-selection heuristic
+    basicHeuristics = OrderedDict(
+        "maximum" => SeaPearl.BasicHeuristic() 
+    )
+
+    experiment_transfer_heterogeneous(n, n_transfered, n_episodes, n_episodes_transfered, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = 2,
+        output_size_transfered = 2,
+        generator = mis_generator, 
+        generator_transfered = mis_generator_transfered,
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "mis",
+        decay_steps=decay_steps,
+        trajectory_capacity=trajectory_capacity
+    )
+end
+
 
 ###############################################################################
 ######### Experiment Type 10
