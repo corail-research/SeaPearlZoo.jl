@@ -207,7 +207,7 @@ function simple_experiment_kep(n_nodes, density, n_episodes, n_instances, chosen
     """
     reward = SeaPearl.GeneralReward
     generator = SeaPearl.KepGenerator(n_nodes, density)
-    n_step_per_episode = n_nodes
+    n_step_per_episode = Int(n_nodes/2)
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
     trajectory_capacity = 500*n_step_per_episode
     update_horizon = Int(round(n_step_per_episode//2))
@@ -250,7 +250,7 @@ function simple_experiment_kep(n_nodes, density, n_episodes, n_instances, chosen
         out_solver=true,
         verbose=true,
         nbRandomHeuristics=0,
-        exp_name= "heterogeneous_ffcpnn_" * string(n_episodes) * "_" * string(size) * "_",
+        exp_name= "kep_"*string(n_nodes)*"_"*string(density)*"_heterogeneous_ffcpnn_" * string(n_episodes),
         eval_timeout=eval_timeout
     )
     nothing

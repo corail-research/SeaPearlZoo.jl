@@ -406,7 +406,19 @@ end
 #########  
 ######### Transfer Learning
 ###############################################################################
-function experiment_transfer_heterogeneous_graphcoloring(n_nodes, n_nodes_transfered, n_min_color, density, n_episodes, n_episodes_transfered, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, decay_steps=2000, trajectory_capacity=2000)
+function experiment_transfer_heterogeneous_graphcoloring(n_nodes, 
+    n_nodes_transfered, 
+    n_min_color, 
+    density, 
+    n_episodes, 
+    n_episodes_transfered, 
+    n_instances; 
+    n_layers_graph=3, 
+    n_eval=10,
+    n_eval_transfered=10, 
+    reward=SeaPearl.GeneralReward, 
+    decay_steps=2000, 
+    trajectory_capacity=2000)
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     coloring_generator_transfered = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes_transfered, n_min_color, density)
     
@@ -428,6 +440,7 @@ function experiment_transfer_heterogeneous_graphcoloring(n_nodes, n_nodes_transf
         basicHeuristics = basicHeuristics, 
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
+        n_eval_transfered = n_eval_transfered,
         reward = reward, 
         type = "graphcoloring",
         decay_steps=decay_steps,
@@ -477,7 +490,12 @@ end
 #########  
 ######### 
 ###############################################################################
-function experiment_activation_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
+function experiment_activation_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances;
+    n_layers_graph=3,
+    n_eval=10,
+    reward=SeaPearl.GeneralReward,
+    pool = SeaPearl.sumPooling()
+    )
     """
     Compare four activation functions.
     """
@@ -513,4 +531,69 @@ function experiment_activation_heterogeneous_graphcoloring(n_nodes, n_min_color,
         basicHeuristics=basicHeuristics,
         pool = pool
     )
+end
+
+
+###############################################################################
+######### Simple graphcoloring experiment
+#########  
+######### 
+###############################################################################
+
+function simple_experiment_graphcoloring(n, density, min_nodes, n_episodes, n_instances, chosen_features, feature_size; n_eval=10, eval_timeout=60)
+    """
+    Runs a single experiment on graphcoloring
+    """
+    n_step_per_episode = n
+    reward = SeaPearl.GeneralReward
+    generator = SeaPearl.ClusterizedGraphColoringGenerator(n,min_nodes,density)
+    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+    trajectory_capacity = 800*n_step_per_episode
+    update_horizon = Int(round(n_step_per_episode//2))
+    learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
+    agent_hetcpnn = get_heterogeneous_agent(;
+            get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=n),        
+            get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.01),
+            batch_size=16,
+            update_horizon=update_horizon,
+            min_replay_history=Int(round(16*n_step_per_episode//2)),
+            update_freq=1,
+            target_update_freq=7*n_step_per_episode,
+            get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+                feature_size=feature_size,
+                conv_size=8,
+                dense_size=16,
+                output_size=1,
+                n_layers_graph=3,
+                n_layers_node=2,
+                n_layers_output=2
+            )
+        )
+    learned_heuristic_hetffcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_hetcpnn; chosen_features=chosen_features)
+    learnedHeuristics["hetffcpnn"] = learned_heuristic_hetffcpnn
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    metricsArray, eval_metricsArray = trytrain(
+        nbEpisodes=n_episodes,
+        evalFreq=Int(floor(n_episodes / n_eval)),
+        nbInstances=n_instances,
+        restartPerInstances=1,
+        eval_strategy = SeaPearl.ILDSearch(2),
+        generator=generator,
+        variableHeuristic=variableHeuristic,
+        learnedHeuristics=learnedHeuristics,
+        basicHeuristics=basicHeuristics;
+        out_solver=true,
+        verbose=true,
+        nbRandomHeuristics=0,
+        exp_name= "graphcoloring_"*string(n)*"_heterogeneous_ffcpnn_" * string(n_episodes),
+        eval_timeout=eval_timeout
+    )
+    nothing
+
 end
