@@ -490,7 +490,12 @@ end
 #########  
 ######### 
 ###############################################################################
-function experiment_activation_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
+function experiment_activation_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances;
+    n_layers_graph=3,
+    n_eval=10,
+    reward=SeaPearl.GeneralReward,
+    pool = SeaPearl.sumPooling()
+    )
     """
     Compare four activation functions.
     """
@@ -535,7 +540,7 @@ end
 ######### 
 ###############################################################################
 
-function simple_experiment_graphcoloring(n, density, min_nodes n_episodes, n_instances, chosen_features, feature_size; n_eval=10, eval_timeout=60)
+function simple_experiment_graphcoloring(n, density, min_nodes, n_episodes, n_instances, chosen_features, feature_size; n_eval=10, eval_timeout=60)
     """
     Runs a single experiment on graphcoloring
     """
