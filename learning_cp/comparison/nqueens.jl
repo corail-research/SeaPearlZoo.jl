@@ -297,7 +297,17 @@ end
 ######### 
 ###############################################################################
 
-function experiment_transfer_heterogeneous_nqueens(board_size, board_size_transfered, n_episodes, n_episodes_transfered, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, decay_steps=2000, trajectory_capacity=2000)
+function experiment_transfer_heterogeneous_nqueens(board_size, 
+    board_size_transfered, 
+    n_episodes, 
+    n_episodes_transfered, 
+    n_instances; 
+    n_layers_graph=3, 
+    n_eval=10, 
+    n_eval_transfered=10, 
+    reward=SeaPearl.GeneralReward, 
+    decay_steps=2000, 
+    trajectory_capacity=2000)
     """
     
     """
@@ -312,7 +322,8 @@ function experiment_transfer_heterogeneous_nqueens(board_size, board_size_transf
         generator = nqueens_generator, 
         generator_transfered = nqueens_generator_transfered,
         n_layers_graph = n_layers_graph, 
-        n_eval = n_eval, 
+        n_eval = n_eval,
+        n_eval_transfered = n_eval_transfered, 
         reward = reward, 
         type = "nqueens",
         decay_steps=decay_steps,

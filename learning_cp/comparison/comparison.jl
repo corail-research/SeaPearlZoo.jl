@@ -1027,7 +1027,8 @@ function experiment_transfer_heterogeneous(
     feature_size, 
     output_size,
     output_size_transfered, 
-    n_eval=10, 
+    n_eval=10,
+    n_eval_transfered=10,
     generator,
     generator_transfered, 
     type="", 
@@ -1042,6 +1043,7 @@ function experiment_transfer_heterogeneous(
     update_horizon=8,
     min_replay_history=128,
     verbose=true,
+    eval_strategy=SeaPearl.DFSearch(),
 )
  
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
@@ -1081,7 +1083,8 @@ function experiment_transfer_heterogeneous(
         basicHeuristics=basicHeuristics;
         verbose=verbose,
         exp_name= type * "_transfer_" * string(n_episodes) * "_" * string(size) * "_",
-        eval_timeout=eval_timeout
+        eval_timeout=eval_timeout,
+        eval_strategy=eval_strategy
     )
 
     agent_transfer = RL.Agent(
@@ -1112,14 +1115,15 @@ function experiment_transfer_heterogeneous(
 
     metricsArray, eval_metricsArray = trytrain(
         nbEpisodes=n_episodes_transfered,
-        evalFreq=Int(floor(n_episodes_transfered / n_eval)),
+        evalFreq=Int(floor(n_episodes_transfered / n_eval_transfered)),
         nbInstances=n_instances,
         generator=generator_transfered,
         learnedHeuristics=learnedHeuristics,
         basicHeuristics=basicHeuristics;
         verbose=verbose,
-        exp_name= type * "_transfered_" * string(n_episodes_transfered) * "_" * string(size_transfered) * "_",
-        eval_timeout=eval_timeout
+        exp_name=type * "_transfered_" * string(n_episodes_transfered) * "_" * string(size_transfered) * "_",
+        eval_timeout=eval_timeout,
+        eval_strategy=eval_strategy
     )
     nothing
 end

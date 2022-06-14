@@ -53,7 +53,17 @@ end
 #########  
 ######### Transfer Learning
 ###############################################################################
-function experiment_transfer_heterogeneous_mis(n, n_transfered, k, k_transfered, n_episodes, n_episodes_transfered, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, decay_steps=2000, trajectory_capacity=2000)
+function experiment_transfer_heterogeneous_mis(n, n_transfered, k, k_transfered, 
+    n_episodes, 
+    n_episodes_transfered, 
+    n_instances; 
+    n_layers_graph=3, 
+    n_eval=10,
+    n_eval_transfered=10,
+    reward=SeaPearl.GeneralReward, 
+    decay_steps=2000, 
+    trajectory_capacity=2000, 
+    eval_strategy=eval_strategy)
     mis_generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
     mis_generator_transfered = SeaPearl.MaximumIndependentSetGenerator(n_transfered, k_transfered)
     
@@ -71,11 +81,13 @@ function experiment_transfer_heterogeneous_mis(n, n_transfered, k, k_transfered,
         generator_transfered = mis_generator_transfered,
         basicHeuristics = basicHeuristics, 
         n_layers_graph = n_layers_graph, 
-        n_eval = n_eval, 
+        n_eval = n_eval,
+        n_eval_transfered = n_eval_transfered,
         reward = reward, 
         type = "mis",
         decay_steps=decay_steps,
-        trajectory_capacity=trajectory_capacity
+        trajectory_capacity=trajectory_capacity,
+        eval_strategy=eval_strategy
     )
 end
 

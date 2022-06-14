@@ -406,7 +406,19 @@ end
 #########  
 ######### Transfer Learning
 ###############################################################################
-function experiment_transfer_heterogeneous_graphcoloring(n_nodes, n_nodes_transfered, n_min_color, density, n_episodes, n_episodes_transfered, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, decay_steps=2000, trajectory_capacity=2000)
+function experiment_transfer_heterogeneous_graphcoloring(n_nodes, 
+    n_nodes_transfered, 
+    n_min_color, 
+    density, 
+    n_episodes, 
+    n_episodes_transfered, 
+    n_instances; 
+    n_layers_graph=3, 
+    n_eval=10,
+    n_eval_transfered=10, 
+    reward=SeaPearl.GeneralReward, 
+    decay_steps=2000, 
+    trajectory_capacity=2000)
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     coloring_generator_transfered = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes_transfered, n_min_color, density)
     
@@ -428,6 +440,7 @@ function experiment_transfer_heterogeneous_graphcoloring(n_nodes, n_nodes_transf
         basicHeuristics = basicHeuristics, 
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
+        n_eval_transfered = n_eval_transfered,
         reward = reward, 
         type = "graphcoloring",
         decay_steps=decay_steps,
