@@ -401,17 +401,24 @@ function experiment_rl_heterogeneous_nqueens(board_size, n_episodes, n_instances
 
     nqueens_generator = SeaPearl.NQueensGenerator(board_size)
 
+    chosen_features = Dict(
+        "variable_initial_domain_size" => true,
+        "constraint_type" => true,
+        "variable_domain_size" => true,
+        "values_raw" => true)
+
+    feature_size = [2,4,1]
+    n_step_per_episode = Int(board_size*0.75)
     experiment_rl_heterogeneous(board_size, n_episodes, n_instances;
-        chosen_features=nothing,
-        feature_size = [2, 6, 1], 
+        chosen_features=chosen_features,
+        feature_size = feature_size, 
         output_size = board_size, 
         generator = nqueens_generator,
         n_layers_graph = n_layers_graph, 
         n_eval = n_eval, 
         reward = reward, 
         type = "nqueens",
-        decay_steps=2000,
-        c=2.0,
+        decay_steps=250*n_step_per_episode,
         basicHeuristics=nothing
     )
 end
