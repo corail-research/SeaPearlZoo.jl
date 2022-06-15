@@ -51,7 +51,11 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
 
     #saving model weights
     for (key, lh) in learnedHeuristics
-        model = lh.agent.policy.learner.approximator
+        if (hasfield(typeof(lh.agent.policy),:approximator)) #PPO
+            model = lh.agent.policy.approximator
+        else #DQN
+            model = lh.agent.policy.learner.approximator
+        end
         @save dir * "/model_" * key * ".bson" model
     end
 
