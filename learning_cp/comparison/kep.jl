@@ -193,8 +193,48 @@ function experiment_chosen_features_heterogeneous_kep(n_nodes, density, n_episod
         output_size=2,
         eval_timeout=eval_timeout)
 end
+###############################################################################
+######### Experiment Type 4
+#########  
+######### 
+###############################################################################
+function experiment_nn_heterogeneous_kep(n_nodes, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, eval_timeout=600, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
+    """
+    Compare agents with different Fullfeatured CPNN pipeline
+    """
 
+    kep_generator =  SeaPearl.KepGenerator(n_nodes, density)
 
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :density => density
+        ),
+        :pooling => string(pool)
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_nn_heterogeneous(n_nodes, n_episodes, n_instances;
+    chosen_features=nothing,
+    feature_size = [2, 7, 1], 
+    output_size = 2, 
+    generator = kep_generator, 
+    n_layers_graph = n_layers_graph, 
+    n_eval = n_eval, 
+    reward = reward, 
+    type = "kep",
+    decay_steps=2000,
+    c=2.0,
+    basicHeuristics=basicHeuristics,
+    pool = pool
+)
+end 
 ###############################################################################
 ######### Simple KEP experiment
 #########  
