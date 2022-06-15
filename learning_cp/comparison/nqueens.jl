@@ -297,7 +297,17 @@ end
 ######### 
 ###############################################################################
 
-function experiment_transfer_heterogeneous_nqueens(board_size, board_size_transfered, n_episodes, n_episodes_transfered, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, decay_steps=2000, trajectory_capacity=2000)
+function experiment_transfer_heterogeneous_nqueens(board_size, 
+    board_size_transfered, 
+    n_episodes, 
+    n_episodes_transfered, 
+    n_instances; 
+    n_layers_graph=3, 
+    n_eval=10, 
+    n_eval_transfered=10, 
+    reward=SeaPearl.GeneralReward, 
+    decay_steps=2000, 
+    trajectory_capacity=2000)
     """
     
     """
@@ -312,7 +322,8 @@ function experiment_transfer_heterogeneous_nqueens(board_size, board_size_transf
         generator = nqueens_generator, 
         generator_transfered = nqueens_generator_transfered,
         n_layers_graph = n_layers_graph, 
-        n_eval = n_eval, 
+        n_eval = n_eval,
+        n_eval_transfered = n_eval_transfered, 
         reward = reward, 
         type = "nqueens",
         decay_steps=decay_steps,
@@ -375,4 +386,109 @@ function experiment_activation_heterogeneous_nqueens(board_size, n_episodes, n_i
         c=2.0,
         basicHeuristics=nothing
     )
+end
+
+###############################################################################
+######### Experiment Type MALIK
+#########  
+######### 
+###############################################################################
+"""
+Compares different RL Agents with the heterogeneous representation for the nqueens problem.
+
+"""
+function experiment_rl_heterogeneous_nqueens(board_size, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+
+    nqueens_generator = SeaPearl.NQueensGenerator(board_size)
+
+    chosen_features = Dict(
+        "variable_initial_domain_size" => true,
+        "constraint_type" => true,
+        "variable_domain_size" => true,
+        "values_raw" => true)
+
+    feature_size = [2,4,1]
+    n_step_per_episode = Int(board_size*0.75)
+    experiment_rl_heterogeneous(board_size, n_episodes, n_instances;
+        chosen_features=chosen_features,
+        feature_size = feature_size, 
+        output_size = board_size, 
+        generator = nqueens_generator,
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "nqueens",
+        decay_steps=250*n_step_per_episode,
+        basicHeuristics=nothing
+    )
+end
+
+###############################################################################
+######### Simple nqueens experiment
+#########  
+######### 
+###############################################################################
+
+function simple_experiment_nqueens(n, n_episodes, n_instances, variable_selection, chosen_features, feature_size; n_eval=10, eval_timeout=60)
+    """
+    Runs a single experiment on nqueens
+    """
+    n_step_per_episode = Int(round(n*0.7))
+    reward = SeaPearl.GeneralReward
+    generator = SeaPearl.NQueensGenerator(n)
+    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+    trajectory_capacity = 800*n_step_per_episode
+    update_horizon = Int(round(n_step_per_episode//2))
+    learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
+    agent_hetcpnn = get_heterogeneous_agent(;
+            get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=n),        
+            get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.0),
+            batch_size=16,
+            update_horizon=update_horizon,
+            min_replay_history=Int(round(16*n_step_per_episode//2)),
+            update_freq=1,
+            target_update_freq=7*n_step_per_episode,
+            get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+                feature_size=feature_size,
+                conv_size=8,
+                dense_size=16,
+                output_size=1,
+                n_layers_graph=3,
+                n_layers_node=2,
+                n_layers_output=2
+            )
+        )
+    learned_heuristic_hetffcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_hetcpnn; chosen_features=chosen_features)
+    learnedHeuristics["hetffcpnn"] = learned_heuristic_hetffcpnn
+    variableHeuristic = nothing
+    if variable_selection == "min"
+        variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+    elseif variable_selection == "random"
+        variableHeuristic = SeaPearl.RandomVariableSelection{false}()
+    else
+        error("Variable selection method not implemented!")
+    end
+    
+    basicHeuristics = OrderedDict(
+        "random" => SeaPearl.RandomHeuristic()
+    )
+
+    metricsArray, eval_metricsArray = trytrain(
+        nbEpisodes=n_episodes,
+        evalFreq=Int(floor(n_episodes / n_eval)),
+        nbInstances=n_instances,
+        restartPerInstances=1,
+        eval_strategy = SeaPearl.ILDSearch(2),
+        generator=generator,
+        variableHeuristic=variableHeuristic,
+        learnedHeuristics=learnedHeuristics,
+        basicHeuristics=basicHeuristics;
+        out_solver=true,
+        verbose=true,
+        nbRandomHeuristics=0,
+        exp_name= "nqueens_"*string(n)*"_heterogeneous_ffcpnn_"*string(n_episodes) * "_" * string(size) * "_",
+        eval_timeout=eval_timeout
+    )
+    nothing
+
 end
