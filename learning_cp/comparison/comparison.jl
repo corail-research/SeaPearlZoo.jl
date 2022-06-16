@@ -672,6 +672,26 @@ function experiment_nn_heterogeneous(
     )
     learned_heuristic_ffcpnnv3 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv3; chosen_features=chosen_features)
     
+    agent_ffcpnnv4 = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=32,
+        update_horizon=10,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=80,
+        get_heterogeneous_nn = () -> get_heterogeneous_ffcpnnv4(
+            feature_size=feature_size,
+            conv_size=16,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_output=2,
+            σ=NNlib.relu
+        )
+    )
+    learned_heuristic_ffcpnnv4 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv4; chosen_features=chosen_features)
+   
     agent_variableoutputcpnn = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=size),
         get_explorer = () -> get_epsilon_greedy_explorer(1, 0),
@@ -698,7 +718,8 @@ function experiment_nn_heterogeneous(
         "fullfeaturedcpnn"* string(pool) => learned_heuristic_fullfeaturedcpnn,
         # "variableoutputcpnn" => learned_heuristic_variableoutputcpnn,
         #"ffcpnnv2" => learned_heuristic_ffcpnnv2,
-        "ffcpnnv3"* string(pool) => learned_heuristic_ffcpnnv3
+        "ffcpnnv3,"* string(pool) => learned_heuristic_ffcpnnv3,
+        "ffcpnnv4"* string(pool) => learned_heuristic_ffcpnnv4
     )
 
     if isnothing(basicHeuristics)
@@ -1261,7 +1282,7 @@ function experiment_activation_heterogeneous(
     agent_fullfeaturedcpnn = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
-        batch_size=16,
+        batch_size=32,
         update_horizon=10,
         min_replay_history=256,
         update_freq=1,
@@ -1274,7 +1295,8 @@ function experiment_activation_heterogeneous(
             n_layers_graph=n_layers_graph,
             n_layers_node=2,
             n_layers_output=2,
-            pool=pool
+            pool=pool,
+            σ=NNlib.relu
         )
     )
     learned_heuristic_fullfeaturedcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, reward, SeaPearl.FixedOutput}(agent_fullfeaturedcpnn; chosen_features=chosen_features)
@@ -1282,7 +1304,7 @@ function experiment_activation_heterogeneous(
     agent_ffcpnnv3_relu = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
-        batch_size=16,
+        batch_size=32,
         update_horizon=10,
         min_replay_history=256,
         update_freq=1,
@@ -1302,7 +1324,7 @@ function experiment_activation_heterogeneous(
     agent_ffcpnnv3_sigmoid = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
-        batch_size=16,
+        batch_size=32,
         update_horizon=10,
         min_replay_history=256,
         update_freq=1,
@@ -1323,7 +1345,7 @@ function experiment_activation_heterogeneous(
     agent_ffcpnnv3_leakyrelu = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
-        batch_size=16,
+        batch_size=32,
         update_horizon=10,
         min_replay_history=256,
         update_freq=1,
@@ -1343,7 +1365,7 @@ function experiment_activation_heterogeneous(
     agent_ffcpnnv3_id = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
-        batch_size=16,
+        batch_size=32,
         update_horizon=10,
         min_replay_history=256,
         update_freq=1,
@@ -1360,15 +1382,196 @@ function experiment_activation_heterogeneous(
     )
     learned_heuristic_ffcpnnv3_id = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv3_id; chosen_features=chosen_features)
     
+    agent_ffcpnnv4_leakyrelu = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=32,
+        update_horizon=10,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=80,
+        get_heterogeneous_nn = () -> get_heterogeneous_ffcpnnv4(
+            feature_size=feature_size,
+            conv_size=16,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_output=2,
+            σ=NNlib.leakyrelu
+        )
+    )
+    learned_heuristic_ffcpnnv4_leakyrelu = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv4_leakyrelu; chosen_features=chosen_features)
+   
     learnedHeuristics = OrderedDict(
         #"cpnn" => learned_heuristic_cpnn,
-        #"fullfeaturedcpnn" => learned_heuristic_fullfeaturedcpnn,
+        "fullfeaturedcpnn_relu" => learned_heuristic_fullfeaturedcpnn,
         # "variableoutputcpnn" => learned_heuristic_variableoutputcpnn,
         # "ffcpnnv2" => learned_heuristic_ffcpnnv2,
         "ffcpnnv3_relu" => learned_heuristic_ffcpnnv3_relu,
-        "ffcpnnv3_sigmoid" => learned_heuristic_ffcpnnv3_sigmoid,
+        #"ffcpnnv3_sigmoid" => learned_heuristic_ffcpnnv3_sigmoid,
         "ffcpnnv3_leakyrelu" => learned_heuristic_ffcpnnv3_leakyrelu,
-        "ffcpnnv3_id" => learned_heuristic_ffcpnnv3_id,
+        "ffcpnnv4_leakyrelu" => learned_heuristic_ffcpnnv4_leakyrelu,
+        #"ffcpnnv3_id" => learned_heuristic_ffcpnnv3_id,
+
+
+    )
+
+    if isnothing(basicHeuristics)
+        basicHeuristics = OrderedDict(
+            "random" => SeaPearl.RandomHeuristic()
+        )
+    end
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+
+    metricsArray, eval_metricsArray = trytrain(
+        nbEpisodes=n_episodes,
+        evalFreq=Int(floor(n_episodes / n_eval)),
+        nbInstances=n_instances,
+        restartPerInstances=1,
+        generator=generator,
+        variableHeuristic=variableHeuristic,
+        learnedHeuristics=learnedHeuristics,
+        basicHeuristics=basicHeuristics;
+        out_solver=true,
+        verbose=false,
+        nbRandomHeuristics=0,
+        exp_name= type * "_heterogeneous_cpnn_" * string(n_episodes) * "_" * string(size) * "_",
+        eval_timeout=eval_timeout
+    )
+    nothing
+end
+
+###############################################################################
+######### Experiment Type 12
+#########  
+######### 
+###############################################################################
+"""
+Compares different activation functions on the dense network for the heterogeneous representation.
+"""
+function experiment_features_pooling_heterogeneous(
+    size, 
+    n_episodes, 
+    n_instances; 
+    feature_size, 
+    output_size, 
+    n_eval=10, 
+    generator, 
+    type="", 
+    eval_timeout=nothing, 
+    chosen_features=nothing, 
+    basicHeuristics, 
+    reward=SeaPearl.GeneralReward, 
+    n_layers_graph=3, 
+    decay_steps=n_episodes*size*0.8, 
+    c=2.0, 
+    trajectory_capacity=5000,
+    pool=SeaPearl.sumPooling()
+)
+
+    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+   
+    if isnothing(chosen_features)
+        chosen_features = DEFAULT_CHOSEN_FEATURES
+    end
+
+    agent_fullfeaturedcpnn = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=32,
+        update_horizon=10,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=80,
+        get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+            feature_size=feature_size,
+            conv_size=16,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2,
+            pool=pool,
+            σ=NNlib.leakyrelu
+        )
+    )
+    learned_heuristic_fullfeaturedcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, reward, SeaPearl.FixedOutput}(agent_fullfeaturedcpnn; chosen_features=chosen_features)
+    
+    agent_ffcpnnv3_max = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=32,
+        update_horizon=10,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=80,
+        get_heterogeneous_nn = () -> get_heterogeneous_ffcpnnv3(
+            feature_size=feature_size,
+            conv_size=16,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_output=2,
+            σ=NNlib.leakyrelu,
+            pooling="max"
+        )
+    )
+    learned_heuristic_ffcpnnv3_max = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv3_max; chosen_features=chosen_features)
+    
+    agent_ffcpnnv3_mean = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=32,
+        update_horizon=10,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=80,
+        get_heterogeneous_nn = () -> get_heterogeneous_ffcpnnv3(
+            feature_size=feature_size,
+            conv_size=16,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_output=2,
+            σ=NNlib.leakyrelu,
+            pooling="mean"
+        )
+    )
+
+    learned_heuristic_ffcpnnv3_mean = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv3_mean; chosen_features=chosen_features)
+
+    agent_ffcpnnv3_sum = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=32,
+        update_horizon=10,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=80,
+        get_heterogeneous_nn = () -> get_heterogeneous_ffcpnnv3(
+            feature_size=feature_size,
+            conv_size=16,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_output=2,
+            σ=NNlib.leakyrelu,
+            pooling="sum"
+        )
+    )
+    learned_heuristic_ffcpnnv3_sum = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv3_sum; chosen_features=chosen_features)
+    
+    
+    learnedHeuristics = OrderedDict(
+        #"cpnn" => learned_heuristic_cpnn,
+        "fullfeaturedcpnnu" => learned_heuristic_fullfeaturedcpnn,
+        # "variableoutputcpnn" => learned_heuristic_variableoutputcpnn,
+        # "ffcpnnv2" => learned_heuristic_ffcpnnv2,
+        "ffcpnnv3_max" => learned_heuristic_ffcpnnv3_max,
+        #"ffcpnnv3_sigmoid" => learned_heuristic_ffcpnnv3_sigmoid,
+        "ffcpnnv3_mean" => learned_heuristic_ffcpnnv3_mean,
+        "ffcpnnv3_sum" => learned_heuristic_ffcpnnv3_sum,
+        #"ffcpnnv3_id" => learned_heuristic_ffcpnnv3_id,
 
 
     )
