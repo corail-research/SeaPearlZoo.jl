@@ -557,7 +557,7 @@ function simple_experiment_graphcoloring(n, density, min_nodes, n_episodes, n_in
             batch_size=16,
             update_horizon=update_horizon,
             min_replay_history=Int(round(16*n_step_per_episode//2)),
-            update_freq=1,
+            update_freq=n_step_per_episode,
             target_update_freq=7*n_step_per_episode,
             get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
                 feature_size=feature_size,
@@ -582,7 +582,7 @@ function simple_experiment_graphcoloring(n, density, min_nodes, n_episodes, n_in
         nbEpisodes=n_episodes,
         evalFreq=Int(floor(n_episodes / n_eval)),
         nbInstances=n_instances,
-        restartPerInstances=5,
+        restartPerInstances=1,
         generator=generator,
         variableHeuristic=variableHeuristic,
         learnedHeuristics=learnedHeuristics,

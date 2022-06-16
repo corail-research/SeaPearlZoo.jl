@@ -82,6 +82,10 @@ function get_ucb_explorer(c, n_actions)
     return RL.UCBExplorer(n_actions; c=c)
 end
 
+function get_softmax_explorer(T_stable, T_init, decay_steps)
+    return SeaPearl.SoftmaxTDecayExplorer(;T_init=T_init, T_stable=T_stable, decay_steps=decay_steps)
+end
+
 function get_default_slart_trajectory(; capacity, n_actions)
     return RL.CircularArraySLARTTrajectory(
         capacity=capacity,
@@ -207,7 +211,7 @@ function (m::HeterogeneousModel6)(fg)
 end
 
 Flux.@functor HeterogeneousModel6
-
+#=
 struct HGTModel1
     layer1::SeaPearl.HeterogeneousGraphConvInit
 end
@@ -308,7 +312,7 @@ function (m::HGTModel6)(fg)
 end
 
 Flux.@functor HGTModel6
-
+=#
 get_heterogeneous_graph_conv_layer(in, out, original_features_size, pool) = SeaPearl.HeterogeneousGraphConv(in => out, original_features_size, Flux.leakyrelu; pool=pool)
 
 get_heterogeneous_graph_conv_init_layer(original_features_size, out) = SeaPearl.HeterogeneousGraphConvInit(original_features_size, out, Flux.leakyrelu)

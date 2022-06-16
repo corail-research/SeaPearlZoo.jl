@@ -3,6 +3,42 @@ include("../common/utils.jl")
 include("comparison.jl")
 
 ###############################################################################
+######### Experiment Type 5
+#########  
+######### 
+###############################################################################
+
+function experiment_explorer_heterogeneous_MIS(chosen_features, feature_size, n, k, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+    restartPerInstances = 1
+
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
+    basicHeuristics = OrderedDict(
+        "max" => heuristic_max
+    )
+
+    experiment_explorer_heterogeneous(
+        n, 
+        n,
+        n_episodes, 
+        n_instances; 
+        feature_size = feature_size,
+        chosen_features = chosen_features, 
+        output_size = 2, 
+        n_eval=n_eval, 
+        generator, 
+        type = "MIS_"*string(n)*"_"*string(k)*"_explorer_comparison", 
+        basicHeuristics = basicHeuristics, 
+        reward=SeaPearl.GeneralReward, 
+        n_layers_graph=3, 
+        c=2.0)
+end
+
+###############################################################################
 ######### Experiment Type 8
 #########  
 ######### 
@@ -169,7 +205,7 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, f
     learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
     agent_hetcpnn = get_heterogeneous_agent(;
             get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
-            get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.1),
+            get_explorer = () -> get_epsilon_greedy_explorer(500*n_step_per_episode, 0.05),
             batch_size=16,
             update_horizon=update_horizon,
             min_replay_history=Int(round(16*n_step_per_episode//2)),
@@ -198,7 +234,7 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, f
         nbEpisodes=n_episodes,
         evalFreq=Int(floor(n_episodes / n_eval)),
         nbInstances=n_instances,
-        restartPerInstances=1,
+        restartPerInstances=5,
         eval_strategy = SeaPearl.ILDSearch(2),
         generator=generator,
         variableHeuristic=variableHeuristic,
