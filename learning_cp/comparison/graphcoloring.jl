@@ -266,11 +266,9 @@ end
 
 function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
     """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
+    Compare agents with different Fullfeatured CPNN pipeline
     """
+    
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     
     expParameters = Dict(
@@ -298,10 +296,10 @@ function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density
         n_eval = n_eval, 
         reward = reward, 
         type = "graphcoloring",
-        decay_steps=2000,
         c=2.0,
         basicHeuristics=basicHeuristics,
-        pool = pool
+        pool = pool,
+        seedTraining = 21
     )
 end
 
