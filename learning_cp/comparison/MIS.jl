@@ -234,7 +234,7 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, f
         nbEpisodes=n_episodes,
         evalFreq=Int(floor(n_episodes / n_eval)),
         nbInstances=n_instances,
-        restartPerInstances=5,
+        restartPerInstances=1,
         eval_strategy = SeaPearl.ILDSearch(2),
         generator=generator,
         variableHeuristic=variableHeuristic,

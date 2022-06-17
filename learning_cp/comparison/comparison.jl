@@ -1878,11 +1878,11 @@ Compares the tripartite graph representation with a specific representation.
             batch_size=16,
             update_horizon=Int(round(pb_size*0.5)),
             min_replay_history=Int(round(16*pb_size)),
-            update_freq=Int(round(pb_size*0.5)),
+            update_freq=1,
             target_update_freq=Int(round(8*pb_size)),
             get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
                 feature_size=feature_size,
-                conv_size=8,
+                conv_size=16,
                 dense_size=16,
                 output_size=1,
                 n_layers_graph=n_layers_graph,
@@ -1897,7 +1897,7 @@ Compares the tripartite graph representation with a specific representation.
             batch_size=16,
             update_horizon=Int(round(pb_size*0.5)),
             min_replay_history=Int(round(16*pb_size)),
-            update_freq=Int(round(pb_size*0.5)),
+            update_freq=1,
             target_update_freq=Int(round(8*pb_size)),
             get_default_nn = () -> get_default_cpnn(
                 feature_size=feature_size_specific,
