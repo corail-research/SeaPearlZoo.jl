@@ -50,3 +50,4 @@ nohup*.out
 # all run files
 run*.jl
 *.sh
+learning_cp/comparison/plots.jl
