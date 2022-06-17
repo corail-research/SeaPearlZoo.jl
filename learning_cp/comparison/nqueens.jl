@@ -279,7 +279,7 @@ function experiment_chosen_features_hetffcpnn_nqueens(chosen_features_list, boar
 
     experiment_chosen_features_hetffcpnn(
         board_size,
-        board_size-5,
+        Int(round(board_size*0.7)),
         n_episodes,
         n_instances,
         restartPerInstances;
@@ -437,21 +437,22 @@ function simple_experiment_nqueens(n, n_episodes, n_instances, variable_selectio
     reward = SeaPearl.GeneralReward
     generator = SeaPearl.NQueensGenerator(n)
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
-    trajectory_capacity = 800*n_step_per_episode
-    update_horizon = Int(round(n_step_per_episode//2))
+    trajectory_capacity = 700*n_step_per_episode
+    update_horizon = n_step_per_episode
     learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
     agent_hetcpnn = get_heterogeneous_agent(;
             get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=n),        
-            get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.0),
+            get_explorer = () -> get_epsilon_greedy_explorer(1000*n_step_per_episode, 0.05),
             batch_size=16,
             update_horizon=update_horizon,
-            min_replay_history=Int(round(16*n_step_per_episode//2)),
+            min_replay_history=32*update_horizon,
             update_freq=1,
             target_update_freq=7*n_step_per_episode,
             get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+                conv_type="gc",
                 feature_size=feature_size,
-                conv_size=8,
-                dense_size=16,
+                conv_size=4,
+                dense_size=4,
                 output_size=1,
                 n_layers_graph=3,
                 n_layers_node=2,
