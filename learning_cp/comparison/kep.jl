@@ -214,22 +214,33 @@ function experiment_nn_heterogeneous_kep(n_nodes, density, n_episodes, n_instanc
     )
 
     # Basic value-selection heuristic
-    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
-    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
     basicHeuristics = OrderedDict(
-        "min" => heuristic_min
+        "max" => heuristic_max
     )
 
+    """chosen_features = Dict(
+        "variable_is_bound" => true,
+        "variable_assigned_value" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "constraint_activity" => true,
+        "constraint_type" => true,
+        "nb_not_bounded_variable" => true,
+        "values_raw" => true,
+    )"""
+
     experiment_nn_heterogeneous(n_nodes, n_episodes, n_instances;
-    chosen_features=nothing,
-    feature_size = [2, 7, 1], 
+    #chosen_features=chosen_features,
+    feature_size = [2, 7, 1], #[5, 8, 1], 
     output_size = 2, 
     generator = kep_generator, 
     n_layers_graph = n_layers_graph, 
     n_eval = n_eval, 
     reward = reward, 
     type = "kep",
-    decay_steps=2000,
     c=2.0,
     basicHeuristics=basicHeuristics,
     pool = pool
