@@ -560,7 +560,8 @@ function experiment_nn_heterogeneous(
     decay_steps=n_episodes*size*0.8, 
     c=2.0, 
     trajectory_capacity=5000,
-    pool=SeaPearl.sumPooling()
+    pool=SeaPearl.sumPooling(),
+    seedTraining = nothing
 )
 
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
@@ -576,7 +577,7 @@ function experiment_nn_heterogeneous(
         update_horizon=8,
         min_replay_history=256,
         update_freq=1,
-        target_update_freq=8,
+        target_update_freq=7 * size,
         get_heterogeneous_nn = () -> get_heterogeneous_cpnn(
             feature_size=feature_size,
             conv_size=8,
@@ -586,7 +587,7 @@ function experiment_nn_heterogeneous(
             n_layers_node=2,
             n_layers_output=2,
             pool=pool
-        )
+        ) 
     )
     learned_heuristic_cpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, reward, SeaPearl.FixedOutput}(agent_cpnn; chosen_features=chosen_features)
 
@@ -597,7 +598,7 @@ function experiment_nn_heterogeneous(
         update_horizon=10,
         min_replay_history=256,
         update_freq=1,
-        target_update_freq=80,
+        target_update_freq=7 * size,
         get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
             feature_size=feature_size,
             conv_size=16,
@@ -618,7 +619,7 @@ function experiment_nn_heterogeneous(
         update_horizon=10,
         min_replay_history=256,
         update_freq=1,
-        target_update_freq=80,
+        target_update_freq=7 * size,
         get_heterogeneous_nn = () -> get_heterogeneous_ffcpnnv2(
             feature_size=feature_size,
             conv_size=16,
@@ -637,7 +638,7 @@ function experiment_nn_heterogeneous(
         update_horizon=10,
         min_replay_history=256,
         update_freq=1,
-        target_update_freq=80,
+        target_update_freq=7 * size,
         get_heterogeneous_nn = () -> get_heterogeneous_ffcpnnv3(
             feature_size=feature_size,
             conv_size=16,
@@ -656,7 +657,7 @@ function experiment_nn_heterogeneous(
         update_horizon=8,
         min_replay_history=256,
         update_freq=1,
-        target_update_freq=8,
+        target_update_freq=7 * size,
         get_heterogeneous_nn = () -> get_heterogeneous_variableoutputcpnn(
             feature_size=feature_size,
             conv_size=8,
@@ -671,11 +672,11 @@ function experiment_nn_heterogeneous(
     
 
     learnedHeuristics = OrderedDict(
-        #"cpnn" => learned_heuristic_cpnn,
+        "cpnn" => learned_heuristic_cpnn,
         "fullfeaturedcpnn"* string(pool) => learned_heuristic_fullfeaturedcpnn,
         # "variableoutputcpnn" => learned_heuristic_variableoutputcpnn,
         #"ffcpnnv2" => learned_heuristic_ffcpnnv2,
-        "ffcpnnv3"* string(pool) => learned_heuristic_ffcpnnv3
+        #"ffcpnnv3"* string(pool) => learned_heuristic_ffcpnnv3
     )
 
     if isnothing(basicHeuristics)
@@ -683,7 +684,7 @@ function experiment_nn_heterogeneous(
             "random" => SeaPearl.RandomHeuristic()
         )
     end
-    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{true}()
 
     metricsArray, eval_metricsArray = trytrain(
         nbEpisodes=n_episodes,
@@ -695,10 +696,11 @@ function experiment_nn_heterogeneous(
         learnedHeuristics=learnedHeuristics,
         basicHeuristics=basicHeuristics;
         out_solver=true,
-        verbose=false,
-        nbRandomHeuristics=0,
+        verbose=true,
+        nbRandomHeuristics=1,
         exp_name= type * "_heterogeneous_cpnn_" * string(n_episodes) * "_" * string(size) * "_" * string(pool)* "_",
-        eval_timeout=eval_timeout
+        eval_timeout=eval_timeout,
+        seedTraining = seedTraining
     )
     nothing
 end
@@ -911,7 +913,8 @@ function experiment_chosen_features_hetcpnn(
         verbose=true,
         nbRandomHeuristics=0,
         exp_name= type * "_heterogeneous_cpnn_chosen_features_" * string(n_episodes) * "_" * string(size) * "_",
-        eval_timeout=eval_timeout
+        eval_timeout=eval_timeout,
+        seedTraining = 33
     )
     nothing
 end
