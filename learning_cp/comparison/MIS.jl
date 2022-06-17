@@ -249,3 +249,51 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, f
     nothing
 
 end
+
+###############################################################################
+######### Comparison of tripartite graph vs specialized graph
+#########  
+######### 
+###############################################################################
+"""
+Compares the tripartite graph representation with a specific representation.
+"""
+
+function experiment_tripartite_vs_specific_MIS(n, k, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    
+    MIS_generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+    SR_specific = SeaPearl.MISStateRepresentation{SeaPearl.MISFeaturization,SeaPearl.DefaultTrajectoryState}
+    
+    # Basic value-selection heuristic
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
+    basicHeuristics = OrderedDict(
+        "max" => heuristic_max
+    )
+
+    chosen_features = Dict(
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+
+    experiment_tripartite_vs_specific(n, n_episodes, n_instances, SR_specific;
+    chosen_features = chosen_features,
+    feature_size = [6, 5, 2],
+    feature_size_specific = SeaPearl.feature_length(SR_specific),
+    output_size = 2,
+    generator = MIS_generator, 
+    n_layers_graph = n_layers_graph,
+    eval_strategy = SeaPearl.ILDSearch(2),
+    n_eval = n_eval, 
+    reward = reward, 
+    type = "MIS",
+    basicHeuristics=basicHeuristics
+)
+end
