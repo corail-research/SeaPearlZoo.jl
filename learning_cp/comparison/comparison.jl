@@ -1489,6 +1489,7 @@ Compares different RL Agents for the heterogeneous representation.
         size, 
         n_episodes, 
         n_instances; 
+        eval_strategy = SeaPearl.DFSearch(),
         feature_size, 
         output_size, 
         n_eval=10, 
@@ -1586,10 +1587,17 @@ Compares different RL Agents for the heterogeneous representation.
             "ffcpnn_ppo"* string(pool) => learned_heuristic_ffcpnn_ppo
         )
 
+        selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+        heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+
+        selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+        heuristic_max = SeaPearl.BasicHeuristic(selectMax)
 
         if isnothing(basicHeuristics)
             basicHeuristics = OrderedDict(
-                "random" => SeaPearl.RandomHeuristic()
+                "random" => SeaPearl.RandomHeuristic(),
+                "min" => heuristic_min,
+                "max" => heuristic_max
             )
         end
         variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
@@ -1597,6 +1605,7 @@ Compares different RL Agents for the heterogeneous representation.
         metricsArray, eval_metricsArray = trytrain(
             nbEpisodes=n_episodes,
             evalFreq=Int(floor(n_episodes / n_eval)),
+            eval_strategy = eval_strategy,
             nbInstances=n_instances,
             restartPerInstances=1,
             generator=generator,
@@ -1604,7 +1613,7 @@ Compares different RL Agents for the heterogeneous representation.
             learnedHeuristics=learnedHeuristics,
             basicHeuristics=basicHeuristics;
             out_solver=true,
-            verbose=true,
+            verbose=false,
             nbRandomHeuristics=0,
             exp_name= type * "_heterogeneous_cpnn_" * string(n_episodes) * "_" * string(size) * "_" * string(pool)* "_",
             eval_timeout=eval_timeout
