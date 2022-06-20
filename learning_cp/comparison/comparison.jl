@@ -1837,3 +1837,138 @@ Compares different RL Agents for the heterogeneous representation.
         )
         nothing
 end
+
+
+###############################################################################
+######### Experiment Type Update Freq
+#########  
+######### 
+###############################################################################
+"""
+Compares different activation functions on the dense network for the heterogeneous representation.
+"""
+function experiment_update_freq(
+    size, 
+    n_episodes, 
+    nb_steps_per_episode,
+    n_instances; 
+    feature_size, 
+    output_size, 
+    n_eval=10, 
+    generator, 
+    type="", 
+    eval_timeout=nothing, 
+    chosen_features=nothing, 
+    basicHeuristics, 
+    reward=SeaPearl.GeneralReward, 
+    n_layers_graph=3, 
+    decay_steps=n_episodes*size*0.8, 
+    c=2.0, 
+    trajectory_capacity=5000,
+    pool=SeaPearl.sumPooling()
+)
+
+    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+   
+    if isnothing(chosen_features)
+        chosen_features = DEFAULT_CHOSEN_FEATURES
+    end
+
+    agent_fullfeaturedcpnn_update_freq_1 = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=32,
+        update_horizon=10,
+        min_replay_history=256,
+        update_freq=1,
+        target_update_freq=80,
+        get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+            feature_size=feature_size,
+            conv_size=16,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2,
+            pool=pool,
+            σ=NNlib.leakyrelu
+        )
+    )
+    learned_heuristic_fullfeaturedcpnn_update_freq_1 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, reward, SeaPearl.FixedOutput}(agent_fullfeaturedcpnn_update_freq_1; chosen_features=chosen_features)
+    
+    agent_fullfeaturedcpnn_update_freq_2 = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=32,
+        update_horizon=10,
+        min_replay_history=256,
+        update_freq=div(nb_steps_per_episode, 2),
+        target_update_freq=80,
+        get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+            feature_size=feature_size,
+            conv_size=16,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2,
+            pool=pool,
+            σ=NNlib.leakyrelu
+        )
+    )
+    learned_heuristic_fullfeaturedcpnn_update_freq_2 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, reward, SeaPearl.FixedOutput}(agent_fullfeaturedcpnn_update_freq_2; chosen_features=chosen_features)
+    
+    agent_fullfeaturedcpnn_update_freq_3 = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        batch_size=32,
+        update_horizon=10,
+        min_replay_history=256,
+        update_freq=nb_steps_per_episode,
+        target_update_freq=80,
+        get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+            feature_size=feature_size,
+            conv_size=16,
+            dense_size=16,
+            output_size=1,
+            n_layers_graph=n_layers_graph,
+            n_layers_node=2,
+            n_layers_output=2,
+            pool=pool,
+            σ=NNlib.leakyrelu
+        )
+    )
+    learned_heuristic_fullfeaturedcpnn_update_freq_3 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous, reward, SeaPearl.FixedOutput}(agent_fullfeaturedcpnn_update_freq_3; chosen_features=chosen_features)
+    
+    learnedHeuristics = OrderedDict(
+        "update_freq_1" => learned_heuristic_fullfeaturedcpnn_update_freq_1,
+        #"update_freq_nb_steps_per_episode_2" => learned_heuristic_fullfeaturedcpnn_update_freq_2,
+        #"update_freq_nb_steps_per_episode" => learned_heuristic_fullfeaturedcpnn_update_freq_3
+
+    )
+
+    if isnothing(basicHeuristics)
+        basicHeuristics = OrderedDict(
+            "random" => SeaPearl.RandomHeuristic()
+        )
+    end
+    
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+
+    metricsArray, eval_metricsArray = trytrain(
+        nbEpisodes=n_episodes,
+        evalFreq=Int(floor(n_episodes / n_eval)),
+        nbInstances=n_instances,
+        restartPerInstances=1,
+        generator=generator,
+        variableHeuristic=variableHeuristic,
+        learnedHeuristics=learnedHeuristics,
+        basicHeuristics=basicHeuristics;
+        out_solver=true,
+        verbose=false,
+        nbRandomHeuristics=0,
+        exp_name= type * "_heterogeneous_cpnn_" * string(n_episodes) * "_" * string(size) * "_",
+        eval_timeout=eval_timeout
+    )
+    nothing
+end

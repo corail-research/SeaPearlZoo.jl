@@ -638,3 +638,89 @@ function simple_experiment_graphcoloring(n, density, min_nodes, n_episodes, n_in
     )
     nothing
 end
+
+###############################################################################
+######### Experiment Type 13
+#########  
+######### 
+###############################################################################
+function experiment_features_pooling_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
+    """
+    Compare four activation functions.
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :nbMinColor => n_min_color,
+            :density => density
+        ),
+        :pooling => string(pool)
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_features_pooling_heterogeneous(n_nodes, n_episodes, n_instances;
+    chosen_features=nothing,
+    feature_size = [2, 3, 1], 
+    output_size = n_nodes, 
+    generator = coloring_generator, 
+    n_layers_graph = n_layers_graph, 
+    n_eval = n_eval, 
+    reward = reward, 
+    type = "graphcoloring",
+    decay_steps=2000,
+    c=2.0,
+    basicHeuristics=basicHeuristics,
+    pool = pool
+)
+end
+
+###############################################################################
+######### Experiment Type 13
+#########  
+######### 
+###############################################################################
+function experiment_update_freq_graphcoloring(n_nodes, n_step_per_episode, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
+    """
+    Compare four activation functions.
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    
+    expParameters = Dict(
+        :generatorParameters => Dict(
+            :nbNodes => n_nodes,
+            :nbMinColor => n_min_color,
+            :density => density
+        ),
+        :pooling => string(pool)
+    )
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_update_freq(n_nodes, n_episodes, n_step_per_episode, n_instances;
+    chosen_features=nothing,
+    feature_size = [2, 3, 1], 
+    output_size = n_nodes, 
+    generator = coloring_generator, 
+    n_layers_graph = n_layers_graph, 
+    n_eval = n_eval, 
+    reward = reward, 
+    type = "graphcoloring",
+    decay_steps=2000,
+    c=2.0,
+    basicHeuristics=basicHeuristics,
+    pool = pool
+)
+end
