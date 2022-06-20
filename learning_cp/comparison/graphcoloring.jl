@@ -266,11 +266,9 @@ end
 
 function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
     """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
+    Compare agents with different Fullfeatured CPNN pipeline
     """
+    
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     
     expParameters = Dict(
@@ -298,10 +296,10 @@ function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density
         n_eval = n_eval, 
         reward = reward, 
         type = "graphcoloring",
-        decay_steps=2000,
         c=2.0,
         basicHeuristics=basicHeuristics,
-        pool = pool
+        pool = pool,
+        seedTraining = 21
     )
 end
 
@@ -683,7 +681,7 @@ function experiment_features_pooling_heterogeneous_graphcoloring(n_nodes, n_min_
 end
 
 ###############################################################################
-######### Experiment Type 13
+######### Experiment update_freq comparison
 #########  
 ######### 
 ###############################################################################
@@ -701,7 +699,43 @@ function experiment_update_freq_graphcoloring(n_nodes, n_step_per_episode, n_min
         ),
         :pooling => string(pool)
     )
+    
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+    experiment_update_freq(n_nodes, n_episodes, n_step_per_episode, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = n_nodes, 
+        generator = coloring_generator, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "graphcoloring",
+        decay_steps=2000,
+        c=2.0,
+        basicHeuristics=basicHeuristics,
+        pool = pool
+    )
+end
 
+###############################################################################
+######### Comparison of tripartite graph vs specialized graph
+#########  
+######### 
+###############################################################################
+"""
+Compares the tripartite graph representation with a specific representation.
+"""
+
+function experiment_tripartite_vs_specific_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+    SR_specific = SeaPearl.GraphColoringStateRepresentation{SeaPearl.GraphColoringFeaturization,SeaPearl.DefaultTrajectoryState}
+    
     # Basic value-selection heuristic
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
     heuristic_min = SeaPearl.BasicHeuristic(selectMin)
@@ -709,18 +743,28 @@ function experiment_update_freq_graphcoloring(n_nodes, n_step_per_episode, n_min
         "min" => heuristic_min
     )
 
-    experiment_update_freq(n_nodes, n_episodes, n_step_per_episode, n_instances;
-    chosen_features=nothing,
-    feature_size = [2, 3, 1], 
-    output_size = n_nodes, 
+    chosen_features = Dict(
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+
+    experiment_tripartite_vs_specific(n_nodes, n_episodes, n_instances, SR_specific;
+    chosen_features = chosen_features,
+    feature_size = [6, 5, 2],
+    feature_size_specific = SeaPearl.feature_length(SR_specific),
+    output_size = n_nodes,
     generator = coloring_generator, 
     n_layers_graph = n_layers_graph, 
     n_eval = n_eval, 
     reward = reward, 
     type = "graphcoloring",
-    decay_steps=2000,
-    c=2.0,
-    basicHeuristics=basicHeuristics,
-    pool = pool
+    basicHeuristics=basicHeuristics
 )
 end
