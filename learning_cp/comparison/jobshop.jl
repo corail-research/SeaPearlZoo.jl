@@ -21,7 +21,7 @@ function simple_experiment_jobshop(n_machines, n_jobs, max_time, n_episodes, n_i
     learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
     agent = get_heterogeneous_agent(;
             get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=max_time),        
-            get_explorer = () -> get_epsilon_greedy_explorer(500*n_step_per_episode, 0.05),
+            get_explorer = () -> get_epsilon_greedy_explorer(500*n_step_per_episode, 0.01),
             batch_size=16,
             update_horizon=update_horizon,
             min_replay_history=Int(round(16*n_step_per_episode//2)),
@@ -34,7 +34,8 @@ function simple_experiment_jobshop(n_machines, n_jobs, max_time, n_episodes, n_i
                 output_size=1,
                 n_layers_graph=4,
                 n_layers_node=2,
-                n_layers_output=2
+                n_layers_output=2,
+                pool=SeaPearl.meanPooling()
             )
         )
     learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
@@ -64,4 +65,32 @@ function simple_experiment_jobshop(n_machines, n_jobs, max_time, n_episodes, n_i
     )
     nothing
 
+end
+
+###############################################################################
+######### Experiment Type 11
+#########  
+######### 
+###############################################################################
+"""
+Compares HGT and HeterogeneousGraphConv.
+"""
+
+function experiment_hgt_vs_graphconv_jobshop(chosen_features, n_machines, n_jobs, max_time, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
+
+    experiment_hgt_vs_graphconv(
+        n_machines*n_jobs,
+        n_machines*n_jobs,
+        n_episodes,
+        n_instances,
+        1;
+        output_size = max_time, 
+        generator = generator,
+        chosen_features = chosen_features, 
+        type = "jobshop_"*string(n_machines)*"_"*string(n_jobs)*"_"*string(max_time)
+        )
 end

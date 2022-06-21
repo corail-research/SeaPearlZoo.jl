@@ -1638,7 +1638,7 @@ function experiment_hgt_vs_graphconv(
     agent_hetgc = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),        
         get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.01),
-        batch_size=32,
+        batch_size=16,
         update_horizon=update_horizon,
         min_replay_history=Int(round(32*n_step_per_episode//2)),
         update_freq=1,
@@ -1658,7 +1658,7 @@ function experiment_hgt_vs_graphconv(
     agent_hgt = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),        
         get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.01),
-        batch_size=32,
+        batch_size=16,
         update_horizon=update_horizon,
         min_replay_history=Int(round(32*n_step_per_episode//2)),
         update_freq=1,
@@ -1681,7 +1681,7 @@ function experiment_hgt_vs_graphconv(
     # -------------------
     # Variable Heuristic definition
     # -------------------
-    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{true}()
     if isnothing(basicHeuristics)
         basicHeuristics = OrderedDict(
             "random" => SeaPearl.RandomHeuristic()
@@ -1700,7 +1700,7 @@ function experiment_hgt_vs_graphconv(
         out_solver=true,
         verbose=true,
         nbRandomHeuristics=0,
-        exp_name= type * "_hgt_vs_graphconv" * string(n_episodes) * "_" * string(size) * "_",
+        exp_name= type * "_hgt_vs_graphconv",
         eval_timeout=eval_timeout
     )
     nothing
