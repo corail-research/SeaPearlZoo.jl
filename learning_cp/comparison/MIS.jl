@@ -3,6 +3,42 @@ include("../common/utils.jl")
 include("comparison.jl")
 
 ###############################################################################
+######### Experiment Type 5
+#########  
+######### 
+###############################################################################
+
+function experiment_explorer_heterogeneous_MIS(chosen_features, feature_size, n, k, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+    restartPerInstances = 1
+
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
+    basicHeuristics = OrderedDict(
+        "max" => heuristic_max
+    )
+
+    experiment_explorer_heterogeneous(
+        n, 
+        n,
+        n_episodes, 
+        n_instances; 
+        feature_size = feature_size,
+        chosen_features = chosen_features, 
+        output_size = 2, 
+        n_eval=n_eval, 
+        generator, 
+        type = "MIS_"*string(n)*"_"*string(k)*"_explorer_comparison", 
+        basicHeuristics = basicHeuristics, 
+        reward=SeaPearl.GeneralReward, 
+        n_layers_graph=3, 
+        c=2.0)
+end
+
+###############################################################################
 ######### Experiment Type 8
 #########  
 ######### 
@@ -169,7 +205,7 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, f
     learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
     agent_hetcpnn = get_heterogeneous_agent(;
             get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
-            get_explorer = () -> get_epsilon_greedy_explorer(250*n_step_per_episode, 0.1),
+            get_explorer = () -> get_epsilon_greedy_explorer(500*n_step_per_episode, 0.05),
             batch_size=16,
             update_horizon=update_horizon,
             min_replay_history=Int(round(16*n_step_per_episode//2)),
@@ -215,13 +251,61 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, f
 end
 
 ###############################################################################
-######### Experiment Type MALIK
+######### Comparison of tripartite graph vs specialized graph
 #########  
 ######### 
 ###############################################################################
 """
-Compares different RL Agents with the heterogeneous representation for the MIS problem.
+Compares the tripartite graph representation with a specific representation.
+"""
 
+function experiment_tripartite_vs_specific_MIS(n, k, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    
+    MIS_generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+    SR_specific = SeaPearl.MISStateRepresentation{SeaPearl.MISFeaturization,SeaPearl.DefaultTrajectoryState}
+    
+    # Basic value-selection heuristic
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
+    basicHeuristics = OrderedDict(
+        "max" => heuristic_max
+    )
+
+    chosen_features = Dict(
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+
+    experiment_tripartite_vs_specific(n, n_episodes, n_instances, SR_specific;
+    chosen_features = chosen_features,
+    feature_size = [6, 5, 2],
+    feature_size_specific = SeaPearl.feature_length(SR_specific),
+    output_size = 2,
+    generator = MIS_generator, 
+    n_layers_graph = n_layers_graph,
+    eval_strategy = SeaPearl.ILDSearch(2),
+    n_eval = n_eval, 
+    reward = reward, 
+    type = "MIS",
+    basicHeuristics=basicHeuristics
+)
+end
+
+###############################################################################
+######### Experiment Type MALIK
+#########  
+######### 
+###############################################################################
+
+"""
+Compares different RL Agents with the heterogeneous representation for the MIS problem.
 """
 function experiment_rl_heterogeneous_mis(n,k, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
 
