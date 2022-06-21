@@ -1554,7 +1554,7 @@ Compares different RL Agents for the heterogeneous representation.
             n_epochs=4,
             n_microbatches=4,
             critic_loss_weight = 1.0f0,
-            entropy_loss_weight = 0.01f0,
+            entropy_loss_weight = 0.0f0,
             update_freq=128,
 
             get_heterogeneous_nn_actor = () -> get_heterogeneous_fullfeaturedcpnn(
@@ -1581,10 +1581,44 @@ Compares different RL Agents for the heterogeneous representation.
         )
         learned_heuristic_ffcpnn_ppo = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnn_ppo; chosen_features=chosen_features)
 
+        # agent_ffcpnn_ppo2 = get_heterogeneous_agent_ppo(;
+        #     get_heterogeneous_ppo_trajectory = () -> get_heterogeneous_ppo_trajectory(capacity=trajectory_capacity, n_actions=output_size),
+        #     n_epochs=4,
+        #     n_microbatches=4,
+        #     critic_loss_weight = 0.5f0,
+        #     entropy_loss_weight = 0.0f0,
+        #     update_freq=128,
+
+        #     get_heterogeneous_nn_actor = () -> get_heterogeneous_fullfeaturedcpnn(
+        #         feature_size=feature_size,
+        #         conv_size=8,
+        #         dense_size=16,
+        #         output_size=1,
+        #         n_layers_graph=1,
+        #         n_layers_node=2,
+        #         n_layers_output=2,
+        #         pool=pool
+        #     ),
+
+        #     get_heterogeneous_nn_critic = () -> get_heterogeneous_cpnn(
+        #         feature_size=feature_size,
+        #         conv_size=8,
+        #         dense_size=16,
+        #         output_size=1,
+        #         n_layers_graph=1,
+        #         n_layers_node=2,
+        #         n_layers_output=2,
+        #         pool=pool
+        #     )
+        # )
+
+        # learned_heuristic_ffcpnn_ppo2 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnn_ppo2; chosen_features=chosen_features)
+
         learnedHeuristics = OrderedDict(
             "ffcpnn_dqn"* string(pool) => learned_heuristic_ffcpnn_dqn,
             # "ffcpnn_priodqn"* string(pool) => learned_heuristic_ffcpnn_priodqn,
             "ffcpnn_ppo"* string(pool) => learned_heuristic_ffcpnn_ppo
+            # "ffcpnn_ppo_critic0.5"* string(pool) => learned_heuristic_ffcpnn_ppo2
         )
 
         selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
