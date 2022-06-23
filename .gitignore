@@ -44,10 +44,10 @@ exp_*/
 # Save experiment files
 *save_experiment.py
 
-# nohup output
-nohup*.out
-
 # all run files
 run*.jl
 *.sh
 learning_cp/comparison/plots.jl
+
+# all .out files (nohup output)
+*.out
