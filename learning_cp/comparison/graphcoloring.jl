@@ -299,7 +299,8 @@ function experiment_nn_heterogeneous_graphcoloring(n_nodes, n_min_color, density
         c=2.0,
         basicHeuristics=basicHeuristics,
         pool = pool,
-        seedTraining = 21
+        seedTraining = 21,
+        nb_steps_per_episode = n_nodes
     )
 end
 

@@ -584,7 +584,8 @@ function experiment_nn_heterogeneous(
     c=2.0, 
     trajectory_capacity=5000,
     pool=SeaPearl.sumPooling(),
-    seedTraining = nothing
+    seedTraining = nothing, 
+    nb_steps_per_episode = size,
 )
 
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
@@ -618,7 +619,7 @@ function experiment_nn_heterogeneous(
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
         batch_size=16,
-        update_horizon=10,
+        update_horizon=Int(round(nb_steps_per_episode/2)),
         min_replay_history=256,
         update_freq=1,
         target_update_freq=7 * size,
@@ -673,6 +674,7 @@ function experiment_nn_heterogeneous(
     )
     learned_heuristic_ffcpnnv3 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv3; chosen_features=chosen_features)
     
+    """
     agent_ffcpnnv4 = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
@@ -692,10 +694,11 @@ function experiment_nn_heterogeneous(
         )
     )
     learned_heuristic_ffcpnnv4 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv4; chosen_features=chosen_features)
-   
+    """
+
     agent_variableoutputcpnn = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=size),
-        get_explorer = () -> get_epsilon_greedy_explorer(1, 0),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
         batch_size=16,
         update_horizon=8,
         min_replay_history=256,
@@ -715,12 +718,12 @@ function experiment_nn_heterogeneous(
     
 
     learnedHeuristics = OrderedDict(
-        "cpnn" => learned_heuristic_cpnn,
+        #"cpnn" => learned_heuristic_cpnn,
         "fullfeaturedcpnn"* string(pool) => learned_heuristic_fullfeaturedcpnn,
         # "variableoutputcpnn" => learned_heuristic_variableoutputcpnn,
         #"ffcpnnv2" => learned_heuristic_ffcpnnv2,
-        "ffcpnnv3,"* string(pool) => learned_heuristic_ffcpnnv3,
-        "ffcpnnv4"* string(pool) => learned_heuristic_ffcpnnv4
+        #"ffcpnnv3,"* string(pool) => learned_heuristic_ffcpnnv3,
+        #"ffcpnnv4"* string(pool) => learned_heuristic_ffcpnnv4
     )
 
     if isnothing(basicHeuristics)
