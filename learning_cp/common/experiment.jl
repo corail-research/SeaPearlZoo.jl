@@ -18,7 +18,7 @@ using CircularArrayBuffers
 # -------------------
 # -------------------
 
-function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int=1, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection=SeaPearl.MinDomainVariableSelection{false}(), learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int, eval_timeout=nothing::Union{Nothing, Int}, eval_strategy=SeaPearl.DFSearch())
+function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int=1, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection=SeaPearl.MinDomainVariableSelection{false}(), learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int, eval_timeout=nothing::Union{Nothing, Int}, eval_strategy=SeaPearl.DFSearch(), seedTraining = nothing::Union{Nothing, Int})
     experienceTime = now()
     dir = mkdir(string("exp_", exp_name, Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
     lh = last(collect(values(learnedHeuristics)))
@@ -46,7 +46,8 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
         out_solver=out_solver,
         verbose=verbose,
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; evalFreq=evalFreq, nbInstances=nbInstances, evalTimeOut = eval_timeout),
-        restartPerInstances=restartPerInstances
+        restartPerInstances=restartPerInstances,
+        rngTraining = MersenneTwister(seedTraining)
     )
 
     #saving model weights

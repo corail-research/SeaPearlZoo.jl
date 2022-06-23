@@ -586,7 +586,8 @@ function experiment_nn_heterogeneous(
     c=2.0, 
     trajectory_capacity=5000,
     pool=SeaPearl.sumPooling(),
-    seedTraining = nothing
+    seedTraining = nothing, 
+    nb_steps_per_episode = size,
 )
 
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
@@ -620,7 +621,7 @@ function experiment_nn_heterogeneous(
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
         batch_size=16,
-        update_horizon=update_horizon,
+        update_horizon=Int(round(nb_steps_per_episode/2)),
         min_replay_history=256,
         update_freq=1,
         target_update_freq=7 * nb_steps_per_episode,
@@ -675,7 +676,8 @@ function experiment_nn_heterogeneous(
     )
     learned_heuristic_ffcpnnv3 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv3; chosen_features=chosen_features)
     
-    #=agent_ffcpnnv4 = get_heterogeneous_agent(;
+    """
+    agent_ffcpnnv4 = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
         batch_size=16,
@@ -693,8 +695,9 @@ function experiment_nn_heterogeneous(
             σ=Flux.leakyrelu
         )
     )
-    learned_heuristic_ffcpnnv4 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv4; chosen_features=chosen_features)=#
-   
+    learned_heuristic_ffcpnnv4 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_ffcpnnv4; chosen_features=chosen_features)
+    """
+
     agent_variableoutputcpnn = get_heterogeneous_agent(;
         get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
         get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
