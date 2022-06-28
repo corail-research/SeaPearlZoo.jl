@@ -863,7 +863,6 @@ end
 """
 Compares different choices of features on HeterogeneousCPNN versus default_default
 """
-
 function experiment_chosen_features_hetcpnn(
     size,
     n_step_per_episode,
@@ -1065,6 +1064,9 @@ end
 #########  
 ######### Transfer Learning
 ###############################################################################
+"""
+Tests the impact of transfer learning
+"""
 function experiment_transfer_heterogeneous(
     size,
     size_transfered,
@@ -1180,6 +1182,9 @@ end
 #########  
 ######### Restart
 ###############################################################################
+"""
+Compares different values of argument `restartPerInstances``
+"""
 function experiment_restart_heterogeneous(
     size, 
     n_episodes, 
@@ -1450,7 +1455,7 @@ end
 ######### 
 ###############################################################################
 """
-Compares different activation functions on the dense network for the heterogeneous representation.
+Compare different pooling functions for the graph features in the different versions of FFCPNN.
 """
 function experiment_features_pooling_heterogeneous(
     size, 
@@ -1847,7 +1852,7 @@ end
 #########
 ###############################################################################
 """
-Compares different activation functions on the dense network for the heterogeneous representation.
+Compares different values of  argument `update_freq`
 """
 function experiment_update_freq(
     size, 
@@ -1944,8 +1949,8 @@ function experiment_update_freq(
     
     learnedHeuristics = OrderedDict(
         "update_freq_1" => learned_heuristic_fullfeaturedcpnn_update_freq_1,
-        #"update_freq_nb_steps_per_episode_2" => learned_heuristic_fullfeaturedcpnn_update_freq_2,
-        #"update_freq_nb_steps_per_episode" => learned_heuristic_fullfeaturedcpnn_update_freq_3
+        "update_freq_nb_steps_per_episode_2" => learned_heuristic_fullfeaturedcpnn_update_freq_2,
+        "update_freq_nb_steps_per_episode" => learned_heuristic_fullfeaturedcpnn_update_freq_3
 
     )
 
