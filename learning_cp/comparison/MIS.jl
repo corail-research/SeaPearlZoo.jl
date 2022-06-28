@@ -297,3 +297,39 @@ function experiment_tripartite_vs_specific_MIS(n, k, n_episodes, n_instances; n_
     basicHeuristics=basicHeuristics
 )
 end
+
+###############################################################################
+######### Experiment Type MALIK
+#########  
+######### 
+###############################################################################
+
+"""
+Compares different RL Agents with the heterogeneous representation for the MIS problem.
+"""
+function experiment_rl_heterogeneous_mis(n,k, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+
+    mis_generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
+
+    chosen_features = Dict(
+        "variable_initial_domain_size" => true,
+        "constraint_type" => true,
+        "variable_domain_size" => true,
+        "values_raw" => true)
+
+    feature_size = [2,2,1]
+    n_step_per_episode = Int(round(n//2))+k
+    experiment_rl_heterogeneous(n, n_episodes, n_instances;
+        eval_strategy =  SeaPearl.ILDSearch(2),
+        chosen_features=chosen_features,
+        feature_size = feature_size, 
+        output_size = 2, 
+        generator = mis_generator,
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "mis",
+        decay_steps=250*n_step_per_episode,
+        basicHeuristics=nothing
+    )
+end

@@ -407,8 +407,8 @@ function experiment_rl_heterogeneous_nqueens(board_size, n_episodes, n_instances
         "variable_domain_size" => true,
         "values_raw" => true)
 
-    feature_size = [2,4,1]
-    n_step_per_episode = Int(board_size*0.75)
+    feature_size = [2,5,1]
+    n_step_per_episode = Int(round(board_size*0.75))
     experiment_rl_heterogeneous(board_size, n_episodes, n_instances;
         chosen_features=chosen_features,
         feature_size = feature_size, 
