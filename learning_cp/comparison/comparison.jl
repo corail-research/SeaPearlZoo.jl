@@ -587,7 +587,6 @@ function experiment_nn_heterogeneous(
     trajectory_capacity=5000,
     pool=SeaPearl.sumPooling(),
     seedTraining = nothing, 
-    nb_steps_per_episode = size,
 )
 
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
