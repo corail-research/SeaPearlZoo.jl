@@ -113,14 +113,11 @@ function experiment_different_reward_jobshop(n_machines, n_jobs, max_time, n_epi
         - an agent with the heterogeneous representation and chosen features.
     """
     generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
-
-    # Basic value-selection heuristic
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
     heuristic_min = SeaPearl.BasicHeuristic(selectMin)
     basicHeuristics = OrderedDict(
         "min" => heuristic_min
     )
-
     chosen_features = Dict(
         "variable_is_bound" => true,
         "variable_assigned_value" => true,
@@ -144,5 +141,43 @@ function experiment_different_reward_jobshop(n_machines, n_jobs, max_time, n_epi
         type = "jobshop",
         c=2.0,
         pool = pool
+    # Basic value-selection heuristic
+###############################################################################
+######### Experiment Type 6
+#########  
+######### 
+###############################################################################
+
+function experiment_nn_heterogeneous_jobshop(chosen_features, feature_size, n_machines, n_jobs, max_time, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
+
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_nn_heterogeneous(
+        n_machines*n_jobs, 
+        Int(round(n_machines*n_jobs*0.5)),
+        n_episodes, 
+        n_instances; 
+        feature_size=feature_size, 
+        output_size=max_time, 
+        n_eval=n_eval, 
+        generator=generator, 
+        type = "jobshop_"*string(n_machines)*"_"*string(n_jobs)*"_"*string(max_time), 
+        eval_timeout=60, 
+        chosen_features=chosen_features, 
+        basicHeuristics=basicHeuristics, 
+        reward=SeaPearl.GeneralReward, 
+        n_layers_graph=4, 
+        decay_steps=Int(round(600*n_machines*n_jobs*0.5)), 
+        trajectory_capacity=Int(round(1200*n_machines*n_jobs*0.5)),
+        update_horizon=Int(round(n_machines*n_jobs*0.25)),
+        pool=SeaPearl.sumPooling()
     )
 end
