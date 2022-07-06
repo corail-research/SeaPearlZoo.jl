@@ -68,7 +68,7 @@ function simple_experiment_jobshop(n_machines, n_jobs, max_time, n_episodes, n_i
 end
 
 ###############################################################################
-######### Experiment Type 11
+######### Experiment Type 1
 #########  
 ######### 
 ###############################################################################
@@ -93,4 +93,56 @@ function experiment_hgt_vs_graphconv_jobshop(chosen_features, n_machines, n_jobs
         chosen_features = chosen_features, 
         type = "jobshop_"*string(n_machines)*"_"*string(n_jobs)*"_"*string(max_time)
         )
+end
+
+
+###############################################################################
+######### Experiment Type 2
+#########  
+######### 
+###############################################################################
+"""
+Compares different Reward on JobShop
+"""
+
+function experiment_different_reward_jobshop(n_machines, n_jobs, max_time, n_episodes, n_instances; n_layers_graph=3, n_eval=10, pool = SeaPearl.meanPooling())
+    """
+    Compare three agents:
+        - an agent with the default representation and default features;
+        - an agent with the default representation and chosen features;
+        - an agent with the heterogeneous representation and chosen features.
+    """
+    generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    chosen_features = Dict(
+        "variable_is_bound" => true,
+        "variable_assigned_value" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "constraint_activity" => true,
+        "constraint_type" => true,
+        "nb_not_bounded_variable" => true,
+        "values_raw" => true,
+    )
+
+    experiment_reward(n_machines*n_jobs, n_episodes, n_instances;
+        chosen_features=chosen_features,
+        feature_size = [5, 9, 1], 
+        output_size = max_time, 
+        generator = generator, 
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        type = "jobshop",
+        c=2.0,
+        pool = pool
+    )
 end

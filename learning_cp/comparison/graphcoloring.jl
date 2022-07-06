@@ -807,3 +807,55 @@ function experiment_rl_heterogeneous_graphcoloring(n_nodes, n_min_color, density
         decay_steps=250*n_step_per_episode,
     )
 end
+
+###############################################################################
+######### Experiment Type Reward Comparison
+#########  
+######### 
+###############################################################################
+
+"""
+Compares different Reward on Graph Coloring
+"""
+
+function experiment_different_reward_graph_coloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, pool = SeaPearl.meanPooling())
+    """
+    Compare three agents:
+        - an agent with the default representation and default features;
+        - an agent with the default representation and chosen features;
+        - an agent with the heterogeneous representation and chosen features.
+    """
+    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
+
+    # Basic value-selection heuristic
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+    
+    chosen_features = Dict(
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+
+    experiment_reward(n_nodes, n_episodes, n_instances;
+        chosen_features=chosen_features,
+        feature_size = [6, 5, 2],
+        output_size = n_nodes, 
+        generator = coloring_generator, 
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        type = "graph_coloring",
+        c=2.0,
+        pool = pool
+    )
+end
