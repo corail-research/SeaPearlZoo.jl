@@ -7,14 +7,13 @@ include("comparison.jl")
 #########  
 ######### 
 ###############################################################################
-
+"""
+Compare three agents:
+    - an agent with the default representation and default features;
+    - an agent with the default representation and chosen features;
+    - an agent with the heterogeneous representation and chosen features.
+"""
 function experiment_representation_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
 
 
@@ -36,11 +35,10 @@ end
 #########  
 ######### 
 ###############################################################################
-
+"""
+Compares the impact of the number of convolution layers for the heterogeneous representation.
+"""
 function experiment_heterogeneous_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the heterogeneous representation.
-    """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
 
@@ -60,10 +58,10 @@ function experiment_heterogeneous_n_conv(n_nodes, n_min_color, density, n_episod
         output_size = n_nodes)
 end
 
+"""
+Compares the impact of the number of convolution layers for the default representation with chosen features.
+"""
 function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the default representation.
-    """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
@@ -83,10 +81,10 @@ function experiment_default_chosen_n_conv(n_nodes, n_min_color, density, n_episo
         output_size = n_nodes)
 end
 
+"""
+Compares the impact of the number of convolution layers for the default representation.
+"""
 function experiment_default_default_n_conv(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the default representation.
-    """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
 
@@ -105,11 +103,10 @@ end
 #########  
 ######### 
 ###############################################################################
-
+"""
+Compares the impact of the chosen features for the heterogeneous representation.
+"""
 function experiment_chosen_features_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the heterogeneous representation.
-    """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
 
     chosen_features_list = [
@@ -186,14 +183,10 @@ end
 #########  
 ######### 
 ###############################################################################
-
+"""
+Compares the simple and the supervised learned heuristic for the heterogeneous representation.
+"""
 function experiment_heuristic_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
 
     # Basic value-selection heuristic
@@ -226,13 +219,10 @@ end
 ######### 
 ###############################################################################
 
+"""
+Compares different action explorers for the heterogeneous representation.
+"""
 function experiment_explorer_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     
 
@@ -346,13 +336,10 @@ end
 ######### 
 ###############################################################################
 
+"""
+Compares different pooling methods in the CPNN for the heterogeneous representation.
+"""
 function experiment_pooling_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
-    """
-    Compare three agents:
-        - an agent with the default representation and default features;
-        - an agent with the default representation and chosen features;
-        - an agent with the heterogeneous representation and chosen features.
-    """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     
     # Basic value-selection heuristic
@@ -383,11 +370,10 @@ end
 ######### 
 ###############################################################################
 
-
+"""
+Compares different choices of features on HeterogeneousCPNN versus default_default
+"""
 function experiment_chosen_features_hetcpnn_graphcoloring(chosen_features_list, n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the heterogeneous representation.
-    """
     generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     restartPerInstances = 1
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -410,10 +396,11 @@ function experiment_chosen_features_hetcpnn_graphcoloring(chosen_features_list, 
         )
 end
 
+
+"""
+Compares different choices of features on HeterogeneousFullFeaturedCPNN versus default_default
+"""
 function experiment_chosen_features_hetffcpnn_graphcoloring(chosen_features_list, n_nodes, n_min_color, density, n_episodes, n_instances; n_eval=10)
-    """
-    Compares the impact of the number of convolution layers for the heterogeneous representation.
-    """
     generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     restartPerInstances = 1
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -441,6 +428,9 @@ end
 #########  
 ######### Transfer Learning
 ###############################################################################
+"""
+Tests the impact of transfer learning
+"""
 function experiment_transfer_heterogeneous_graphcoloring(n_nodes, 
     n_nodes_transfered, 
     n_min_color, 
@@ -488,6 +478,10 @@ end
 #########  
 ######### Restart
 ###############################################################################
+"""
+Compares different values of argument `restartPerInstances``
+"""
+
 function experiment_restart_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances;
     restart_list = [1, 5, 10, 20],
     n_layers_graph=3, 
@@ -525,15 +519,16 @@ end
 #########  
 ######### 
 ###############################################################################
+"""
+Compare different activation functions.
+"""
 function experiment_activation_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances;
     n_layers_graph=3,
     n_eval=10,
     reward=SeaPearl.GeneralReward,
     pool = SeaPearl.sumPooling()
     )
-    """
-    Compare four activation functions.
-    """
+    
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     
     expParameters = Dict(
@@ -573,10 +568,11 @@ end
 #########  
 ######### 
 ###############################################################################
+"""
+Compare different pooling functions for the graph features in the different versions of FFCPNN.
+"""
+
 function experiment_features_pooling_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
-    """
-    Compare four activation functions.
-    """
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     
     expParameters = Dict(
@@ -616,11 +612,11 @@ end
 #########  
 ######### 
 ###############################################################################
+"""
+Runs a single experiment on graphcoloring
+"""
 
 function simple_experiment_graphcoloring(n, density, min_nodes, n_episodes, n_instances, chosen_features, feature_size; n_eval=10, eval_timeout=60)
-    """
-    Runs a single experiment on graphcoloring
-    """
     n_step_per_episode = n
     reward = SeaPearl.GeneralReward
     generator = SeaPearl.ClusterizedGraphColoringGenerator(n,min_nodes,density)
@@ -675,56 +671,15 @@ function simple_experiment_graphcoloring(n, density, min_nodes, n_episodes, n_in
 end
 
 ###############################################################################
-######### Experiment Type 13
-#########  
-######### 
-###############################################################################
-function experiment_features_pooling_heterogeneous_graphcoloring(n_nodes, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
-    """
-    Compare four activation functions.
-    """
-    coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
-    
-    expParameters = Dict(
-        :generatorParameters => Dict(
-            :nbNodes => n_nodes,
-            :nbMinColor => n_min_color,
-            :density => density
-        ),
-        :pooling => string(pool)
-    )
-
-    # Basic value-selection heuristic
-    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
-    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
-    basicHeuristics = OrderedDict(
-        "min" => heuristic_min
-    )
-    experiment_features_pooling_heterogeneous(n_nodes, n_episodes, n_instances;
-    chosen_features=nothing,
-    feature_size = [2, 3, 1], 
-    output_size = n_nodes, 
-    generator = coloring_generator, 
-    n_layers_graph = n_layers_graph, 
-    n_eval = n_eval, 
-    reward = reward, 
-    type = "graphcoloring",
-    decay_steps=2000,
-    c=2.0,
-    basicHeuristics=basicHeuristics,
-    pool = pool
-)
-end
-
-###############################################################################
 ######### Experiment update_freq comparison
 #########  
 ######### 
 ###############################################################################
+"""
+Compares different values of  argument `update_freq`
+"""
 function experiment_update_freq_graphcoloring(n_nodes, n_step_per_episode, n_min_color, density, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward, pool = SeaPearl.sumPooling())
-    """
-    Compare four activation functions.
-    """
+    
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     
     expParameters = Dict(
