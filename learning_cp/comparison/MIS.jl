@@ -39,6 +39,34 @@ function experiment_explorer_heterogeneous_MIS(chosen_features, feature_size, n,
 end
 
 ###############################################################################
+######### Experiment Type 6
+#########  
+######### 
+###############################################################################
+"""
+Compares different CPNNs with the heterogeneous representation for the MIS problem.
+
+"""
+function experiment_nn_heterogeneous_MIS(n, k, n_episodes, n_instances, nb_steps_per_episode; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+
+    MIS_generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+
+    experiment_nn_heterogeneous(n, nb_steps_per_episode, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = 2, 
+        generator = MIS_generator,
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "MIS",
+        decay_steps=2000,
+        c=2.0,
+        basicHeuristics=nothing
+    )
+end
+
+###############################################################################
 ######### Experiment Type 8
 #########  
 ######### 
@@ -394,5 +422,100 @@ function experiment_rl_heterogeneous_mis(n,k, n_episodes, n_instances; n_layers_
         type = "mis",
         decay_steps=250*n_step_per_episode,
         basicHeuristics=nothing
+    )
+end
+
+###############################################################################
+######### Reward comparison
+#########  
+######### 
+###############################################################################
+
+"""
+Compares 3 different rewards
+"""
+function experiment_general_rewards_mis(n, k, n_episodes, n_instances; n_eval=10)
+
+    generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
+    # Basic value-selection heuristic
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
+    basicHeuristics = OrderedDict(
+        "max" => heuristic_max
+    )
+
+    chosen_features = Dict(
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+
+    feature_size = [6,5,2]
+    nb_steps_per_episode = Int(round(n//2))+k
+    experiment_general_rewards(
+        n, 
+        n_episodes, 
+        n_instances,
+        nb_steps_per_episode;
+        feature_size=feature_size,
+        output_size=2,
+        n_eval=10,
+        generator=generator,
+        chosen_features=chosen_features, 
+        basicHeuristics=basicHeuristics,
+    )
+end
+
+
+###############################################################################
+######### Reward comparison
+#########  
+######### 
+###############################################################################
+
+"""
+Compares 3 different rewards
+"""
+function experiment_general_vs_score_rewards_mis(n, k, n_episodes, n_instances; n_eval=10)
+
+    generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
+    # Basic value-selection heuristic
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
+    basicHeuristics = OrderedDict(
+        "max" => heuristic_max
+    )
+
+    chosen_features = Dict(
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+
+    feature_size = [6,5,2]
+    nb_steps_per_episode = Int(round(n//2))+k
+    experiment_general_vs_score_rewards(
+        n, 
+        n_episodes, 
+        n_instances,
+        nb_steps_per_episode;
+        feature_size=feature_size,
+        output_size=2,
+        n_eval=10,
+        generator=generator,
+        chosen_features=chosen_features, 
+        basicHeuristics=basicHeuristics,
     )
 end
