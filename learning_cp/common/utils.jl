@@ -220,6 +220,64 @@ function (m::HeterogeneousModel6)(fg)
 end
 
 Flux.@functor HeterogeneousModel6
+
+struct HeterogeneousModel24
+    layer1::SeaPearl.HeterogeneousGraphConvInit
+    layer2::SeaPearl.HeterogeneousGraphConv
+    layer3::SeaPearl.HeterogeneousGraphConv
+    layer4::SeaPearl.HeterogeneousGraphConv
+    layer5::SeaPearl.HeterogeneousGraphConv
+    layer6::SeaPearl.HeterogeneousGraphConv
+    layer7::SeaPearl.HeterogeneousGraphConv
+    layer8::SeaPearl.HeterogeneousGraphConv
+    layer9::SeaPearl.HeterogeneousGraphConv
+    layer10::SeaPearl.HeterogeneousGraphConv
+    layer11::SeaPearl.HeterogeneousGraphConv
+    layer12::SeaPearl.HeterogeneousGraphConv
+    layer13::SeaPearl.HeterogeneousGraphConv
+    layer14::SeaPearl.HeterogeneousGraphConv
+    layer15::SeaPearl.HeterogeneousGraphConv
+    layer16::SeaPearl.HeterogeneousGraphConv
+    layer17::SeaPearl.HeterogeneousGraphConv
+    layer18::SeaPearl.HeterogeneousGraphConv
+    layer19::SeaPearl.HeterogeneousGraphConv
+    layer20::SeaPearl.HeterogeneousGraphConv
+    layer21::SeaPearl.HeterogeneousGraphConv
+    layer22::SeaPearl.HeterogeneousGraphConv
+    layer23::SeaPearl.HeterogeneousGraphConv
+    layer24::SeaPearl.HeterogeneousGraphConv
+end
+
+function (m::HeterogeneousModel24)(fg)
+    original_fg = fg
+    out1 = m.layer1(fg)
+    out2 = m.layer2(out1, original_fg)
+    out3 = m.layer3(out2, original_fg)
+    out4 = m.layer4(out3, original_fg)
+    out5 = m.layer5(out4, original_fg)
+    out6 = m.layer6(out5, original_fg)
+    out7 = m.layer2(out6, original_fg)
+    out8 = m.layer3(out7, original_fg)
+    out9 = m.layer4(out8, original_fg)
+    out10 = m.layer5(out9, original_fg)
+    out11 = m.layer6(out10, original_fg)
+    out12 = m.layer2(out11, original_fg)
+    out13 = m.layer3(out12, original_fg)
+    out14 = m.layer4(out13, original_fg)
+    out15 = m.layer5(out14, original_fg)
+    out16 = m.layer6(out15, original_fg)
+    out17 = m.layer2(out16, original_fg)
+    out18 = m.layer3(out17, original_fg)
+    out19 = m.layer4(out18, original_fg)
+    out20 = m.layer5(out19, original_fg)
+    out21 = m.layer6(out20, original_fg)
+    out22 = m.layer4(out21, original_fg)
+    out23 = m.layer5(out22, original_fg)
+    out24 = m.layer6(out23, original_fg)
+    return out24
+end
+
+Flux.@functor HeterogeneousModel24
 #=
 struct HGTModel1
     layer1::SeaPearl.HeterogeneousGraphConvInit
@@ -361,6 +419,30 @@ function get_heterogeneous_graph_chain(original_features_size, mid, out, n_layer
     elseif n_layers == 6
         return HeterogeneousModel6(
             get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, out, original_features_size, pool, init = init),
+        )
+    elseif n_layers == 24
+        return HeterogeneousModel24(
+            get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
             get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
             get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
             get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
