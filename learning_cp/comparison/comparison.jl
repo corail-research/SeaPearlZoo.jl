@@ -38,7 +38,8 @@ function experiment_representation(
     reward=SeaPearl.GeneralReward, 
     type="", 
     chosen_features=nothing, 
-    trajectory_capacity=2000
+    trajectory_capacity=2000,
+    init=Flux.glorot_uniform
 )
     
     SR_default = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.DefaultTrajectoryState}
@@ -59,7 +60,8 @@ function experiment_representation(
             output_size=output_size,
             n_layers_graph=n_layers_graph,
             n_layers_node=2,
-            n_layers_output=2
+            n_layers_output=2,
+            init = init
         )
     )
     learned_heuristic_default_default = SeaPearl.SimpleLearnedHeuristic{SR_default,reward,SeaPearl.FixedOutput}(agent_default_default)
@@ -83,7 +85,8 @@ function experiment_representation(
             output_size=output_size,
             n_layers_graph=n_layers_graph,
             n_layers_node=2,
-            n_layers_output=2
+            n_layers_output=2,
+            init = init
         )
     )
     learned_heuristic_default_chosen = SeaPearl.SimpleLearnedHeuristic{SR_default,reward,SeaPearl.FixedOutput}(agent_default_chosen; chosen_features=chosen_features)
@@ -183,7 +186,8 @@ function experiment_n_conv(
                 output_size=output_size,
                 n_layers_graph=i,
                 n_layers_node=2,
-                n_layers_output=2
+                n_layers_output=2,
+                init = init
             )
         )
         else 
@@ -635,32 +639,11 @@ function experiment_nn_heterogeneous(
     )
     learned_heuristic_cpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_cpnn; chosen_features=chosen_features)
     
-    #=
-    agent_variableoutputcpnn = get_heterogeneous_agent(;
-        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
-        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
-        batch_size=16,
-        update_horizon=update_horizon,
-        min_replay_history=256,
-        update_freq=1,
-        target_update_freq = 7 * nb_steps_per_episode,
-        get_heterogeneous_nn = () -> get_heterogeneous_variableoutputcpnn(
-            feature_size=feature_size,
-            conv_size=8,
-            dense_size=16,
-            output_size=1,
-            n_layers_graph=n_layers_graph,
-            n_layers_node=2,
-            n_layers_output=2
-        )
-    )
-    learned_heuristic_variableoutputcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_variableoutputcpnn; chosen_features=chosen_features)
-    =#
 
     learnedHeuristics = OrderedDict(
         "fullfeaturedcpnn" => learned_heuristic_fullfeaturedcpnn,
         #"ffcpnnv3" => learned_heuristic_ffcpnnv3
-        "cpnn" => learned_heuristic_cpnn
+        #"cpnn" => learned_heuristic_cpnn
     )
 
     if isnothing(basicHeuristics)
@@ -683,8 +666,8 @@ function experiment_nn_heterogeneous(
         verbose=true,
         nbRandomHeuristics=1,
         eval_strategy=SeaPearl.ILDSearch(2),
-        exp_name= type * "_heterogeneous_cpnn_" * string(n_episodes),
-        eval_timeout=eval_timeout
+        exp_name= type * "_heterogeneous_cpnn_"*string(size)*"_"* string(n_episodes)*"_"*string(pool)*"_",
+        eval_timeout=eval_timeout,
     )
     nothing
 end
@@ -1111,7 +1094,8 @@ function experiment_chosen_features_hetcpnn(
                 output_size=output_size,
                 n_layers_graph=n_layers_graph,
                 n_layers_node=2,
-                n_layers_output=2
+                n_layers_output=2,
+                init = init
             )
         )
     learned_heuristic_default = SeaPearl.SimpleLearnedHeuristic{SR_default,reward,SeaPearl.FixedOutput}(agent_default)
@@ -1209,7 +1193,8 @@ function experiment_chosen_features_hetffcpnn(
                 output_size=output_size,
                 n_layers_graph=n_layers_graph,
                 n_layers_node=2,
-                n_layers_output=2
+                n_layers_output=2,
+                init = init
             )
         )
     learned_heuristic_default = SeaPearl.SimpleLearnedHeuristic{SR_default,reward,SeaPearl.FixedOutput}(agent_default)
@@ -2272,7 +2257,8 @@ Compares the tripartite graph representation with a specific representation.
                 output_size=output_size,
                 n_layers_graph=n_layers_graph,
                 n_layers_node=2,
-                n_layers_output=2
+                n_layers_output=2,
+                init = init
             )
         )
         tripartite_heuristic = SeaPearl.SimpleLearnedHeuristic{SR_tripartite, reward, SeaPearl.FixedOutput}(agent_tripartite; chosen_features=chosen_features)
