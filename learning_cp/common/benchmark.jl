@@ -39,12 +39,13 @@ function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool,
         if splitext(file)[2] == ".bson"
             @load folder * "/" * file model
             push!(models, model)
-            push!(models_names, splitext(file)[1])
+            push!(models_names, replace(splitext(file)[1], "model_"=>""))
         end
     end
 
     reward = SeaPearl.GeneralReward
-    eval_strategies = SeaPearl.SearchStrategy[SeaPearl.ILDSearch(1),SeaPearl.ILDSearch(2),SeaPearl.ILDSearch(10)]
+    eval_strategies = SeaPearl.SearchStrategy[SeaPearl.ILDSearch(0),SeaPearl.ILDSearch(1),SeaPearl.ILDSearch(2),SeaPearl.ILDSearch(10)]
+    search_strategy_names = ["ILDS0", "ILDS1", "ILDS2", "ILDSbudget", "DFS"]
     if include_dfs
         push!(eval_strategies,SeaPearl.DFSearch())
     end
@@ -93,15 +94,14 @@ function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool,
     evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; nbInstances=n)
     folder_names = split(folder, "/")
     dir = mkdir("../benchmarks/"*folder_names[length(folder_names)-1])
-    for search_strategy in eval_strategies
-        println(search_strategy)
+    for (j, search_strategy) in enumerate(eval_strategies)
         if search_strategy == SeaPearl.ILDSearch(10)
             SeaPearl.setNodesBudget!(evaluator, budget)
         end
         SeaPearl.evaluate(evaluator, variableHeuristic, search_strategy; verbose = verbose)
         eval_metrics = evaluator.metrics
         for i in 1:size(eval_metrics)[2]
-            SeaPearlExtras.storedata(eval_metrics[:, i]; filename= dir *"/"*string(search_strategy) * "_" * models_names[i])
+            SeaPearlExtras.storedata(eval_metrics[:, i]; filename= dir *"/"* search_strategy_names[j] * "_" * models_names[i])
         end
         # empty evaluator metrics
         if search_strategy == SeaPearl.ILDSearch(10)
