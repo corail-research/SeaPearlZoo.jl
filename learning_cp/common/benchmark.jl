@@ -19,11 +19,12 @@ chosen_features = Dict(
         "values_raw" => true)
 
 generator = SeaPearl.MaximumIndependentSetGenerator(50, 8)
-n = 3
-budget = 1000
-has_objective = true
-include_dfs = true
+n = 3 # Number of instances to evaluate on
+budget = 1000 # Budget of visited nodes
+has_objective = true # Set it to true if we have to branch on the objective variable
+include_dfs = true # Set it to true if you want to evaluate with DFS in addition to ILDS
 
+# Define your basic heuristics here
 selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
 heuristic_max = SeaPearl.BasicHeuristic(selectMax)
 basicHeuristics = OrderedDict(
