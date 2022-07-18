@@ -4,26 +4,28 @@ include("../comparison/comparison.jl")
 include("utils.jl")
 
 # Parameters to edit
-folder = "../comparison/exp_jobshop_3_10_50_heterogeneous_cpnn_10001_30_2022-06-22T17-40-54/"
+folder = "../comparison/exp_MIS_70_8_heterogeneous_ffcpnn_50012022-06-17T17-27-00/"
 chosen_features = Dict(
-    "node_number_of_neighbors" => true,
-    "constraint_type" => true,
-    "constraint_activity" => true,
-    "nb_not_bounded_variable" => true,
-    "variable_initial_domain_size" => true,
-    "variable_domain_size" => true,
-    "variable_assigned_value" => true,
-    "variable_is_bound" => true,
-    "values_raw" => true)
-generator = SeaPearl.JobShopGenerator(3, 10, 50)
-n = 2
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+
+generator = SeaPearl.MaximumIndependentSetGenerator(70, 8)
+n = 100
 has_objective = true
 eval_strategy = SeaPearl.ILDSearch(2)
 
-selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
-heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+heuristic_max = SeaPearl.BasicHeuristic(selectMax)
 basicHeuristics = OrderedDict(
-        "min" => heuristic_min,
+        "max" => heuristic_max,
         "random" => SeaPearl.RandomHeuristic()
 )
 

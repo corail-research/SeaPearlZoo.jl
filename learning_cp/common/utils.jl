@@ -79,13 +79,22 @@ function get_default_learner(batch_size, update_horizon, min_replay_history, upd
 end
 
 function get_epsilon_greedy_explorer(decay_steps, ϵ_stable; rng=nothing)
-    return RL.EpsilonGreedyExplorer(
-        ϵ_stable=ϵ_stable,
-        kind=:exp,
-        decay_steps=decay_steps,
-        step=1,
-        rng = rng
-    )
+    if isnothing(rng)
+        return RL.EpsilonGreedyExplorer(
+            ϵ_stable=ϵ_stable,
+            kind=:exp,
+            decay_steps=decay_steps,
+            step=1
+        )
+    else
+        return RL.EpsilonGreedyExplorer(
+            ϵ_stable=ϵ_stable,
+            kind=:exp,
+            decay_steps=decay_steps,
+            step=1,
+            rng = rng
+        )
+    end
 end
 
 function get_ucb_explorer(c, n_actions)
