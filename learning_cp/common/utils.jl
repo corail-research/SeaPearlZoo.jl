@@ -24,7 +24,8 @@ function get_default_graph_chain(in, mid, out, n_layers,pool; init = Flux.glorot
     return Flux.Chain(layers...)
 end
 
-function get_dense_chain(in, mid, out, n_layers, σ=NNlib.relu; init = Flux.glorot_uniform )
+
+function get_dense_chain(in, mid, out, n_layers, σ=NNlib.leakyrelu; init = Flux.glorot_uniform )
     @assert n_layers >= 1
     layers = []
     if n_layers == 1
@@ -50,7 +51,7 @@ function get_default_cpnn(;feature_size, conv_size, dense_size, output_size, n_l
     )
 end
 
-function get_default_ffcpnn(;feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output, pool=SeaPearl.meanPooling(), σ=NNlib.relu, init = Flux.glorot_uniform)
+function get_default_ffcpnn(;feature_size, conv_size, dense_size, output_size, n_layers_graph, n_layers_node, n_layers_output, pool=SeaPearl.meanPooling(), σ=NNlib.leakyrelu, init = Flux.glorot_uniform)
     return SeaPearl.FullFeaturedCPNN(
         graphChain=get_default_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool = pool, init = init),
         nodeChain=get_dense_chain(conv_size, dense_size, dense_size, n_layers_node, σ; init=init),
@@ -256,24 +257,24 @@ function (m::HeterogeneousModel24)(fg)
     out4 = m.layer4(out3, original_fg)
     out5 = m.layer5(out4, original_fg)
     out6 = m.layer6(out5, original_fg)
-    out7 = m.layer2(out6, original_fg)
-    out8 = m.layer3(out7, original_fg)
-    out9 = m.layer4(out8, original_fg)
-    out10 = m.layer5(out9, original_fg)
-    out11 = m.layer6(out10, original_fg)
-    out12 = m.layer2(out11, original_fg)
-    out13 = m.layer3(out12, original_fg)
-    out14 = m.layer4(out13, original_fg)
-    out15 = m.layer5(out14, original_fg)
-    out16 = m.layer6(out15, original_fg)
-    out17 = m.layer2(out16, original_fg)
-    out18 = m.layer3(out17, original_fg)
-    out19 = m.layer4(out18, original_fg)
-    out20 = m.layer5(out19, original_fg)
-    out21 = m.layer6(out20, original_fg)
-    out22 = m.layer4(out21, original_fg)
-    out23 = m.layer5(out22, original_fg)
-    out24 = m.layer6(out23, original_fg)
+    out7 = m.layer7(out6, original_fg)
+    out8 = m.layer8(out7, original_fg)
+    out9 = m.layer9(out8, original_fg)
+    out10 = m.layer10(out9, original_fg)
+    out11 = m.layer11(out10, original_fg)
+    out12 = m.layer12(out11, original_fg)
+    out13 = m.layer13(out12, original_fg)
+    out14 = m.layer14(out13, original_fg)
+    out15 = m.layer15(out14, original_fg)
+    out16 = m.layer16(out15, original_fg)
+    out17 = m.layer17(out16, original_fg)
+    out18 = m.layer18(out17, original_fg)
+    out19 = m.layer19(out18, original_fg)
+    out20 = m.layer20(out19, original_fg)
+    out21 = m.layer21(out20, original_fg)
+    out22 = m.layer22(out21, original_fg)
+    out23 = m.layer23(out22, original_fg)
+    out24 = m.layer24(out23, original_fg)
     return out24
 end
 
@@ -652,14 +653,14 @@ function get_heterogeneous_cpnn(;feature_size, conv_size=8, dense_size=16, outpu
     )
 end
 
-function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=NNlib.relu, heads=4, init = Flux.glorot_uniform)
+function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=NNlib.leakyrelu, heads=4, init = Flux.glorot_uniform)
     if conv_type == "gc"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
             get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool, init = init),
             get_dense_chain(conv_size, dense_size, dense_size, n_layers_node, σ, init = init),
             Flux.Chain(),
             get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output, σ, init = init)
-        )
+        ) |> gpu
     elseif conv_type == "hgt"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
             get_hgt(feature_size, conv_size, n_layers_graph; heads=heads, init = init),
@@ -680,7 +681,7 @@ function get_heterogeneous_ffcpnnv2(;feature_size, conv_size=8, dense_size=16, o
     )
 end
 
-function get_heterogeneous_ffcpnnv3(;feature_size, conv_size=8, dense_size=16, output_size, n_layers_graph=3, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=NNlib.relu, pooling="mean")
+function get_heterogeneous_ffcpnnv3(;feature_size, conv_size=8, dense_size=16, output_size, n_layers_graph=3, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=NNlib.leakyrelu, pooling="mean")
     return SeaPearl.HeterogeneousFFCPNNv3(
         get_heterogeneous_graph_chain(feature_size, conv_size, dense_size, n_layers_graph; pool=pool),
         Flux.Chain(),
@@ -689,7 +690,7 @@ function get_heterogeneous_ffcpnnv3(;feature_size, conv_size=8, dense_size=16, o
     )
 end
 
-function get_heterogeneous_ffcpnnv4(;feature_size, conv_size=8, dense_size=16, output_size, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=NNlib.relu, pooling="mean")
+function get_heterogeneous_ffcpnnv4(;feature_size, conv_size=8, dense_size=16, output_size, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=NNlib.leakyrelu, pooling="mean")
     return SeaPearl.HeterogeneousFFCPNNv4(
         get_heterogeneous_graph_chain(feature_size, conv_size, dense_size, n_layers_graph; pool=pool),
         get_dense_chain(conv_size, dense_size, dense_size, n_layers_node, σ),
