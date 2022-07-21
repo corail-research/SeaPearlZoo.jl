@@ -18,7 +18,7 @@ using CircularArrayBuffers
 # -------------------
 # -------------------
 
-function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int=1, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection=SeaPearl.MinDomainVariableSelection{false}(), learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int, eval_timeout=nothing::Union{Nothing, Int}, eval_strategy=SeaPearl.DFSearch(), seedTraining = nothing::Union{Nothing, Int})
+function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int=1, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection=SeaPearl.MinDomainVariableSelection{false}(), learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int, eval_timeout=nothing::Union{Nothing, Int}, eval_strategy=SeaPearl.DFSearch(), strategy = SeaPearl.DFSearch(), seedTraining = nothing::Union{Nothing, Int}, seedEval =  nothing, eval_generator=nothing)
     experienceTime = now()
     dir = mkdir(string("exp_", exp_name, Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
     lh = last(collect(values(learnedHeuristics)))
@@ -36,16 +36,21 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
 
     valueSelectionArray = cat(collect(values(learnedHeuristics)), collect(values(basicHeuristics)), randomHeuristics, dims=1)
 
+    if !isnothing(eval_generator)
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, eval_generator; evalFreq=evalFreq, nbInstances=nbInstances, evalTimeOut = eval_timeout, rng = MersenneTwister(seedEval) )
+    else
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; evalFreq=evalFreq, nbInstances=nbInstances, evalTimeOut = eval_timeout, rng = MersenneTwister(seedEval))
+    end
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
         generator=generator,
         nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch(),
+        strategy=strategy,
         eval_strategy = eval_strategy,
         variableHeuristic=variableHeuristic,
         out_solver=out_solver,
         verbose=verbose,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; evalFreq=evalFreq, nbInstances=nbInstances, evalTimeOut = eval_timeout),
+        evaluator = evaluator,
         restartPerInstances=restartPerInstances,
         rngTraining = MersenneTwister(seedTraining)
     )

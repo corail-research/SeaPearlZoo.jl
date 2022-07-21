@@ -14,7 +14,7 @@ function simple_experiment_jobshop(n_machines, n_jobs, max_time, n_episodes, n_i
     """
     n_step_per_episode = n_machines*n_jobs
     reward = SeaPearl.GeneralReward
-    generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
+    generator = SeaPearl.JobShopSoftDeadlinesGenerator(n_machines, n_jobs, max_time)
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
     trajectory_capacity = 800*n_step_per_episode
     update_horizon = Int(round(n_step_per_episode//2))
@@ -35,12 +35,12 @@ function simple_experiment_jobshop(n_machines, n_jobs, max_time, n_episodes, n_i
                 n_layers_graph=4,
                 n_layers_node=2,
                 n_layers_output=2,
-                pool=SeaPearl.meanPooling()
+                pool=SeaPearl.sumPooling()
             )
         )
     learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
     learnedHeuristics["learning"] = learned_heuristic
-    variableHeuristic = SeaPearl.MinDomainVariableSelection{true}()
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
     heuristic_min = SeaPearl.BasicHeuristic(selectMin)
     basicHeuristics = OrderedDict(
@@ -68,7 +68,7 @@ function simple_experiment_jobshop(n_machines, n_jobs, max_time, n_episodes, n_i
 end
 
 ###############################################################################
-######### Experiment Type 11
+######### Experiment Type 1
 #########  
 ######### 
 ###############################################################################
@@ -95,6 +95,53 @@ function experiment_hgt_vs_graphconv_jobshop(chosen_features, n_machines, n_jobs
         )
 end
 
+
+###############################################################################
+######### Experiment Type 2
+#########  
+######### 
+###############################################################################
+"""
+Compares different Reward on JobShop
+"""
+
+function experiment_different_reward_jobshop(n_machines, n_jobs, max_time, n_episodes, n_instances; n_layers_graph=3, n_eval=10, pool = SeaPearl.meanPooling())
+    """
+    Compare three agents:
+        - an agent with the default representation and default features;
+        - an agent with the default representation and chosen features;
+        - an agent with the heterogeneous representation and chosen features.
+    """
+    generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+    chosen_features = Dict(
+        "variable_is_bound" => true,
+        "variable_assigned_value" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "constraint_activity" => true,
+        "constraint_type" => true,
+        "nb_not_bounded_variable" => true,
+        "values_raw" => true,
+    )
+
+    experiment_reward(n_machines*n_jobs, n_episodes, n_instances;
+        chosen_features=chosen_features,
+        feature_size = [5, 9, 1], 
+        output_size = max_time, 
+        generator = generator, 
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        type = "jobshop",
+        c=2.0,
+        pool = pool
+    # Basic value-selection heuristic
 ###############################################################################
 ######### Experiment Type 6
 #########  
@@ -115,7 +162,7 @@ function experiment_nn_heterogeneous_jobshop(chosen_features, feature_size, n_ma
 
     experiment_nn_heterogeneous(
         n_machines*n_jobs, 
-        Int(round(n_machines*n_jobs*0.5)),
+        Int(round(n_machines*n_jobs*0.75)),
         n_episodes, 
         n_instances; 
         feature_size=feature_size, 
@@ -128,9 +175,113 @@ function experiment_nn_heterogeneous_jobshop(chosen_features, feature_size, n_ma
         basicHeuristics=basicHeuristics, 
         reward=SeaPearl.GeneralReward, 
         n_layers_graph=4, 
-        decay_steps=Int(round(600*n_machines*n_jobs*0.5)), 
-        trajectory_capacity=Int(round(1200*n_machines*n_jobs*0.5)),
-        update_horizon=Int(round(n_machines*n_jobs*0.25)),
+        trajectory_capacity = 900*Int(round(n_machines*n_jobs*0.75)),
+        decay_steps = 500 * Int(round(n_machines*n_jobs*0.75)),
+        update_horizon = Int(round(Int(round(n_machines*n_jobs*0.75))/2)),
         pool=SeaPearl.sumPooling()
+    )
+end
+
+function experiment_nn_heterogeneous_jobshop_with_restarts(chosen_features, feature_size, n_machines, n_jobs, max_time, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
+
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_nn_heterogeneous(
+        n_machines*n_jobs, 
+        Int(round(n_machines*n_jobs*0.75)),
+        n_episodes, 
+        n_instances; 
+        feature_size=feature_size, 
+        output_size=max_time, 
+        n_eval=n_eval, 
+        generator=generator, 
+        type = "jobshop_"*string(n_machines)*"_"*string(n_jobs)*"_"*string(max_time), 
+        eval_timeout=60, 
+        chosen_features=chosen_features, 
+        basicHeuristics=basicHeuristics, 
+        reward=SeaPearl.GeneralReward, 
+        n_layers_graph=4, 
+        trajectory_capacity = 900*Int(round(n_machines*n_jobs*0.75)),
+        decay_steps = 500 * Int(round(n_machines*n_jobs*0.75)),
+        update_horizon = Int(round(Int(round(n_machines*n_jobs*0.75))/2)),
+        pool=SeaPearl.sumPooling(),
+        restartPerInstances=5
+    )
+end
+
+function experiment_nn_heterogeneous_jobshop_high_explo(chosen_features, feature_size, n_machines, n_jobs, max_time, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
+
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_nn_heterogeneous(
+        n_machines*n_jobs, 
+        Int(round(n_machines*n_jobs*0.75)),
+        n_episodes, 
+        n_instances; 
+        feature_size=feature_size, 
+        output_size=max_time, 
+        n_eval=n_eval, 
+        generator=generator, 
+        type = "jobshop_"*string(n_machines)*"_"*string(n_jobs)*"_"*string(max_time), 
+        eval_timeout=60, 
+        chosen_features=chosen_features, 
+        basicHeuristics=basicHeuristics, 
+        reward=SeaPearl.GeneralReward, 
+        n_layers_graph=4,
+        trajectory_capacity = 900*Int(round(n_machines*n_jobs*0.75)),
+        decay_steps = 6000 * Int(round(n_machines*n_jobs*0.75)),
+        update_horizon = Int(round(Int(round(n_machines*n_jobs*0.75))/2)),
+        pool=SeaPearl.sumPooling()
+    )
+end
+
+function experiment_nn_heterogeneous_jobshop_softmax_high_explo(chosen_features, feature_size, n_machines, n_jobs, max_time, n_episodes, n_instances; n_eval=10)
+    """
+    Compares the impact of the number of convolution layers for the heterogeneous representation.
+    """
+    generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
+
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "min" => heuristic_min
+    )
+
+    experiment_nn_heterogeneous_softmax_explorer(
+        n_machines*n_jobs, 
+        Int(round(n_machines*n_jobs*0.75)),
+        n_episodes, 
+        n_instances; 
+        feature_size=feature_size, 
+        output_size=max_time, 
+        n_eval=n_eval, 
+        generator=generator, 
+        type = "jobshop_"*string(n_machines)*"_"*string(n_jobs)*"_"*string(max_time), 
+        eval_timeout=60, 
+        chosen_features=chosen_features, 
+        basicHeuristics=basicHeuristics, 
+        reward=SeaPearl.GeneralReward, 
+        n_layers_graph=4, 
+        trajectory_capacity = 900*Int(round(n_machines*n_jobs*0.75)),
+        decay_steps = 1000 * Int(round(n_machines*n_jobs*0.75)),
+        update_horizon = Int(round(Int(round(n_machines*n_jobs*0.75))/2)),
+        pool=SeaPearl.sumPooling(),
+        restartPerInstances = 5
     )
 end

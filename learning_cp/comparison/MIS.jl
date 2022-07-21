@@ -70,6 +70,34 @@ function experiment_explorer_heterogeneous_MIS(chosen_features, feature_size, n,
 end
 
 ###############################################################################
+######### Experiment Type 6
+#########  
+######### 
+###############################################################################
+"""
+Compares different CPNNs with the heterogeneous representation for the MIS problem.
+
+"""
+function experiment_nn_heterogeneous_MIS(n, k, n_episodes, n_instances, nb_steps_per_episode; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+
+    MIS_generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+
+    experiment_nn_heterogeneous(n, nb_steps_per_episode, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = 2, 
+        generator = MIS_generator,
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "MIS",
+        decay_steps=2000,
+        c=2.0,
+        basicHeuristics=nothing
+    )
+end
+
+###############################################################################
 ######### Experiment Type 8
 #########  
 ######### 
@@ -223,49 +251,102 @@ end
 ######### 
 ###############################################################################
 
-function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, feature_size; n_eval=10, eval_timeout=60)
+function simple_experiment_MIS(n, k, n_episodes, n_instances; chosen_features=nothing, feature_size=nothing, n_eval=10, n_eva = n, k_eva = k,n_layers_graph=3, reward = SeaPearl.GeneralReward, c=2.0, trajectory_capacity=2000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 60, restartPerInstances = 10, seedEval = nothing)
     """
     Runs a single experiment on MIS
     """
     n_step_per_episode = Int(round(n//2))+k
     reward = SeaPearl.GeneralReward
     generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+    eval_generator = SeaPearl.MaximumIndependentSetGenerator(n_eva, k_eva)
+    
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+
     trajectory_capacity = 800*n_step_per_episode
     update_horizon = Int(round(n_step_per_episode//2))
     learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
-    agent_hetcpnn = get_heterogeneous_agent(;
-            get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
-            get_explorer = () -> get_epsilon_greedy_explorer(500*n_step_per_episode, 0.05),
+
+    if isnothing(chosen_features)
+        chosen_features = Dict(
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+        feature_size = [6, 5, 2] 
+    end
+    rngExp = MersenneTwister(seedEval)
+    init = Flux.glorot_uniform(MersenneTwister(seedEval))
+
+    agent_99 = get_heterogeneous_agent(;
+    get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
+    get_explorer = () -> get_epsilon_greedy_explorer(Int(floor(n_episodes*n_step_per_episode*0.7)), 0.05; rng = rngExp ),
+    batch_size=16,
+    update_horizon=update_horizon,
+    min_replay_history=Int(round(16*n_step_per_episode//2)),
+    update_freq=1,
+    target_update_freq=7*n_step_per_episode,
+    get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+        feature_size=feature_size,
+        conv_size=8,
+        dense_size=16,
+        output_size=1,
+        n_layers_graph=n_layers_graph,
+        n_layers_node=2,
+        n_layers_output=2, 
+        pool=pool,
+        σ=NNlib.leakyrelu,
+        init = init
+    ),
+    γ = 0.99f0
+    )
+        """
+        agent_specific = get_default_agent(;
+            get_default_trajectory = () -> get_default_slart_trajectory(capacity=trajectory_capacity, n_actions=2),
+            get_explorer = () -> get_epsilon_greedy_explorer(Int(floor(n_episodes*n_step_per_episode*0.7)), 0.05),
             batch_size=16,
             update_horizon=update_horizon,
             min_replay_history=Int(round(16*n_step_per_episode//2)),
             update_freq=1,
             target_update_freq=7*n_step_per_episode,
-            get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
-                feature_size=feature_size,
+            get_default_nn = () -> get_default_cpnn(
+                feature_size=SeaPearl.feature_length(SR_specific),
                 conv_size=8,
                 dense_size=16,
                 output_size=1,
-                n_layers_graph=3,
+                n_layers_graph=n_layers_graph,
                 n_layers_node=2,
-                n_layers_output=2
+                n_layers_output=2, 
+                pool=pool,
+                σ=NNlib.leakyrelu,
+                init = init
             )
+            
         )
-    learned_heuristic_hetffcpnn = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_hetcpnn; chosen_features=chosen_features)
-    learnedHeuristics["hetffcpnn"] = learned_heuristic_hetffcpnn
-    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+"""
+    #learned_heuristic_1 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_1; chosen_features=chosen_features)
+    learned_heuristic_99 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_99; chosen_features=chosen_features)
+
+        #learned_heuristic_specific = SeaPearl.SimpleLearnedHeuristic{SR_specific,reward,SeaPearl.FixedOutput}(agent_specific; chosen_features=chosen_features)
+        #learnedHeuristics["gamma100"] = learned_heuristic_1        
+        learnedHeuristics["gamma99"] = learned_heuristic_99
+        variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
     selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
     heuristic_max = SeaPearl.BasicHeuristic(selectMax)
     basicHeuristics = OrderedDict(
-        "max" => heuristic_max
+        "expert_max" => heuristic_max
     )
 
     metricsArray, eval_metricsArray = trytrain(
         nbEpisodes=n_episodes,
         evalFreq=Int(floor(n_episodes / n_eval)),
         nbInstances=n_instances,
-        restartPerInstances=1,
+        restartPerInstances=restartPerInstances,
         eval_strategy = SeaPearl.ILDSearch(2),
         generator=generator,
         variableHeuristic=variableHeuristic,
@@ -273,9 +354,11 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances, chosen_features, f
         basicHeuristics=basicHeuristics;
         out_solver=true,
         verbose=true,
-        nbRandomHeuristics=0,
-        exp_name= "MIS_"*string(n)*"_"*string(k)*"_heterogeneous_ffcpnn_" * string(n_episodes),
-        eval_timeout=eval_timeout
+        nbRandomHeuristics=nbRandomHeuristics,
+        exp_name= "MIS_transfert_"*string(n_episodes)*"_"*string(n)*"_"*string(k)*"->"*string(n_eva)*"_"*string(k_eva)*"_"* string(n_episodes),
+        eval_timeout=eval_timeout, 
+        eval_generator = eval_generator, 
+        seedEval = seedEval
     )
     nothing
 
@@ -362,5 +445,100 @@ function experiment_rl_heterogeneous_mis(n,k, n_episodes, n_instances; n_layers_
         type = "mis",
         decay_steps=250*n_step_per_episode,
         basicHeuristics=nothing
+    )
+end
+
+###############################################################################
+######### Reward comparison
+#########  
+######### 
+###############################################################################
+
+"""
+Compares 3 different rewards
+"""
+function experiment_general_rewards_mis(n, k, n_episodes, n_instances; n_eval=10)
+
+    generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
+    # Basic value-selection heuristic
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
+    basicHeuristics = OrderedDict(
+        "max" => heuristic_max
+    )
+
+    chosen_features = Dict(
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+
+    feature_size = [6,5,2]
+    nb_steps_per_episode = Int(round(n//2))+k
+    experiment_general_rewards(
+        n, 
+        n_episodes, 
+        n_instances,
+        nb_steps_per_episode;
+        feature_size=feature_size,
+        output_size=2,
+        n_eval=10,
+        generator=generator,
+        chosen_features=chosen_features, 
+        basicHeuristics=basicHeuristics,
+    )
+end
+
+
+###############################################################################
+######### Reward comparison
+#########  
+######### 
+###############################################################################
+
+"""
+Compares 3 different rewards
+"""
+function experiment_general_vs_score_rewards_mis(n, k, n_episodes, n_instances; n_eval=10)
+
+    generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
+    # Basic value-selection heuristic
+    selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
+    heuristic_max = SeaPearl.BasicHeuristic(selectMax)
+    basicHeuristics = OrderedDict(
+        "max" => heuristic_max
+    )
+
+    chosen_features = Dict(
+        "node_number_of_neighbors" => true,
+        "constraint_type" => true,
+        "constraint_activity" => true,
+        "nb_not_bounded_variable" => true,
+        "variable_initial_domain_size" => true,
+        "variable_domain_size" => true,
+        "variable_is_objective" => true,
+        "variable_assigned_value" => true,
+        "variable_is_bound" => true,
+        "values_raw" => true)
+
+    feature_size = [6,5,2]
+    nb_steps_per_episode = Int(round(n//2))+k
+    experiment_general_vs_score_rewards(
+        n, 
+        n_episodes, 
+        n_instances,
+        nb_steps_per_episode;
+        feature_size=feature_size,
+        output_size=2,
+        n_eval=10,
+        generator=generator,
+        chosen_features=chosen_features, 
+        basicHeuristics=basicHeuristics,
     )
 end
