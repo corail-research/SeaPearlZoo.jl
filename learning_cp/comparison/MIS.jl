@@ -3,6 +3,37 @@ include("../common/utils.jl")
 include("comparison.jl")
 
 ###############################################################################
+######### Experiment Type 4
+#########  
+######### Supervised vs Simple
+###############################################################################
+
+function experiment_heuristic_heterogeneous_mis(n, k, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+    generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
+
+    # Basic value-selection heuristic
+    basicHeuristics = OrderedDict(
+        "maximum" => SeaPearl.BasicHeuristic()
+    )
+
+    experiment_heuristic_heterogeneous(n, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_size = 2, 
+        generator = generator,  
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_eval = n_eval, 
+        reward = reward, 
+        type = "mis",
+        eta_decay_steps = Int(floor(n_episodes/1.5)),
+        helpValueHeuristic = SeaPearl.BasicHeuristic(),
+        eta_init = 1.0,
+        eta_stable = 0.0
+    )
+end
+
+###############################################################################
 ######### Experiment Type 5
 #########  
 ######### 
