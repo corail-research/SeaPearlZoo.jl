@@ -2569,7 +2569,7 @@ function experiment_chain_transfer_heterogeneous(
             learnedHeuristics=learnedHeuristics,
             basicHeuristics=basicHeuristics;
             verbose=verbose,
-            exp_name=type * "_transfered(" * i * ")_" * string(n_episodes[i]) * "_" * string(sizes[i]) * "_",
+            exp_name=type * "_transfered(" * string(i) * ")_" * string(n_episodes[i]) * "_" * string(sizes[i]) * "_",
             eval_timeout=eval_timeout,
             eval_strategy=eval_strategy,
             eval_generator = last(generators)
