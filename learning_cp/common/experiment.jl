@@ -19,8 +19,13 @@ using CircularArrayBuffers
 # -------------------
 
 function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int=1, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection=SeaPearl.MinDomainVariableSelection{false}(), learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int, eval_timeout=nothing::Union{Nothing, Int}, eval_strategy=SeaPearl.DFSearch(), strategy = SeaPearl.DFSearch(), seedTraining = nothing::Union{Nothing, Int}, seedEval =  nothing, eval_generator=nothing)
-    experienceTime = now()
-    dir = mkdir(string("exp_", exp_name, Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
+    experienceTime = Base.replace("$(round(now(), Dates.Second(3)))", ":" => "-")
+    date = split(experienceTime, "T")[1]
+    time = split(experienceTime, "T")[2]
+    if !isdir(date)
+        mkdir(date)
+    end
+    dir = mkdir(string(date, "/exp_", exp_name, time))
     lh = last(collect(values(learnedHeuristics)))
     code_dir = mkdir(dir*"/code/")
     for file in readdir(".")
