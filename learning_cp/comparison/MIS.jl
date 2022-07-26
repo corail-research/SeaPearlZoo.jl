@@ -2,6 +2,8 @@ include("../common/experiment.jl")
 include("../common/utils.jl")
 include("comparison.jl")
 
+MISHeuristic(threshold::Int) = SeaPearl.BasicHeuristic((x; cpmodel = nothing) -> length(x.onDomainChange) - 1 < threshold ? 1 : 0, nothing)
+
 ###############################################################################
 ######### Experiment Type 4
 #########  
@@ -164,7 +166,8 @@ function experiment_transfer_heterogeneous_mis(n, n_transfered, k, k_transfered,
     
     # Basic value-selection heuristic
     basicHeuristics = OrderedDict(
-        "maximum" => SeaPearl.BasicHeuristic() 
+        "maximum" => SeaPearl.BasicHeuristic(),
+        "mis("* string(2*k_transfered) *")" => MISHeuristic(2*k_transfered)
     )
 
     experiment_transfer_heterogeneous(n, n_transfered, n_episodes, n_episodes_transfered, n_instances;
@@ -540,5 +543,47 @@ function experiment_general_vs_score_rewards_mis(n, k, n_episodes, n_instances; 
         generator=generator,
         chosen_features=chosen_features, 
         basicHeuristics=basicHeuristics,
+    )
+end
+
+###############################################################################
+######### Experiment Type
+#########  
+######### Chain Transfer Learning
+###############################################################################
+function experiment_chain_transfer_heterogeneous_mis(n, k, 
+    n_episodes, 
+    n_instances; 
+    n_layers_graph=3, 
+    n_evals,
+    reward=SeaPearl.GeneralReward, 
+    decay_steps=2000, 
+    trajectory_capacity=2000, 
+    eval_strategy=eval_strategy)
+
+    generators = []
+    for i in 1:length(n)
+        push!(generators, SeaPearl.MaximumIndependentSetGenerator(n[i], k[i]))
+    end
+
+    # Basic value-selection heuristic
+    basicHeuristics = OrderedDict(
+        "maximum" => SeaPearl.BasicHeuristic(),
+        "mis("* string(2*last(k)) *")" => MISHeuristic(2*last(k))
+    )
+
+    experiment_chain_transfer_heterogeneous(n, n_episodes, n_instances;
+        chosen_features=nothing,
+        feature_size = [2, 3, 1], 
+        output_sizes = [2 for i in 1:length(n)],
+        generators = generators,
+        basicHeuristics = basicHeuristics, 
+        n_layers_graph = n_layers_graph, 
+        n_evals = n_evals,
+        reward = reward, 
+        type = "mis",
+        decay_steps=decay_steps,
+        trajectory_capacity=trajectory_capacity,
+        eval_strategy=eval_strategy
     )
 end
