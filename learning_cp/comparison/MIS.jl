@@ -342,15 +342,19 @@ end
 Compares the tripartite graph representation with a specific representation.
 """
 
-function experiment_tripartite_vs_specific_MIS(n, k, n_episodes, n_instances; n_layers_graph=3, n_eval=10, reward=SeaPearl.GeneralReward)
+function experiment_tripartite_vs_specific_MIS(n, k, n_episodes, n_instances; n_layers_graph=4, n_eval=10, reward=SeaPearl.GeneralReward)
     
     MIS_generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
     SR_specific = SeaPearl.MISStateRepresentation{SeaPearl.MISFeaturization,SeaPearl.DefaultTrajectoryState}
     
     # Basic value-selection heuristic
+    threshold = 2*k
+    MISHeuristic(x; cpmodel=nothing) = length(x.onDomainChange) - 1 < threshold ? 1 : 0
+    heuristic_mis = SeaPearl.BasicHeuristic(MISHeuristic)
     selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
     heuristic_max = SeaPearl.BasicHeuristic(selectMax)
     basicHeuristics = OrderedDict(
+        "MISheuristic" => heuristic_mis,
         "max" => heuristic_max
     )
 
@@ -366,7 +370,8 @@ function experiment_tripartite_vs_specific_MIS(n, k, n_episodes, n_instances; n_
         "variable_is_bound" => true,
         "values_raw" => true)
 
-    experiment_tripartite_vs_specific(n, n_episodes, n_instances, SR_specific;
+    nb_steps_per_episode = Int(round(n/2+k))
+    experiment_tripartite_vs_specific(n, nb_steps_per_episode, n_episodes, n_instances, SR_specific;
     chosen_features = chosen_features,
     feature_size = [6, 5, 2],
     feature_size_specific = SeaPearl.feature_length(SR_specific),
@@ -430,9 +435,13 @@ function experiment_general_rewards_mis(n, k, n_episodes, n_instances; n_eval=10
 
     generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
     # Basic value-selection heuristic
+    threshold = 2*k
+    MISHeuristic(x; cpmodel=nothing) = length(x.onDomainChange) - 1 < threshold ? 1 : 0
+    heuristic_mis = SeaPearl.BasicHeuristic(MISHeuristic)
     selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
     heuristic_max = SeaPearl.BasicHeuristic(selectMax)
     basicHeuristics = OrderedDict(
+        "MISheuristic" => heuristic_mis,
         "max" => heuristic_max
     )
 
