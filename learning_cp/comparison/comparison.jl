@@ -1284,7 +1284,7 @@ function experiment_transfer_heterogeneous(
     learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
 
     learnedHeuristics = OrderedDict(
-        "ffcppn" => learned_heuristic,
+        "learned" => learned_heuristic,
     )
 
     if isnothing(basicHeuristics)
@@ -1313,6 +1313,8 @@ function experiment_transfer_heterogeneous(
         ),
         trajectory=get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size_transfered)
     )
+    agent_transfer.policy.learner.approximator.optimizer.eta = 0.0001
+    agent_transfer.policy.learner.target_approximator.optimizer.eta = 0.0001
     learned_heuristic_transfer = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent_transfer; chosen_features=chosen_features)
 
     agent = get_heterogeneous_agent(;
@@ -1328,7 +1330,7 @@ function experiment_transfer_heterogeneous(
     learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
 
     learnedHeuristics = OrderedDict(
-        "ffcppn" => learned_heuristic,
+        # "new" => learned_heuristic,
         "transfer" => learned_heuristic_transfer,
     )
 
@@ -2473,5 +2475,111 @@ Compares GeneralReward and ScoreReward
             eval_timeout=eval_timeout
         )
         nothing
+end
+
+###############################################################################
+######### Experiment Type 
+#########  
+######### Chain Transfer Learning
+###############################################################################
+"""
+Tests the impact of transfer learning
+"""
+function experiment_chain_transfer_heterogeneous(
+    sizes, 
+    n_episodes,  
+    n_instances; 
+    feature_size, 
+    output_sizes,
+    n_evals,  
+    generators, 
+    type="", 
+    expParameters=Dict{String,Any}()::Dict{String,Any}, 
+    eval_timeout=nothing, 
+    chosen_features=nothing, 
+    basicHeuristics=nothing, 
+    reward=SeaPearl.GeneralReward, 
+    n_layers_graph=3, 
+    decay_steps=2000, 
+    trajectory_capacity=2000,
+    update_horizon=8,
+    min_replay_history=128,
+    verbose=true,
+    eval_strategy=SeaPearl.DFSearch(),
+)
+ 
+    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+
+    if isnothing(chosen_features)
+        chosen_features = DEFAULT_CHOSEN_FEATURES
+    end
+
+    agent = get_heterogeneous_agent(;
+        get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_sizes[1]),
+        get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+        update_horizon=update_horizon,
+        min_replay_history=min_replay_history,
+        get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+            feature_size=feature_size,
+            n_layers_graph=n_layers_graph
+        )
+    )
+    learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features)
+
+    learnedHeuristics = OrderedDict(
+        "learned" => learned_heuristic,
+    )
+
+    if isnothing(basicHeuristics)
+        basicHeuristics = OrderedDict(
+            "random" => SeaPearl.RandomHeuristic()
+        )
+    end
+
+    metricsArray, eval_metricsArray = trytrain(
+        nbEpisodes=n_episodes[1],
+        evalFreq=Int(floor(n_episodes[1] / n_evals[1])),
+        nbInstances=n_instances,
+        generator=generators[1],
+        learnedHeuristics=learnedHeuristics,
+        basicHeuristics=basicHeuristics;
+        verbose=verbose,
+        exp_name= type * "_transfer_" * string(n_episodes[1]) * "_" * string(sizes[1]) * "_",
+        eval_timeout=eval_timeout,
+        eval_strategy=eval_strategy,
+        eval_generator = last(generators)
+    )
+
+    for i in 2:length(sizes)
+        agent_transfer = RL.Agent(
+            policy= RL.QBasedPolicy(
+                learner=deepcopy(agent.policy.learner),
+                explorer= get_epsilon_greedy_explorer(decay_steps, 0.01),
+            ),
+            trajectory=get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_sizes[i])
+        )
+        agent_transfer.policy.learner.approximator.optimizer.eta = 0.0001
+        agent_transfer.policy.learner.target_approximator.optimizer.eta = 0.0001
+        learned_heuristic_transfer = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,SeaPearl.GeneralReward,SeaPearl.FixedOutput}(agent_transfer; chosen_features=chosen_features)
+
+        learnedHeuristics = OrderedDict(
+            "transfer" => learned_heuristic_transfer,
+        )
+
+        metricsArray, eval_metricsArray = trytrain(
+            nbEpisodes=n_episodes[i],
+            evalFreq=Int(floor(n_episodes[i] / n_evals[i])),
+            nbInstances=n_instances,
+            generator=generators[i],
+            learnedHeuristics=learnedHeuristics,
+            basicHeuristics=basicHeuristics;
+            verbose=verbose,
+            exp_name=type * "_transfered(" * string(i) * ")_" * string(n_episodes[i]) * "_" * string(sizes[i]) * "_",
+            eval_timeout=eval_timeout,
+            eval_strategy=eval_strategy,
+            eval_generator = last(generators)
+        )
+    end
+    nothing
 end
 
