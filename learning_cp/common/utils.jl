@@ -130,9 +130,14 @@ function get_default_agent(;get_explorer, batch_size, update_horizon, min_replay
     )
 end
 
-struct HeterogeneousModel
-    Inputlayer::SeaPearl.HeterogeneousGraphConvInit
-    Middlelayers::Vector{SeaPearl.HeterogeneousGraphConv}
+
+struct HeterogeneousModel{A,B}
+    Inputlayer::A
+    Middlelayers::Vector{B}
+
+    function HeterogeneousModel(Inputlayer, Middlelayers)
+        return new{typeof(Inputlayer), eltype(Middlelayers)}(Inputlayer,Middlelayers)
+    end
 
     function HeterogeneousModel(original_features_size::Vector{Int}, mid::Int, out::Int, n_layers::Int; pool=SeaPearl.meanPooling(), init = Flux.glorot_uniform)
     
@@ -147,11 +152,17 @@ struct HeterogeneousModel
         end
         push!(Middlelayers,get_heterogeneous_graph_conv_layer(mid, out, original_features_size, pool, init = init))
     end
-    return new(Inputlayer, Middlelayers)
+    return new{typeof(Inputlayer), eltype(Middlelayers)}(Inputlayer, Middlelayers)
 
     end
 end
 
+Flux.@functor HeterogeneousModel
+"""
+function Flux.functor(::Type{<:HeterogeneousModel}, m)
+    return (m.Inputlayer, m.Middlelayers), ls -> HeterogeneousModel(ls[1], ls[2])
+end
+"""
 function (m::HeterogeneousModel)(fg)
     original_fg = deepcopy(fg)
     out = m.Inputlayer(fg)
@@ -161,7 +172,6 @@ function (m::HeterogeneousModel)(fg)
     return out
 end
 
-Flux.@functor HeterogeneousModel
 
 
 struct HeterogeneousModel3
@@ -585,7 +595,7 @@ function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_
             get_dense_chain(conv_size, dense_size, dense_size, n_layers_node, σ, init = init),
             Flux.Chain(),
             get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output, σ, init = init)
-        )
+         ) #|> gpu
     elseif conv_type == "hgt"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
             get_hgt(feature_size, conv_size, n_layers_graph; heads=heads, init = init),
