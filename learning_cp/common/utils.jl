@@ -25,7 +25,7 @@ function get_default_graph_chain(in, mid, out, n_layers,pool; init = Flux.glorot
 end
 
 
-function get_dense_chain(in, mid, out, n_layers, σ=NNlib.leakyrelu; init = Flux.glorot_uniform )
+function get_dense_chain(in, mid, out, n_layers, σ=Flux.identity; init = Flux.glorot_uniform )
     @assert n_layers >= 1
     layers = []
     if n_layers == 1
@@ -163,6 +163,41 @@ end
 
 Flux.@functor HeterogeneousModel
 
+
+struct HeterogeneousModel3
+    layer1::SeaPearl.HeterogeneousGraphConvInit
+    layer2::SeaPearl.HeterogeneousGraphConv
+    layer3::SeaPearl.HeterogeneousGraphConv
+end
+
+function (m::HeterogeneousModel3)(fg)
+    original_fg = fg
+    out1 = m.layer1(fg)
+    out2 = m.layer2(out1, original_fg)
+    out3 = m.layer3(out2, original_fg)
+    return out3
+end
+
+Flux.@functor HeterogeneousModel3
+
+struct HeterogeneousModel4
+    layer1::SeaPearl.HeterogeneousGraphConvInit
+    layer2::SeaPearl.HeterogeneousGraphConv
+    layer3::SeaPearl.HeterogeneousGraphConv
+    layer4::SeaPearl.HeterogeneousGraphConv
+end
+
+function (m::HeterogeneousModel4)(fg)
+    original_fg = fg
+    out1 = m.layer1(fg)
+    out2 = m.layer2(out1, original_fg)
+    out3 = m.layer3(out2, original_fg)
+    out4 = m.layer4(out3, original_fg)
+    return out4
+end
+
+Flux.@functor HeterogeneousModel4
+
 #=
 struct HGTModel1
     layer1::SeaPearl.HeterogeneousGraphConvInit
@@ -268,6 +303,75 @@ Flux.@functor HGTModel6
 get_heterogeneous_graph_conv_layer(in, out, original_features_size, pool; init = Flux.glorot_uniform) = SeaPearl.HeterogeneousGraphConv(in => out, original_features_size, Flux.leakyrelu; pool = pool, init = init)
 
 get_heterogeneous_graph_conv_init_layer(original_features_size, out; init = Flux.glorot_uniform) = SeaPearl.HeterogeneousGraphConvInit(original_features_size, out, Flux.leakyrelu, init = init)
+
+#=function get_heterogeneous_graph_chain(original_features_size, mid, out, n_layers; pool=SeaPearl.meanPooling(), init = Flux.glorot_uniform)
+    @assert n_layers >= 1 and n_layers <= 6
+    if n_layers == 1
+        return HeterogeneousModel1(
+            get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init)
+        )
+    elseif n_layers == 2
+        return HeterogeneousModel2(
+            get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init),
+            get_heterogeneous_graph_conv_layer(mid, out, original_features_size, pool, init = init)
+        )
+    elseif n_layers == 3
+        return HeterogeneousModel3(
+            get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, out, original_features_size, pool, init = init),
+        )
+    elseif n_layers == 4
+        return HeterogeneousModel4(
+            get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, out, original_features_size, pool, init = init),
+        )
+    elseif n_layers == 5
+        return HeterogeneousModel5(
+            get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, out, original_features_size, pool, init = init)
+        )
+    elseif n_layers == 6
+        return HeterogeneousModel6(
+            get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, out, original_features_size, pool, init = init),
+        )
+    elseif n_layers == 24
+        return HeterogeneousModel24(
+            get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init),
+            get_heterogeneous_graph_conv_layer(mid, out, original_features_size, pool, init = init),
+        )
+    end
+end
+=#
 
 function get_heterogeneous_graph_chain(original_features_size, mid, out, n_layers; pool=SeaPearl.meanPooling(), init = Flux.glorot_uniform, device = cpu)
     @assert n_layers >= 1
@@ -474,10 +578,10 @@ function get_heterogeneous_cpnn(;feature_size, conv_size=8, dense_size=16, outpu
     )
 end
 
-function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=Flux.leakyrelu, heads=4, init = Flux.glorot_uniform, device = cpu)
+function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=Flux.leakyrelu, heads=4, init = Flux.glorot_uniform)
     if conv_type == "gc"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
-            get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool, init = init, device = device),
+            get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool, init = init),
             get_dense_chain(conv_size, dense_size, dense_size, n_layers_node, σ, init = init),
             Flux.Chain(),
             get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output, σ, init = init)

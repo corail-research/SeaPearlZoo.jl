@@ -2220,8 +2220,8 @@ Compares the tripartite graph representation with a specific representation.
         basicHeuristics, 
         reward=SeaPearl.GeneralReward, 
         n_layers_graph=3, 
-        decay_steps=Int(round(nb_steps_per_episode*40*nb_steps_per_episode)),  
-        trajectory_capacity=Int(round(nb_steps_per_episode*100*nb_steps_per_episode)),
+        decay_steps=Int(round(nb_steps_per_episode*1000)),  
+        trajectory_capacity=Int(round(nb_steps_per_episode*800)),
     )
     
         SR_tripartite = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
@@ -2291,7 +2291,7 @@ Compares the tripartite graph representation with a specific representation.
             learnedHeuristics=learnedHeuristics,
             basicHeuristics=basicHeuristics;
             out_solver=true,
-            verbose=true,
+            verbose=false,
             eval_strategy=eval_strategy,
             nbRandomHeuristics=0,
             exp_name= type *"_"* string(pb_size) * "_tripartite_vs_specific_" * string(n_episodes),
@@ -2325,7 +2325,7 @@ Compares three different values of gamma in GeneralReward
         trajectory_capacity=1000,
     )
         decay_steps = 2000*nb_steps_per_episode
-        trajectory_capacity = 2000*nb_steps_per_episode
+        trajectory_capacity = 1000*nb_steps_per_episode
         SR = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
         rewards = [SeaPearl.GeneralReward2,SeaPearl.GeneralReward3]
         learnedHeuristics = OrderedDict{String, SeaPearl.LearnedHeuristic}()
@@ -2370,7 +2370,7 @@ Compares three different values of gamma in GeneralReward
             learnedHeuristics=learnedHeuristics,
             basicHeuristics=basicHeuristics;
             out_solver=true,
-            verbose=true,
+            verbose=false,
             eval_strategy=eval_strategy,
             nbRandomHeuristics=0,
             exp_name= type *"_"* string(pb_size) * "_reward_comparison_" * string(n_episodes),
@@ -2397,19 +2397,19 @@ Compares GeneralReward and ScoreReward
         generator, 
         type="", 
         eval_timeout=nothing, 
-        eval_strategy = SeaPearl.ILDSearch(2),
+        eval_strategy = SeaPearl.ILDSearch(1),
         chosen_features, 
         basicHeuristics,
         decay_steps=500,  
         trajectory_capacity=1000,
     )
         decay_steps = 1000*nb_steps_per_episode
-        trajectory_capacity = 2000*nb_steps_per_episode
+        trajectory_capacity = 900*nb_steps_per_episode
         SR = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
         learnedHeuristics = OrderedDict{String, SeaPearl.LearnedHeuristic}()
         agent_generalreward = get_heterogeneous_agent(;
             get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
-            get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.1),
+            get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.05),
             batch_size=8,
             update_horizon=Int(round(nb_steps_per_episode*0.35)),
             min_replay_history=Int(round(64*nb_steps_per_episode)),
@@ -2431,11 +2431,11 @@ Compares GeneralReward and ScoreReward
 
         agent_scorereward = get_heterogeneous_agent(;
             get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=output_size),
-            get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.01),
+            get_explorer = () -> get_epsilon_greedy_explorer(decay_steps, 0.05),
             batch_size=8,
             update_horizon=Int(round(nb_steps_per_episode)),
-            min_replay_history=Int(round(16*nb_steps_per_episode)),
-            update_freq=2,
+            min_replay_history=Int(round(64*nb_steps_per_episode)),
+            update_freq=1,
             target_update_freq=Int(round(7*nb_steps_per_episode)),
             get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
                 feature_size=feature_size,
@@ -2450,6 +2450,8 @@ Compares GeneralReward and ScoreReward
         )
         heuristic_scorereward = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.ScoreReward, SeaPearl.FixedOutput}(agent_scorereward; chosen_features=chosen_features)
         learnedHeuristics["score"] = heuristic_scorereward
+        agent_scorereward.policy.learner = deepcopy(agent_generalreward.policy.learner)
+        
 
         if isnothing(basicHeuristics)
             basicHeuristics = OrderedDict(
@@ -2468,7 +2470,7 @@ Compares GeneralReward and ScoreReward
             learnedHeuristics=learnedHeuristics,
             basicHeuristics=basicHeuristics;
             out_solver=true,
-            verbose=true,
+            verbose=false,
             eval_strategy=eval_strategy,
             nbRandomHeuristics=0,
             exp_name= type *"_"* string(pb_size) * "_reward_comparison_" * string(n_episodes),

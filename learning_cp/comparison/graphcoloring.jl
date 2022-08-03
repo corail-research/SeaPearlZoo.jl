@@ -707,10 +707,10 @@ end
 Runs a single experiment on graphcoloring
 """
 
-function simple_experiment_graphcoloring(n, density, min_nodes, n_episodes, n_instances, chosen_features, feature_size; n_eval=10, eval_timeout=60)
+function simple_experiment_graphcoloring(n, k, n_episodes, n_instances, chosen_features, feature_size; n_eval=10, eval_timeout=60)
     n_step_per_episode = n
     reward = SeaPearl.GeneralReward
-    generator = SeaPearl.ClusterizedGraphColoringGenerator(n,min_nodes,density)
+    generator = SeaPearl.BarabasiAlbertGraphGenerator(n,k)
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
     trajectory_capacity = 800*n_step_per_episode
     update_horizon = Int(round(n_step_per_episode//2))
