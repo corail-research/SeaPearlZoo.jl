@@ -595,7 +595,7 @@ function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_
             get_dense_chain(conv_size, dense_size, dense_size, n_layers_node, σ, init = init),
             Flux.Chain(),
             get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output, σ, init = init)
-         ) |> device
+         )#|> device
     elseif conv_type == "hgt"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
             get_hgt(feature_size, conv_size, n_layers_graph; heads=heads, init = init),
