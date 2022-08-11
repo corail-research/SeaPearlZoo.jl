@@ -514,7 +514,7 @@ function experiment_tripartite_vs_specific_MIS(n, k, n_episodes, n_instances; n_
     output_size = 2,
     generator = MIS_generator, 
     n_layers_graph = n_layers_graph,
-    eval_strategy = SeaPearl.ILDSearch(2),
+    eval_strategy = SeaPearl.ILDSearch(1),
     n_eval = n_eval, 
     reward = reward, 
     type = "MIS",
@@ -623,9 +623,13 @@ function experiment_general_vs_score_rewards_mis(n, k, n_episodes, n_instances; 
 
     generator = SeaPearl.MaximumIndependentSetGenerator(n, k)
     # Basic value-selection heuristic
+    threshold = 2*k
+    MISHeuristic(x; cpmodel=nothing) = length(x.onDomainChange) - 1 < threshold ? 1 : 0
+    heuristic_mis = SeaPearl.BasicHeuristic(MISHeuristic)
     selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
     heuristic_max = SeaPearl.BasicHeuristic(selectMax)
     basicHeuristics = OrderedDict(
+        "MISheuristic" => heuristic_mis,
         "max" => heuristic_max
     )
 

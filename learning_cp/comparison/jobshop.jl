@@ -73,7 +73,7 @@ function jobshop_retrain(n_machines, n_jobs, max_time, n_episodes, n_instances, 
     """
     n_step_per_episode = Int(round(n_machines*n_jobs*0.75))
     reward = SeaPearl.GeneralReward
-    generator = SeaPearl.JobShopSoftDeadlinesGenerator(n_machines, n_jobs, max_time)
+    generator = SeaPearl.JobShopGenerator(n_machines, n_jobs, max_time)
     SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
     trajectory_capacity = 3500*n_step_per_episode
     update_horizon = n_step_per_episode
