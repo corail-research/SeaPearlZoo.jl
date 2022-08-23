@@ -1,37 +1,46 @@
 # This util evaluates a trained model on n new instances with ILDS(1), ILDS(2), ILDS with given budget and DFS
 # Any heuristic using specific state representation should have "specific" in its file name
-include("experiment.jl")
+#include("../common/experiment.jl")
 include("../comparison/comparison.jl")
 include("utils.jl")
 
+#include("experiment.jl")
+#include("../comparison/comparison.jl")
+#include("utils.jl")
+using CUDA
+CUDA.reclaim()
 # Parameters to edit
-folder = "../comparison/exp_MIS_50_tripartite_vs_specific_100012022-06-17T11-14-00/"
-chosen_features = Dict(
-        "node_number_of_neighbors" => true,
-        "constraint_type" => true,
-        "constraint_activity" => true,
-        "nb_not_bounded_variable" => true,
-        "variable_initial_domain_size" => true,
-        "variable_domain_size" => true,
-        "variable_is_objective" => true,
-        "variable_assigned_value" => true,
-        "variable_is_bound" => true,
-        "values_raw" => true)
+folder = "/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/2022-08-17/exp_MaxCut_100_10_4->10_4_10012-02-09/"
 
-generator = SeaPearl.MaximumIndependentSetGenerator(50, 8)
-n = 3 # Number of instances to evaluate on
+chosen_features = Dict(
+"node_number_of_neighbors" => true,
+"constraint_type" => true,
+"constraint_activity" => true,
+"nb_not_bounded_variable" => true,
+"variable_initial_domain_size" => true,
+"variable_domain_size" => true,
+"variable_is_objective" => true,
+"variable_assigned_value" => true,
+"variable_is_bound" => true,
+"values_raw" => true)
+
+n = 20
+k = 4
+generator = SeaPearl.MaxCutGenerator(n,k)
+n = 10 # Number of instances to evaluate on
 budget = 1000 # Budget of visited nodes
-has_objective = true # Set it to true if we have to branch on the objective variable
-include_dfs = true # Set it to true if you want to evaluate with DFS in addition to ILDS
+has_objective = false # Set it to true if we have to branch on the objective variable
+include_dfs = false # Set it to true if you want to evaluate with DFS in addition to ILDS
 
 # Define your basic heuristics here
+threshold = 2*k
+MISHeuristic(x; cpmodel=nothing) = length(x.onDomainChange) - 1 < threshold ? 1 : 0
+heuristic_mis = SeaPearl.BasicHeuristic(MISHeuristic)
 selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
 heuristic_max = SeaPearl.BasicHeuristic(selectMax)
 basicHeuristics = OrderedDict(
-        "max" => heuristic_max,
-        "random" => SeaPearl.RandomHeuristic()
-)
-
+    "random" => SeaPearl.RandomHeuristic()
+    )
 
 function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool, generator, basicHeuristics, include_dfs, budget::Int; verbose=true)
     models=[]
@@ -52,6 +61,7 @@ function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool,
     end
     agents = []
     valueSelectionArray = SeaPearl.ValueSelection[]
+    
     for (i,model) in enumerate(models)
         agent = RL.Agent(
             policy=RL.QBasedPolicy(
@@ -59,11 +69,11 @@ function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool,
                     approximator=RL.NeuralNetworkApproximator(
                         model=model,
                         optimizer=ADAM()
-                    ),
+                    ) |> gpu,
                     target_approximator=RL.NeuralNetworkApproximator(
                         model=model,
                         optimizer=ADAM()
-                    ),
+                    ) |> gpu,
                     loss_func=Flux.Losses.huber_loss
                 ),
                 explorer=RL.EpsilonGreedyExplorer(
@@ -94,7 +104,12 @@ function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool,
     variableHeuristic = SeaPearl.MinDomainVariableSelection{has_objective}()
     evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; nbInstances=n)
     folder_names = split(folder, "/")
-    dir = mkdir("../benchmarks/"*folder_names[length(folder_names)-1])
+    #println(pwd())
+    #println(folder)
+    if !isdir("../benchmarks/"*folder_names[1])
+        mkdir("../benchmarks/"*folder_names[1])
+    end
+    dir = mkdir("../benchmarks/"*folder)
     for (j, search_strategy) in enumerate(eval_strategies)
         if search_strategy == SeaPearl.ILDSearch(10)
             SeaPearl.setNodesBudget!(evaluator, budget)
@@ -111,7 +126,4 @@ function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool,
         empty!(evaluator)
     end
 end
-
-benchmark(folder, n, chosen_features, has_objective, generator, basicHeuristics, include_dfs, budget)
-
-nothing
+#benchmark(folder, n, chosen_features, has_objective, generator, basicHeuristics, include_dfs, budget)
