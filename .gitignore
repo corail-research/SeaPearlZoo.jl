@@ -51,3 +51,5 @@ learning_cp/comparison/plots.jl
 
 # all .out files (nohup output)
 *.out
+
+learning_cp/comparison/tensorboard_logs
