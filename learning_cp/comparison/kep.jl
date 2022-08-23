@@ -232,7 +232,7 @@ function experiment_nn_heterogeneous_kep(n_nodes, density, n_episodes, n_instanc
         "values_raw" => true,
     )
 
-    experiment_nn_heterogeneous(n_nodes, n_episodes, n_instances;
+    experiment_nn_heterogeneous(n_nodes, n_nodes, n_episodes, n_instances;
     #chosen_features=chosen_features,
     feature_size = [5, 8, 1], #[2, 7, 1], 
     output_size = 2, 
@@ -252,7 +252,7 @@ end
 ######### 
 ###############################################################################
 
-function simple_experiment_kep(n_nodes, density, n_episodes, n_instances; chosen_features=nothing, feature_size=nothing, n_eval=10, n_nodes_eva = n_nodes, density_eva = density,n_layers_graph=3, reward = SeaPearl.GeneralReward, c=2.0, trajectory_capacity=2000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 60, restartPerInstances = 10, seedEval = nothing)
+function simple_experiment_kep(n_nodes, density, n_episodes, n_instances; chosen_features=nothing, feature_size=nothing, n_eval=10, n_nodes_eva = n_nodes, density_eva = density, n_layers_graph=3, reward = SeaPearl.GeneralReward, c=2.0, trajectory_capacity=2000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 60, restartPerInstances = 10, seedEval = nothing)
     """
     Runs a single experiment on KEP
     """
@@ -333,7 +333,7 @@ function simple_experiment_kep(n_nodes, density, n_episodes, n_instances; chosen
     agent_cpu = get_heterogeneous_agent(;
     get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
     get_explorer = () -> get_epsilon_greedy_explorer(Int(floor(n_episodes*n_step_per_episode*0.75)), 0.05; rng = rngExp ),
-    batch_size=64,
+    batch_size=256,
     update_horizon=update_horizon,
     min_replay_history=Int(round(16*n_step_per_episode//2)),
     update_freq=4,
@@ -343,7 +343,7 @@ function simple_experiment_kep(n_nodes, density, n_episodes, n_instances; chosen
         conv_size=8,
         dense_size=16,
         output_size=1,
-        n_layers_graph=24,
+        n_layers_graph=3,
         n_layers_node=2,
         n_layers_output=2, 
         pool=SeaPearl.meanPooling(),
@@ -356,7 +356,7 @@ function simple_experiment_kep(n_nodes, density, n_episodes, n_instances; chosen
     agent_gpu = get_heterogeneous_agent(;
     get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
     get_explorer = () -> get_epsilon_greedy_explorer(Int(floor(n_episodes*n_step_per_episode*0.75)), 0.05; rng = rngExp ),
-    batch_size=64,
+    batch_size=256,
     update_horizon=update_horizon,
     min_replay_history=Int(round(16*n_step_per_episode//2)),
     update_freq=4,
@@ -366,7 +366,7 @@ function simple_experiment_kep(n_nodes, density, n_episodes, n_instances; chosen
         conv_size=8,
         dense_size=16,
         output_size=1,
-        n_layers_graph=24,
+        n_layers_graph=3,
         n_layers_node=2,
         n_layers_output=2, 
         pool=SeaPearl.meanPooling(),
@@ -382,8 +382,8 @@ function simple_experiment_kep(n_nodes, density, n_episodes, n_instances; chosen
     learned_heuristic_cpu = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_cpu; chosen_features=chosen_features)
     learned_heuristic_gpu = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_gpu; chosen_features=chosen_features)
       
-    learnedHeuristics["cpu"] = learned_heuristic_cpu
     learnedHeuristics["gpu"] = learned_heuristic_gpu
+    learnedHeuristics["cpu"] = learned_heuristic_cpu
     #learnedHeuristics["24layer"] = learned_heuristic_24
      
     selectMax(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.maximum(x.domain)
@@ -399,6 +399,7 @@ function simple_experiment_kep(n_nodes, density, n_episodes, n_instances; chosen
         evalFreq=Int(floor(n_episodes / n_eval)),
         nbInstances=n_instances,
         restartPerInstances=restartPerInstances,
+        eval_strategy = SeaPearl.ILDSearch(0),
         generator=generator,
         variableHeuristic=variableHeuristic,
         learnedHeuristics=learnedHeuristics,

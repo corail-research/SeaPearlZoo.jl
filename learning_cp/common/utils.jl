@@ -588,14 +588,14 @@ function get_heterogeneous_cpnn(;feature_size, conv_size=8, dense_size=16, outpu
     )
 end
 
-function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=Flux.leakyrelu, heads=4, init = Flux.glorot_uniform)
+function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=Flux.leakyrelu, heads=4, init = Flux.glorot_uniform, device = cpu)
     if conv_type == "gc"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
             get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool, init = init),
             get_dense_chain(conv_size, dense_size, dense_size, n_layers_node, σ, init = init),
             Flux.Chain(),
             get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output, σ, init = init)
-         )#|> device
+         )|> device
     elseif conv_type == "hgt"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
             get_hgt(feature_size, conv_size, n_layers_graph; heads=heads, init = init),
