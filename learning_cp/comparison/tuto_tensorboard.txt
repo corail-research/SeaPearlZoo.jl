@@ -1,0 +1,37 @@
+Partie SERVEUR : 
+
+1) Démarrer un environnement CONDA
+2) Installer TensorBoard sur l'environnement : "pip install tensorboard"
+3) Récuperer le dossier d'install de Tensorboard avec : "pip show tensorboard"
+4) se déplacer dans le dossier d'install de Tensorboard et lancer le server Tensorboard en spécifiant le dossier de log : 
+
+Exemple : 
+"
+@thanos.umontreal.cirrelt.lan:~PATH_TO_TENSORBOARD_INSTALL_FILE (1045)>python main.py --logdir="MON_DOSSIER_DE_LOG"
+"
+
+L'interface est disponible sur : "http://localhost:6006/"
+
+Partie Client : 
+"""
+using TensorBoardLogger, Logging, Random
+lg=TBLogger("tensorboard_logs/run", min_level=Logging.Info)
+
+exemple de logging : 
+
+with_logger(lg) do
+           for i=1:100
+               x0          = 0.5+i/30; s0 = 0.5/(i/20);
+               edges       = collect(-5:0.1:5)
+               centers     = collect(edges[1:end-1] .+0.05)
+               histvals    = [exp(-((c-x0)/s0)^2) for c=centers]
+               data_tuple  = (edges, histvals)
+               data_struct = sample_struct(i^2, i^1.5-0.3*i)
+
+
+               @info "test" i=i j=i^2 dd=rand(10).+0.1*i hh=data_tuple
+               @info "test_2" i=i j=2^i hh=data_tuple log_step_increment=0
+               @info "" my_weird_struct=data_struct   log_step_increment=0
+               @debug "debug_msg" this_wont_show_up=i
+           end
+       end
