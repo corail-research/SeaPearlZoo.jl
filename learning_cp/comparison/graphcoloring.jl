@@ -1018,7 +1018,7 @@ function reward_comparison_graphcoloring(n, density, min_nodes, n_episodes, n_in
 end
 
 
-function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episodes, n_instances; n_layers_graph=3, n_eval=20, reward = SeaPearl.GeneralReward, c=2.0, trajectory_capacity = 50000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 240, restartPerInstances = 10, seedEval = nothing, device = gpu, batch_size = 512, update_freq = 10,  target_update_freq= 500, name = "", numDevice = 0)
+function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episodes, n_instances; n_layers_graph=3, n_eval=25, reward = SeaPearl.GeneralReward, c=2.0, trajectory_capacity = 15000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 240, restartPerInstances = 1, seedEval = nothing, device = gpu, batch_size = 64, update_freq = 10,  target_update_freq= 500, name = "", numDevice = 0, eval_strategy = SeaPearl.DFSearch())
     n_step_per_episode = n_nodes
 
     update_horizon = Int(round(n_step_per_episode//2))
@@ -1028,7 +1028,7 @@ function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episode
     end
     coloring_generator = SeaPearl.BarabasiAlbertGraphGenerator(n_nodes,k)
     eval_coloring_generator = SeaPearl.BarabasiAlbertGraphGenerator(n_nodes_eval,k)
-    n_min_color = 5
+    n_min_color = k
     density = 0.9
     coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes, n_min_color, density)
     eval_coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(n_nodes_eval, n_min_color, density)
@@ -1050,8 +1050,6 @@ function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episode
         "values_raw" => true)
 
     feature_size = [6, 5, 2]
-
-    decay_steps = Int(floor(n_episodes*n_nodes*0.60))
 
     rngExp = MersenneTwister(seedEval)
     init = Flux.glorot_uniform(MersenneTwister(seedEval))
@@ -1154,12 +1152,12 @@ function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episode
         nbInstances=n_instances,
         restartPerInstances=restartPerInstances,
         generator=coloring_generator,
-        #eval_strategy=SeaPearl.ILDSearch(2),
+        eval_strategy=eval_strategy,
         variableHeuristic=variableHeuristic,
         learnedHeuristics=learnedHeuristics,
         basicHeuristics=basicHeuristics;
         out_solver=true,
-        verbose=true,
+        verbose=false,
         seedEval=seedEval,
         nbRandomHeuristics=nbRandomHeuristics,
         exp_name=name *'_'* string(n_nodes) *"_"*string(n_nodes_eval) * "_" * string(n_episodes) * "_"* string(seedEval) * "_",
