@@ -37,7 +37,7 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
     experienceTime = Base.replace("$(round(now(), Dates.Second(3)))", ":" => "-")
     date = split(experienceTime, "T")[1]
     time = split(experienceTime, "T")[2]
-    logger =TBLogger("tensorboard_logs/"*exp_name*date*time, min_level=Logging.Info)
+    logger =TBLogger("tensorboard_logs/"*exp_name*date*"_"*time, min_level=Logging.Info)
 
     if !isdir(date)
         mkdir(date)
@@ -130,19 +130,17 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
     n = 10 # Number of instances to evaluate on
     budget = 1000 # Budget of visited nodes
     has_objective = false # Set it to true if we have to branch on the objective variable
-    include_dfs = true # Set it to true if you want to evaluate with DFS in addition to ILDS
+    include_dfs = (eval_strategy == SeaPearl.DFSearch()) # Set it to true if you want to evaluate with DFS in addition to ILDS
     
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
     heuristic_min = SeaPearl.BasicHeuristic(selectMin)
     basicHeuristics = OrderedDict(
-        #"Min_heuristic" => heuristic_min,
-    )
+        "random" => SeaPearl.RandomHeuristic()
+        )
     include("../common/benchmark.jl")
     Base.invokelatest(benchmark, dir, n, chosen_features, has_objective, generator, basicHeuristics, include_dfs, budget)
-    
 
     py"benchmark"(dir)
 
     return metricsArray, eval_metricsArray
-
 end
