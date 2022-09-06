@@ -8,7 +8,7 @@ include("utils.jl")
 #include("../comparison/comparison.jl")
 #include("utils.jl")
 using CUDA
-CUDA.reclaim()
+
 # Parameters to edit
 folder = "/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/2022-08-17/exp_MaxCut_100_10_4->10_4_10012-02-09/"
 
@@ -28,7 +28,7 @@ n = 20
 k = 4
 generator = SeaPearl.MaxCutGenerator(n,k)
 n = 10 # Number of instances to evaluate on
-budget = 1000 # Budget of visited nodes
+budget = 10000 # Budget of visited nodes
 has_objective = false # Set it to true if we have to branch on the objective variable
 include_dfs = false # Set it to true if you want to evaluate with DFS in addition to ILDS
 
@@ -42,7 +42,7 @@ basicHeuristics = OrderedDict(
     "random" => SeaPearl.RandomHeuristic()
     )
 
-function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool, generator, basicHeuristics, include_dfs, budget::Int; verbose=true)
+function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool, generator, basicHeuristics, include_dfs, budget::Int; verbose=true, ILDS = nothing)
     models=[]
     models_names=[]
     for file in readdir(folder)
@@ -54,11 +54,24 @@ function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool,
     end
 
     reward = SeaPearl.GeneralReward
-    eval_strategies = SeaPearl.SearchStrategy[SeaPearl.ILDSearch(0),SeaPearl.ILDSearch(1),SeaPearl.ILDSearch(2),SeaPearl.ILDSearch(10)]
-    search_strategy_names = ["ILDS0", "ILDS1", "ILDS2", "ILDSbudget", "DFS"]
-    if include_dfs
-        push!(eval_strategies,SeaPearl.DFSearch())
-    end
+
+    eval_strategies = SeaPearl.SearchStrategy[]
+    search_strategy_names = String[]
+    if typeof(ILDS) == SeaPearl.ILDSearch
+        for i in 0:ILDS.d
+            push!(eval_strategies, SeaPearl.ILDSearch(i))
+            push!(search_strategy_names, "ILDS"*string(i))
+        end 
+        push!(eval_strategies, SeaPearl.ILDSearch(10))
+        append!(search_strategy_names, ["ILDSbudget", "DFS"])
+    else
+        eval_strategies = SeaPearl.SearchStrategy[SeaPearl.ILDSearch(0),SeaPearl.ILDSearch(1),SeaPearl.ILDSearch(2),SeaPearl.ILDSearch(10)]
+        search_strategy_names = ["ILDS0", "ILDS1", "ILDS2", "ILDSbudget", "DFS"]
+        if include_dfs
+            push!(eval_strategies,SeaPearl.DFSearch())
+        end
+    end 
+
     agents = []
     valueSelectionArray = SeaPearl.ValueSelection[]
     
@@ -69,11 +82,11 @@ function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool,
                     approximator=RL.NeuralNetworkApproximator(
                         model=model,
                         optimizer=ADAM()
-                    ) |> gpu,
+                    ) |> cpu,
                     target_approximator=RL.NeuralNetworkApproximator(
                         model=model,
                         optimizer=ADAM()
-                    ) |> gpu,
+                    ) |> cpu,
                     loss_func=Flux.Losses.huber_loss
                 ),
                 explorer=RL.EpsilonGreedyExplorer(
