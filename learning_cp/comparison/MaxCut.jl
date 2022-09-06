@@ -137,27 +137,23 @@ end
 ######### 
 ###############################################################################
 
-function simple_experiment_MaxCut(n, k, n_episodes, n_instances; chosen_features=nothing, feature_size=nothing, n_eval=20, n_eva = n, k_eva = k,n_layers_graph=3, reward = SeaPearl.ScoreReward, c=2.0, trajectory_capacity=5000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 60, restartPerInstances = 10, seedEval = nothing, eval_strategy = SeaPearl.ILDSearch(2), device=cpu, batch_size = 64)
-    """
-    Runs a single experiment on MIS
-    """
-    CUDA.device!(1)
-    lg=TBLogger("tensorboard_logs/run", min_level=Logging.Info)
+function simple_experiment_MaxCut(n, k, n_episodes, n_instances; chosen_features=nothing, feature_size=nothing, n_eval=20, n_eva = n, k_eva = k,n_layers_graph=3, reward = SeaPearl.GeneralReward, c=2.0, trajectory_capacity=30000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 240, restartPerInstances = 1, seedEval = nothing, device=cpu, batch_size = 64, update_freq = 10,  target_update_freq= 500, name = "", numDevice = 0, eval_strategy = SeaPearl.DFSearch())
+
     #to change of device : CUDA.device!(i) i is the id tof the GPU being used
-    if CUDA.has_cuda()
-        CUDA.reclaim()
+
+    n_step_per_episode = Int(round(n/5))
+    update_horizon = Int(round(n_step_per_episode//2))
+
+    if device == gpu
+        CUDA.device!(numDevice)
     end
 
-    n_step_per_episode = n+1
     generator = SeaPearl.MaxCutGenerator(n,k)
     eval_generator = SeaPearl.MaxCutGenerator(n_eva, k_eva)
     
-    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
+    evalFreq=Int(floor(n_episodes / n_eval))
 
-    #trajectory_capacity = 100
-    trajectory_capacity = 400*n_step_per_episode
-    update_horizon = Int(round(n_step_per_episode//2))
-    learnedHeuristics = OrderedDict{String,SeaPearl.LearnedHeuristic}()
+    step_explorer = Int(floor(n_episodes*n_step_per_episode*0.1 ))
 
     if isnothing(chosen_features)
         chosen_features = Dict(
@@ -177,37 +173,8 @@ function simple_experiment_MaxCut(n, k, n_episodes, n_instances; chosen_features
     rngExp = MersenneTwister(seedEval)
     init = Flux.glorot_uniform(MersenneTwister(seedEval))
 
+    SR_heterogeneous = SeaPearl.HeterogeneousStateRepresentation{SeaPearl.DefaultFeaturization,SeaPearl.HeterogeneousTrajectoryState}
 
-    agent_mean= get_heterogeneous_agent(;
-    get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
-    get_explorer = () -> get_epsilon_greedy_explorer(Int(floor(n_episodes*n_step_per_episode*0.80)), 0.1; rng = rngExp ),
-    batch_size=batch_size,
-    update_horizon=update_horizon,
-    min_replay_history=Int(round(16*n_step_per_episode//2)),
-    update_freq=16,
-    target_update_freq=10*n_step_per_episode,
-    get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
-        feature_size=feature_size,
-        conv_size=16,
-        dense_size=16,
-        output_size=1,
-        n_layers_graph=3,
-        n_layers_node=3,
-        n_layers_output=3, 
-        pool=SeaPearl.meanPooling(),
-        σ=NNlib.leakyrelu,
-        init = init, 
-        device = device
-    ),
-    γ = 0.99f0
-    )
-
-
-    learned_heuristic_mean = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_mean; chosen_features=chosen_features)
-     
-    learnedHeuristics["mean"] = learned_heuristic_mean
-    
-    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
     selectMax(x::SeaPearl.BoolVar; cpmodel=nothing) = SeaPearl.maximum(x.domain.inner)
     selectMin(x::SeaPearl.BoolVar; cpmodel=nothing) = SeaPearl.minimum(x.domain.inner)
     heuristic_max = SeaPearl.BasicHeuristic(selectMax)
@@ -217,25 +184,56 @@ function simple_experiment_MaxCut(n, k, n_episodes, n_instances; chosen_features
         "expert_min" => heuristic_min
     )
 
+    agent_3 = get_heterogeneous_agent(;
+    get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
+    get_explorer = () -> get_epsilon_greedy_explorer(step_explorer, 0.01; rng = rngExp ),
+    batch_size=batch_size,
+    update_horizon=update_horizon,
+    min_replay_history=Int(round(16*n_step_per_episode//2)),
+    update_freq=update_freq,
+    target_update_freq=target_update_freq,
+    get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
+        feature_size=feature_size,
+        conv_size=8,
+        dense_size=16,
+        output_size=1,
+        n_layers_graph=3,
+        n_layers_node=3,
+        n_layers_output=2, 
+        pool=pool,
+        σ=NNlib.leakyrelu,
+        init = init,
+        device = device
+    ),
+    γ =  0.99f0
+    )
+
+    learned_heuristic_3 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_3; chosen_features=chosen_features)
+
+    learnedHeuristics = OrderedDict(
+        "3layer" => learned_heuristic_3,
+    )
+
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
+
     metricsArray, eval_metricsArray = trytrain(
         nbEpisodes=n_episodes,
-        evalFreq=Int(floor(n_episodes / n_eval)),
+        evalFreq=evalFreq,
         nbInstances=n_instances,
         restartPerInstances=restartPerInstances,
-        eval_strategy = eval_strategy,
-        #strategy = SeaPearl.DFWBSearch(),
-        #out_solver = false,
         generator=generator,
+        eval_strategy=eval_strategy,
         variableHeuristic=variableHeuristic,
         learnedHeuristics=learnedHeuristics,
         basicHeuristics=basicHeuristics;
+        out_solver=true,
         verbose=true,
+        seedEval=seedEval,
         nbRandomHeuristics=nbRandomHeuristics,
-        exp_name= "MaxCut_"*string(n_episodes)*"_"*string(n)*"_"*string(k)*"->"*string(n_eva)*"_"*string(k_eva)*"_"* string(n_episodes),
+        exp_name=name *'_'* string(n) *"_"*string(n_eva) * "_" * string(n_episodes) * "_"* string(seedEval) * "_",
         eval_timeout=eval_timeout, 
-        eval_generator = eval_generator, 
-        seedEval = seedEval,
-        logger = lg,
+        eval_generator=eval_generator,
+        device = device
     )
     nothing
 

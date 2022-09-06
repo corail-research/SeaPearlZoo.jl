@@ -1018,7 +1018,7 @@ function reward_comparison_graphcoloring(n, density, min_nodes, n_episodes, n_in
 end
 
 
-function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episodes, n_instances; n_layers_graph=3, n_eval=25, reward = SeaPearl.GeneralReward, c=2.0, trajectory_capacity = 15000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 240, restartPerInstances = 1, seedEval = nothing, device = gpu, batch_size = 64, update_freq = 10,  target_update_freq= 500, name = "", numDevice = 0, eval_strategy = SeaPearl.DFSearch())
+function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episodes, n_instances; n_layers_graph=3, n_eval=25, reward = SeaPearl.GeneralReward, c=2.0, trajectory_capacity = 30000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 240, restartPerInstances = 1, seedEval = nothing, device = gpu, batch_size = 64, update_freq = 10,  target_update_freq= 500, name = "", numDevice = 0, eval_strategy = SeaPearl.DFSearch())
     n_step_per_episode = n_nodes
 
     update_horizon = Int(round(n_step_per_episode//2))
@@ -1063,53 +1063,6 @@ function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episode
         "min" => heuristic_min
     )
 
-    
-    agent_24 = get_heterogeneous_agent(;
-    get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=n_nodes),        
-    get_explorer = () -> get_epsilon_greedy_explorer(step_explorer, 0.05; rng = rngExp ),
-    batch_size=batch_size,
-    update_horizon=update_horizon,
-    min_replay_history=Int(round(16*n_step_per_episode//2)),
-    update_freq=update_freq,
-    target_update_freq=target_update_freq,
-    get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
-        feature_size=feature_size,
-        conv_size=8,
-        dense_size=16,
-        output_size=1,
-        n_layers_graph=24,
-        n_layers_node=3,
-        n_layers_output=2, 
-        pool=pool,
-        σ=NNlib.leakyrelu,
-        init = init,
-        device = device
-    ),
-    γ = 0.99f0
-    )
-    agent_6 = get_heterogeneous_agent(;
-    get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=n_nodes),        
-    get_explorer = () -> get_epsilon_greedy_explorer(step_explorer, 0.05; rng = rngExp ),
-    batch_size=batch_size,
-    update_horizon=update_horizon,
-    min_replay_history=Int(round(16*n_step_per_episode//2)),
-    update_freq=update_freq,
-    target_update_freq=target_update_freq,
-    get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
-        feature_size=feature_size,
-        conv_size=8,
-        dense_size=16,
-        output_size=1,
-        n_layers_graph=6,
-        n_layers_node=3,
-        n_layers_output=2, 
-        pool=pool,
-        σ=NNlib.leakyrelu,
-        init = init,
-        device = device
-    ),
-    γ =  0.99f0
-    )
     agent_3 = get_heterogeneous_agent(;
     get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=n_nodes),        
     get_explorer = () -> get_epsilon_greedy_explorer(step_explorer, 0.05; rng = rngExp ),
@@ -1134,14 +1087,10 @@ function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episode
     γ =  0.99f0
     )
 
-    learned_heuristic_24 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_24; chosen_features=chosen_features)
-    learned_heuristic_6 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_6; chosen_features=chosen_features)
     learned_heuristic_3 = SeaPearl.SimpleLearnedHeuristic{SR_heterogeneous,reward,SeaPearl.FixedOutput}(agent_3; chosen_features=chosen_features)
 
     learnedHeuristics = OrderedDict(
         "3layer" => learned_heuristic_3,
-        #"6layer" => learned_heuristic_6,
-        #"24layer" => learned_heuristic_24,
     )
 
     variableHeuristic = SeaPearl.MinDomainVariableSelection{false}()
@@ -1163,6 +1112,7 @@ function transfert_graph_coloring_experiment(n_nodes, n_nodes_eval, k, n_episode
         exp_name=name *'_'* string(n_nodes) *"_"*string(n_nodes_eval) * "_" * string(n_episodes) * "_"* string(seedEval) * "_",
         eval_timeout=eval_timeout, 
         eval_generator=eval_coloring_generator,
+        device = device
     )
 
 end
