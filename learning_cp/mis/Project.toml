@@ -1,5 +1,4 @@
 [deps]
-ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 CircularArrayBuffers = "9de3a189-e0c0-4e15-ba3b-b14b9fb0aec1"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"

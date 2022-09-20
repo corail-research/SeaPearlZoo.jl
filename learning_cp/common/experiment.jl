@@ -10,153 +10,45 @@ using Dates
 using Random
 using LightGraphs
 using OrderedCollections
-using ArgParse
+using CircularArrayBuffers
+using PyCall
+using Pkg
+using TensorBoardLogger, Logging
 
-#####################
-# Argument Parsing
-#####################
-
-s = ArgParseSettings()
-@add_arg_table s begin
-    "--episode", "-e"
-    help = "number of episodes"
-    arg_type = Int
-    "--eval-freq", "-f"
-    help = "number of episodes between each evaluation."
-    arg_type = Int
-    "--instance", "-i"
-    help = "number of instances per evaluation."
-    arg_type = Int
-    "--restart"
-    help = "number of restart per instances."
-    arg_type = Int
-    "--random", "-r"
-    help = "number of random heuristic."
-    arg_type = Int
-    "--size", "-s"
-    help = "size of the problem."
-    arg_type = Int
-    "--batch-size"
-    help = "size of batches."
-    arg_type = Int
-    "--update-horizon"
-    help = "update horizon."
-    arg_type = Int
-    "--min-replay-history"
-    arg_type = Int
-    "--update-freq"
-    arg_type = Int
-    "--target-update-freq"
-    arg_type = Int
-    "--decay-steps"
-    arg_type = Int
-    "--capacity"
-    arg_type = Int
-    "--conv-size"
-    arg_type = Int
-    "--dense-size"
-    arg_type = Int
-    "--verbose"
-    help = "verbose output"
-    action = :store_true
-end
-
-args = parse_args(s)
-if !isnothing(args["episode"])
-    NB_EPISODES = args["episode"]
-end
-if !isnothing(args["eval-freq"])
-    EVAL_FREQ = args["eval-freq"]
-end
-if !isnothing(args["instance"])
-    NB_INSTANCES = args["instance"]
-end
-if !isnothing(args["random"])
-    NB_RANDOM_HEURISTICS = args["random"]
-end
-if !isnothing(args["restart"])
-    RESTART_PER_INSTANCES = args["restart"]
-end
-if !isnothing(args["size"])
-    SIZE = args["size"]
-end
-if !isnothing(args["batch-size"])
-    BATCH_SIZE = args["batch-size"]
-end
-if !isnothing(args["update-horizon"])
-    UPDATE_HORIZON = args["update-horizon"]
-end
-if !isnothing(args["min-replay-history"])
-    MIN_REPLAY_HISTORY = args["min-replay-history"]
-end
-if !isnothing(args["update-freq"])
-    UPDATE_FREQ = args["update-freq"]
-end
-if !isnothing(args["target-update-freq"])
-    TARGET_UPDATE_FREQ = args["target-update-freq"]
-end
-if !isnothing(args["decay-steps"])
-    DECAY_STEPS = args["decay-steps"]
-end
-if !isnothing(args["capacity"])
-    CAPACITY = args["capacity"]
-end
-if !isnothing(args["conv-size"])
-    CONV_SIZE = args["conv-size"]
-end
-if !isnothing(args["dense-size"])
-    DENSE_SIZE = args["dense-size"]
-end
-if args["verbose"]
-    VERBOSE = true
-end
+"""
+ENV["PYTHON"] = "/home/x86_64-unknown-linux_ol7-gnu/anaconda-2022.05/bin/python"
+using Pkg
+Pkg.build("PyCall")
+run(`$(PyCall.python) -m pip install matplotlib`)
+run(`$(PyCall.python) -m pip install pandas`)
+run(`$(PyCall.python) -m pip install seaborn`)
+run(`$(PyCall.python) -m pip install ipython`)
+"""
 
 # -------------------
 # -------------------
 # Core function
 # -------------------
 # -------------------
-using CircularArrayBuffers
 
-function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection, learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, expParameters=Dict{String,Any}()::Dict{String,Any}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int, eval_timeout=nothing::Union{Nothing, Int})
-    experienceTime = now()
-    dir = mkdir(string("exp_", exp_name, Base.replace("$(round(experienceTime, Dates.Second(3)))", ":" => "-")))
+function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPerInstances::Int=1, generator::SeaPearl.AbstractModelGenerator, variableHeuristic::SeaPearl.AbstractVariableSelection=SeaPearl.MinDomainVariableSelection{false}(), learnedHeuristics::OrderedDict{String,<:SeaPearl.LearnedHeuristic}, basicHeuristics::OrderedDict{String,SeaPearl.BasicHeuristic}, base_name="experiment"::String, exp_name=""::String, out_solver=true::Bool, verbose=false::Bool, nbRandomHeuristics=0::Int, eval_timeout=nothing::Union{Nothing, Int},  training_timeout=nothing::Union{Nothing, Int}, eval_every =nothing::Union{Nothing, Int}, eval_strategy=SeaPearl.DFSearch(), strategy = SeaPearl.DFSearch(), seedTraining = nothing::Union{Nothing, Int}, seedEval =  nothing, eval_generator=nothing, logger = nothing, device = cpu)
+
+
+    experienceTime = Base.replace("$(round(now(), Dates.Second(3)))", ":" => "-")
+    date = split(experienceTime, "T")[1]
+    time = split(experienceTime, "T")[2]
+    logger =TBLogger("tensorboard_logs/"*exp_name*date*"_"*time, min_level=Logging.Info)
+
+    if !isdir(date)
+        mkdir(date)
+    end
+    dir = mkdir(string(date, "/exp_", exp_name, time))
     lh = last(collect(values(learnedHeuristics)))
-    commonExpParameters = Dict(
-        :experimentParameters => Dict(
-            :nbEpisodes => nbEpisodes,
-            :restartPerInstances => restartPerInstances,
-            :evalFreq => evalFreq,
-            :nbInstances => nbInstances,
-        ),
-        :nbRandomHeuristics => nbRandomHeuristics,
-        :Featurization => Dict(
-            :featurizationType => typeof(lh).parameters[1].parameters[1],
-            :chosen_features => lh.chosen_features
-        ),
-        :learnerParameters => Dict(
-            :model => string(lh.agent.policy.learner.approximator.model),
-            :gamma => lh.agent.policy.learner.sampler.γ,
-            :batch_size => lh.agent.policy.learner.sampler.batch_size,
-            :update_horizon => lh.agent.policy.learner.sampler.n,
-            :min_replay_history => lh.agent.policy.learner.min_replay_history,
-            :update_freq => lh.agent.policy.learner.update_freq,
-            :target_update_freq => lh.agent.policy.learner.target_update_freq,
-        ),
-        :explorerParameters => Dict(
-            :ϵ_stable => lh.agent.policy.explorer.ϵ_stable,
-            :decay_steps => lh.agent.policy.explorer.decay_steps,
-        ),
-        :trajectoryParameters => Dict(
-            :trajectoryType => typeof(lh.agent.trajectory),
-            :capacity => CircularArrayBuffers.capacity(lh.agent.trajectory.traces.action) - 1
-        ),
-        :reward => typeof(lh).parameters[2]
-    )
-
-    expParameters = merge(expParameters, commonExpParameters)
-    open(dir * "/params.json", "w") do file
-        JSON.print(file, expParameters)
+    code_dir = mkdir(dir*"/code/")
+    for file in readdir(".")
+        if isfile(file)
+            cp(file, code_dir*file)
+        end
     end
 
     randomHeuristics = Array{SeaPearl.BasicHeuristic}(undef, 0)
@@ -166,21 +58,36 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
 
     valueSelectionArray = cat(collect(values(learnedHeuristics)), collect(values(basicHeuristics)), randomHeuristics, dims=1)
 
+    if !isnothing(eval_generator)
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, eval_generator; evalFreq=evalFreq, nbInstances=nbInstances, evalTimeOut = eval_timeout, rng = MersenneTwister(seedEval) )
+    else
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; evalFreq=evalFreq, nbInstances=nbInstances, evalTimeOut = eval_timeout, rng = MersenneTwister(seedEval))
+    end
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
         generator=generator,
         nbEpisodes=nbEpisodes,
-        strategy=SeaPearl.DFSearch(),
+        strategy=strategy,
+        eval_strategy = eval_strategy,
         variableHeuristic=variableHeuristic,
         out_solver=out_solver,
         verbose=verbose,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; evalFreq=evalFreq, nbInstances=nbInstances, evalTimeOut = eval_timeout),
-        restartPerInstances=restartPerInstances
+        evaluator = evaluator,
+        training_timeout = training_timeout,
+        restartPerInstances=restartPerInstances,
+        rngTraining = MersenneTwister(seedTraining), 
+        eval_every = eval_every, 
+        logger = logger,
+        device = device,
     )
 
     #saving model weights
     for (key, lh) in learnedHeuristics
-        model = lh.agent.policy.learner.approximator
+        if (hasfield(typeof(lh.agent.policy),:approximator)) #PPO
+            model = Flux.cpu(lh.agent.policy.approximator)
+        else #DQN
+            model = Flux.cpu(lh.agent.policy.learner.approximator)
+        end
         @save dir * "/model_" * key * ".bson" model
     end
 
@@ -202,6 +109,39 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
     for i = 1:nbRandomHeuristics
         SeaPearlExtras.storedata(eval_metricsArray[:, counter+i]; filename=dir * "/" * base_name * "_random$(i)")
     end
+
+    py"""
+    import sys
+    sys.path.insert(0, "/home/martom/SeaPearl/SeaPearlExtras.jl/src/metrics/basicmetrics/")
+    from benchmarkPy import *
+    import plots
+    import numpy as np
+    def benchmark(path):
+        print_all(path +"/")
+
+    def plot(path,eval):
+        plots.all(path +"/", window=100, estimator=np.mean, ilds= eval)
+    """
+
+    py"plot"(dir, eval_strategy != SeaPearl.DFSearch())
+
+    chosen_features = valueSelectionArray[1].chosen_features
+    feature_size = [6, 5, 2]
+
+    n = 10 # Number of instances to evaluate on
+    budget = 1000 # Budget of visited nodes
+    has_objective = false # Set it to true if we have to branch on the objective variable
+    include_dfs = (eval_strategy == SeaPearl.DFSearch()) # Set it to true if you want to evaluate with DFS in addition to ILDS
+    
+    selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
+    heuristic_min = SeaPearl.BasicHeuristic(selectMin)
+    basicHeuristics = OrderedDict(
+        "random" => SeaPearl.RandomHeuristic()
+        )
+    include("../common/benchmark.jl")
+    Base.invokelatest(benchmark, dir, n, chosen_features, has_objective, generator, basicHeuristics, include_dfs, budget; ILDS = eval_strategy)
+
+    py"benchmark"(dir)
 
     return metricsArray, eval_metricsArray
 end
