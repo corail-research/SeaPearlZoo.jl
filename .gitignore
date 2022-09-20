@@ -46,3 +46,6 @@ exp_*/
 
 # nohup output
 nohup*.out
+
+learning_cp/tsptw/old_exp/
+learning_cp/tsptw/TSPTW*
