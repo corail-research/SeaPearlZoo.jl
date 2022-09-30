@@ -133,12 +133,7 @@ function solve_tsptw_known_instance(distances, time_windows)
 
     SeaPearl.solve!(model; variableHeuristic=variableheuristic, valueSelection=valueheuristic)
 
-    solution_found = Int[]
-    for i in 1:(n_city-1)
-        push!(solution_found, model.solutions[end]["a_"*string(i)])
-    end
-
-    println("Solution: ", solution_found)
+    println("Solution: ", filter( x -> !isnothing(x),model.statistics.solutions)[end])
     println("Nodes visited: ", model.statistics.numberOfNodes)
 end
 solve_tsptw_known_instance(distances, time_windows)
