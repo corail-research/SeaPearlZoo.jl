@@ -93,13 +93,10 @@ function solve_tsptw(n_city=21)
     max_tw = 100
 
     generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw)
-
     dist, time_windows = SeaPearl.fill_with_generator!(model, generator)
-
     variableheuristic = TsptwVariableSelection{false}()
     my_heuristic(x::SeaPearl.IntVar) = minimum(x.domain)
     valueheuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> closest_city(x, dist, model))
-
     SeaPearl.solve!(model; variableHeuristic=variableheuristic, valueSelection=valueheuristic)
 
     solution_found = Int[]

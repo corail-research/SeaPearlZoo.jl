@@ -60,23 +60,24 @@ function model_queens(board_size::Int; benchmark=false, variableSelection=SeaPea
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
 
+    # rows[i] designates the row of queen in column i
     rows = Vector{SeaPearl.AbstractIntVar}(undef, board_size)
     for i = 1:board_size
         rows[i] = SeaPearl.IntVar(1, board_size, "row_"*string(i), trailer)
         SeaPearl.addVariable!(model, rows[i]; branchable=true)
     end
-
+    # diagonals from top left to bottom right
     rows_plus = Vector{SeaPearl.AbstractIntVar}(undef, board_size)
     for i = 1:board_size
         rows_plus[i] = SeaPearl.IntVarViewOffset(rows[i], i, rows[i].id*"+"*string(i))
     end
-
+    # diagonals top right to bottom left
     rows_minus = Vector{SeaPearl.AbstractIntVar}(undef, board_size)
     for i = 1:board_size
         rows_minus[i] = SeaPearl.IntVarViewOffset(rows[i], -i, rows[i].id*"-"*string(i))
     end
 
-    push!(model.constraints, SeaPearl.AllDifferent(rows, trailer))
+    push!(model.constraints, SeaPearl.AllDifferent(rows, trailer)) # All rows and columns are different - since rows are all different and queens are on different rows
     push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
     push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
 
@@ -222,3 +223,4 @@ and  SeaPearl.AllDifferent.
 function nb_solutions_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())::Int
     return(length(solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection).statistics.solutions))
 end
+
