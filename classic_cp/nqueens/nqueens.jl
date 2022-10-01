@@ -11,13 +11,18 @@ end
 VariableSelection heuristic that selects the legal (ie. among the not bounded ones) most centered Queen.
 """
 struct MostCenteredVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
-###constructor###
 MostCenteredVariableSelection(;take_objective = true) = MostCenteredVariableSelection{take_objective}()
 
 function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
     selectedVar = nothing
     n = length(cpmodel.variables)
-    sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> abs(n/2-parse(Int, match(r"[0-9]*$", x[1]).match)),rev=true)
+    branchable_variables = collect(SeaPearl.branchable_variables(cpmodel))
+    
+    sorted_dict = sort(
+        branchable_variables,
+        by=x -> abs(n/2 - parse(Int, match(r"[0-9]*$", x[1]).match)),
+        rev=true
+    )
     while !isempty(sorted_dict)
         selectedVar = pop!(sorted_dict)[2]
         if !(selectedVar == cpmodel.objective) && !SeaPearl.isbound(selectedVar)
@@ -31,7 +36,7 @@ function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)::Se
     return selectedVar
 end
 
-function (::MostCenteredVariableSelection{true})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
+function (::MostCenteredVariableSelection{true})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar # question: argument{true} ou {false} ?
     selectedVar = nothing
     n = length(cpmodel.variables)
     sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> abs(n/2-parse(Int, match(r"[0-9]*$", x[1]).match)),rev=true)
@@ -56,7 +61,7 @@ and  SeaPearl.AllDifferent (without solving it)
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}() can be set to MostCenteredVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
-function model_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function model_queens(board_size::Int)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
 
@@ -84,22 +89,22 @@ function model_queens(board_size::Int; benchmark=false, variableSelection=SeaPea
     return model
 end
 
-"""
-    solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+# """
+#     solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
 
-Solve the SeaPearl model for to the N-Queens problem, using SeaPearl.MinDomainVariableSelection heuristique
-and  SeaPearl.AllDifferent, and the function model_queens.
+# Solve the SeaPearl model for to the N-Queens problem, using SeaPearl.MinDomainVariableSelection heuristique
+# and  SeaPearl.AllDifferent, and the function model_queens.
 
-# Arguments
-- `board_size::Int`: dimension of the board
-- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
-- 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
-"""
-function solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    model = model_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
-    return model
-end
+# # Arguments
+# - `board_size::Int`: dimension of the board
+# - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
+# - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
+# """
+# function solve_queens(board_size::Int; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+#     model = model_queens(board_size::Int)
+#     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
+#     return model
+# end
 
 """
     solve_queens(model::SeaPearl.CPModel)
@@ -173,7 +178,7 @@ function print_queens(model::SeaPearl.CPModel; nb_sols=typemax(Int))
 end
 
 """
-    print_queens(board_size::Int; nb_sols=typemax(Int), benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+    print_queens(board_size::Int; nb_sols=typemax(Int), variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
 
 Print at max nb_sols solutions to the N-queens problems, N givern as the board_size entry.
 
@@ -183,7 +188,7 @@ Print at max nb_sols solutions to the N-queens problems, N givern as the board_s
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
-function print_queens(board_size::Int; nb_sols=typemax(Int), benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function print_queens(board_size::Int; nb_sols=typemax(Int), variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     model = solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection)
     variables = model.variables
     solutions = model.statistics.solutions
@@ -224,3 +229,6 @@ function nb_solutions_queens(board_size::Int; benchmark=false, variableSelection
     return(length(solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection).statistics.solutions))
 end
 
+base_model = model_queens(5)
+solved_model = solve_queens(base_model)
+a = 1
