@@ -1,9 +1,8 @@
 using SeaPearl
 
-#
 
 struct InputData
-    A::Matrix{Int} #number of lines
+    A::Matrix{Int}
 end
 
 """
@@ -14,7 +13,7 @@ The input file can come from the Latin DataGen in SeaPearl.
 
 # Arguments
 - `InputData`: Matrix containting the uncompleted game
-- 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will looks for all the solutions
+- 'limit' : Int, giving the number of solutions after which it will stop searching. If set to `nothing`, it will look for all solutions.
 """
 function model_latin(input::InputData; limit=1)
     trailer = SeaPearl.Trailer()
