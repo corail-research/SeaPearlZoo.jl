@@ -231,4 +231,4 @@ end
 
 base_model = model_queens(5)
 solved_model = solve_queens(base_model)
-a = 1
+print_queens(solved_model)
