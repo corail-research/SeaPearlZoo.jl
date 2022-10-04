@@ -89,23 +89,6 @@ function model_queens(board_size::Int)
     return model
 end
 
-# """
-#     solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-
-# Solve the SeaPearl model for to the N-Queens problem, using SeaPearl.MinDomainVariableSelection heuristique
-# and  SeaPearl.AllDifferent, and the function model_queens.
-
-# # Arguments
-# - `board_size::Int`: dimension of the board
-# - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
-# - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
-# """
-# function solve_queens(board_size::Int; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-#     model = model_queens(board_size::Int)
-#     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
-#     return model
-# end
-
 """
     solve_queens(model::SeaPearl.CPModel)
 
