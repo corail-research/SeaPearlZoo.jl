@@ -225,10 +225,10 @@ and  SeaPearl.AllDifferent.
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
-function nb_solutions_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())::Int
+function nb_solutions_queens(board_size::Int; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())::Int
     return(length(solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection).statistics.solutions))
 end
 
 base_model = model_queens(5)
 solved_model = solve_queens(base_model)
-a = 1
+print_queens(solved_model)
