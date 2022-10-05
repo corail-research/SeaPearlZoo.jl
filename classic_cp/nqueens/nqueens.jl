@@ -14,40 +14,61 @@ struct MostCenteredVariableSelection{TakeObjective} <: SeaPearl.AbstractVariable
 MostCenteredVariableSelection(;take_objective=true) = MostCenteredVariableSelection{take_objective}()
 
 function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
-    selectedVar = nothing
-    n = length(cpmodel.variables)
+    selected_variable = nothing
+    num_variables = length(cpmodel.variables)
     branchable_variables = collect(SeaPearl.branchable_variables(cpmodel))
     
-    sorted_dict = sort(
+    # sorted_variables will be of type Vector{Pair{String, SeaPearl.AbstractVar}}
+    # all elements of the sorted_variables Vector will contain the variable name in position 1
+    # and the variable in position 2
+    sorted_variables = sort(
         branchable_variables,
-        by=x -> abs(n/2 - parse(Int, match(r"[0-9]*$", x[1]).match)),
+        by=x -> get_centered_score(num_variables, x),
         rev=true
     )
-    while !isempty(sorted_dict)
-        selectedVar = pop!(sorted_dict)[2]
-        if !(selectedVar == cpmodel.objective) && !SeaPearl.isbound(selectedVar)
+    # Loop until an unbound variable is found
+    while !isempty(sorted_variables)
+        selected_variable = pop!(sorted_variables)[2] # as mentionned above, the second element is the variable
+        if !(selected_variable == cpmodel.objective) && !SeaPearl.isbound(selected_variable)
             break
         end
     end
 
-    if SeaPearl.isnothing(selectedVar) && !SeaPearl.isbound(cpmodel.objective)
+    if SeaPearl.isnothing(selected_variable) && !SeaPearl.isbound(cpmodel.objective)
         return cpmodel.objective
     end
-    return selectedVar
+    return selected_variable
 end
 
 function (::MostCenteredVariableSelection{true})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar # question: argument{true} ou {false} ?
-    selectedVar = nothing
-    n = length(cpmodel.variables)
-    sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> abs(n/2-parse(Int, match(r"[0-9]*$", x[1]).match)),rev=true)
+    selected_variable = nothing
+    num_variables = length(cpmodel.variables)
+    branchable_variables = collect(SeaPearl.branchable_variables(cpmodel))
+    sorted_variables = sort(
+        branchable_variables,
+        by = x -> get_centered_score(num_variables, x),
+        rev=true
+    )
+    # Loop until an unbound variable is found
     while true
-        selectedVar= pop!(sorted_dict)[2]
-        if !SeaPearl.isbound(selectedVar)
+        selected_variable= pop!(sorted_variables)[2]
+        if !SeaPearl.isbound(selected_variable)
             break
         end
     end
 
-    return selectedVar
+    return selected_variable
+end
+"""
+    get_centered_score(num_variables::Int, branchable_variable::Pair{String, SeaPearl.AbstractVar})::Float64
+Returns the centered score of a row; i.e. how close the queen is to the center of the board.
+"""
+function get_centered_score(num_variables::Int, branchable_variable::Pair{String, SeaPearl.AbstractVar})::Float64
+    variable_name::String = branchable_variable[1]
+    row_id::Int = parse(Int, match(r"[0-9]*$", variable_name).match)
+    centered_score::Float64 = abs(num_variables / 2 - row_id)
+    
+    return centered_score
 end
 
 """
@@ -100,7 +121,8 @@ Solve the SeaPearl model for to the N-Queens problem, using an existing model
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic().
 """
 function solve_queens(model::SeaPearl.CPModel; variableSelection=MostCenteredVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
+    # status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
+    status = SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
 end
 
