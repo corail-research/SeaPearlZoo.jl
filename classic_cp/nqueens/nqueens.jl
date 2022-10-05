@@ -89,23 +89,6 @@ function model_queens(board_size::Int)
     return model
 end
 
-# """
-#     solve_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-
-# Solve the SeaPearl model for to the N-Queens problem, using SeaPearl.MinDomainVariableSelection heuristique
-# and  SeaPearl.AllDifferent, and the function model_queens.
-
-# # Arguments
-# - `board_size::Int`: dimension of the board
-# - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
-# - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
-# """
-# function solve_queens(board_size::Int; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-#     model = model_queens(board_size::Int)
-#     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
-#     return model
-# end
-
 """
     solve_queens(model::SeaPearl.CPModel)
 
@@ -119,27 +102,6 @@ Solve the SeaPearl model for to the N-Queens problem, using an existing model
 function solve_queens(model::SeaPearl.CPModel; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
-end
-
-"""
-    outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
-
-Shows the results of the N-Queens problem as type OutputDataQueens.
-
-# Arguments
-- `model::SeaPearl.CPModel`: needs the model to be already solved (by solve_queens)
-"""
-function outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
-    solutions = model.statistics.solutions
-    nb_sols = length(solutions)
-    n = length(model.variables)
-    indices = Matrix{Int}(undef, n, nb_sols)
-    for (key,sol) in solutions
-        for i in 1:n
-            indices[i, key]= sol["row_"*string(i)]
-        end
-    end
-    return OutputDataQueens(nb_sols, indices)
 end
 
 """
@@ -177,42 +139,6 @@ function print_queens(model::SeaPearl.CPModel; nb_sols=typemax(Int))
     end
 end
 
-"""
-    print_queens(board_size::Int; nb_sols=typemax(Int), variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-
-Print at max nb_sols solutions to the N-queens problems, N givern as the board_size entry.
-
-# Arguments
-- `board_size::Int`: dimension of the board
-- 'nb_sols::Int' : maximum number of solutions to print
-- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
-- 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
-"""
-function print_queens(board_size::Int; nb_sols=typemax(Int), variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    model = solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection)
-    variables = model.variables
-    solutions = model.statistics.solutions
-    count = 0
-    real_solutions = filter(e -> !isnothing(e),solutions)
-    println("The solver found "*string(length(real_solutions))*" solutions to the "*string(board_size)*"-queens problem. Let's show them.")
-    println()
-    for key in keys(real_solutions)
-        if(count >= nb_sols)
-            break
-        end
-        println("Solution "*string(count+1))
-        count +=1
-        sol = real_solutions[key]
-        for i in 1:board_size
-            ind_queen = sol["row_"*string(i)]
-            for j in 1:board_size
-                if (j==ind_queen) print("Q ") else print("_ ") end
-            end
-            println()
-        end
-        println()
-    end
-end
 
 """
     nb_solutions_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())::Int
@@ -232,3 +158,4 @@ end
 base_model = model_queens(5)
 solved_model = solve_queens(base_model)
 print_queens(solved_model)
+a=1
