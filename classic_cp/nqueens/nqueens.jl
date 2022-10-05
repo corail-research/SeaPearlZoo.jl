@@ -11,7 +11,7 @@ end
 VariableSelection heuristic that selects the legal (ie. among the not bounded ones) most centered Queen.
 """
 struct MostCenteredVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
-MostCenteredVariableSelection(;take_objective = true) = MostCenteredVariableSelection{take_objective}()
+MostCenteredVariableSelection(;take_objective=true) = MostCenteredVariableSelection{take_objective}()
 
 function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
     selectedVar = nothing
@@ -83,8 +83,8 @@ function model_queens(board_size::Int)
     end
 
     push!(model.constraints, SeaPearl.AllDifferent(rows, trailer)) # All rows and columns are different - since rows are all different and queens are on different rows
-    push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
-    push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
+    push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer)) 
+    push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer)) 
 
     return model
 end
@@ -99,7 +99,7 @@ Solve the SeaPearl model for to the N-Queens problem, using an existing model
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}().
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic().
 """
-function solve_queens(model::SeaPearl.CPModel; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function solve_queens(model::SeaPearl.CPModel; variableSelection=MostCenteredVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
 end
