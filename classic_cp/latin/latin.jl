@@ -1,37 +1,39 @@
 using SeaPearl
 
 
-struct InputData
-    A::Matrix{Int}
-end
-
 """
-    model_latin(input_file; limit=1)
+    model_latin(matrix::Matrix{int}; limit=1)
 
 return the SeaPearl model for to the Latin completion problem using SeaPearl.AllDifferent
 The input file can come from the Latin DataGen in SeaPearl.
 
 # Arguments
-- `InputData`: Matrix containting the uncompleted game
+- `square`: square matrix representing the incomplete latin square. Incomplete tiles are represented as 0
 - 'limit' : Int, giving the number of solutions after which it will stop searching. If set to `nothing`, it will look for all solutions.
+
 """
-function model_latin(input::InputData; limit=1)
+function model_latin(matrix::Matrix{Int}; limit=1)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
-    A = InputData.A
-    N = size(A)[1]
-    puzzle = Matrix{SeaPearl.AbstractIntVar}(undef, N,N)
+    
+    N = size(matrix)[1]
+    puzzle = Matrix{SeaPearl.AbstractIntVar}(undef, N, N)
     for i = 1:N
         for j in 1:N
-            puzzle[i,j] = SeaPearl.IntVar(1, N, "puzzle_"*string(i)*","*string(j), trailer)
-            SeaPearl.addVariable!(cpmodel, puzzle[i,j]; branchable=true)
-            if A[i,j]>0 push!(model.constraints,SeaPearl.EqualConstant(puzzle[i,j], A[i,j], trailer)) end
+            puzzle[i, j] = SeaPearl.IntVar(1, N, "puzzle_"*string(i)*", "*string(j), trailer)
+            SeaPearl.addVariable!(model, puzzle[i,j]; branchable=true)
+            if matrix[i, j] > 0 
+                push!(
+                    model.constraints,
+                    SeaPearl.EqualConstant(puzzle[i,j], matrix[i,j], trailer)
+                ) 
+            end
         end
     end
     for i in 1:N
-        push!(cpmodel.constraints, SeaPearl.AllDifferent(puzzle[i,:], cpmodel.trailer))
-        push!(cpmodel.constraints, SeaPearl.AllDifferent(puzzle[:,i], cpmodel.trailer))
+        push!(model.constraints, SeaPearl.AllDifferent(puzzle[i,:], model.trailer))
+        push!(model.constraints, SeaPearl.AllDifferent(puzzle[:,i], model.trailer))
     end
     return model
 end
@@ -64,7 +66,7 @@ function print_latin(model)
     n = oftype(1,sqrt(length(sol)))
     tableau = Matrix{Int}(undef,n,n)
     for i in 1:n, j in 1:n
-        tableau[i, j]= sol["puzzle_"*string(i)*","*string(j)]
+        tableau[i, j]= sol["puzzle_"*string(i)*", "*string(j)]
     end
     print(" ")
     for k in 1:5*n
@@ -84,3 +86,9 @@ function print_latin(model)
         print("-")
     end
 end
+
+tile::Matrix{Int} = zeros(Int64, (3, 3))
+model = model_latin(tile)
+solved_model = solve_latin!(model)
+print_latin(solved_model)
+a = 1   

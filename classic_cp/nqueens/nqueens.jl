@@ -121,8 +121,7 @@ Solve the SeaPearl model for to the N-Queens problem, using an existing model
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic().
 """
 function solve_queens(model::SeaPearl.CPModel; variableSelection=MostCenteredVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    # status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
-    status = SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
+    status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
 end
 
