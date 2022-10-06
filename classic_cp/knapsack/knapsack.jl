@@ -1,220 +1,104 @@
 using SeaPearl
-
-struct Item
-    id      :: Int
-    value   :: Int
-    weight  :: Int
-end
-
-mutable struct Solution
-    content     :: AbstractArray{Bool}
-    value       :: Int
-    weight      :: Int
-    optimality  :: Bool
-end
-
-struct InputData
-    items               :: AbstractArray{Union{Item, Nothing}}
-    sortedItems         :: AbstractArray{Union{Item, Nothing}}
-    numberOfItems       :: Int
-    capacity            :: Int
-end
-
 include("IOmanager.jl")
 
+"""build_model_and_solve_knapsack(data::InputData; benchmark=false)
+builds knapsack model based on input data provided and returns model
 
-function solve_knapsack(filename::String; benchmark=false)
-    
-    input = parseFile!(filename)
-
-    permutation = sortperm(input.items; by=(x) -> x.value/x.weight, rev=true)
-
-    n = input.numberOfItems
-
+"""
+function build_model_and_solve_knapsack(data::InputData; benchmark=false)::SeaPearl.CPModel
+    sorted_relative_value = sortperm(data.items; by=(x) -> x.value/x.weight, rev=true) # sort items by relative value
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
-
-    ### Variable declaration ###
-    x_s = SeaPearl.IntVar[]
-    x_a = SeaPearl.IntVar[]
-    for i in 1:n
-        push!(x_s, SeaPearl.IntVar(0, input.capacity, "x_s[" * string(i) * "]", trailer))
-        push!(x_a, SeaPearl.IntVar(0, 1, "x_a[" * string(i) * "]", trailer))
-        SeaPearl.addVariable!(model, last(x_s))
-        SeaPearl.addVariable!(model, last(x_a))
-    end
-
-    push!(x_s, SeaPearl.IntVar(0, input.capacity, "x_s[" * string(n+1) * "]", trailer))
-    SeaPearl.addVariable!(model, last(x_s))
-
-
-    ### Constraints ###
-    # Initial state: x_s[1] = 0
-    initial = SeaPearl.EqualConstant(x_s[1], 0, trailer)
-    push!(model.constraints, initial)
-
-    # Transition: x_s[i+1] = x_s[i] + w[i]*x_a[i]
-    for i in 1:n
-        w_x_a_i = SeaPearl.IntVarViewMul(x_a[i], input.items[permutation[i]].weight, "w["*string(i)*"]*x_a["*string(i)*"]")
-        minusX_s = SeaPearl.IntVarViewOpposite(x_s[i+1], "-x_s["*string(i+1)*"]")
-        SeaPearl.addVariable!(model, w_x_a_i)
-        SeaPearl.addVariable!(model, minusX_s)
-        vars = SeaPearl.AbstractIntVar[w_x_a_i, minusX_s, x_s[i]]
-        transition = SeaPearl.SumToZero(vars, trailer)
-        push!(model.constraints, transition)
-    end
-
-    ### Objective ### minimize: -sum(v[i]*x_a[i])
-    vars = SeaPearl.AbstractIntVar[]
-    maxValue = 0
-    for i in 1:n
-        vx_a_i = SeaPearl.IntVarViewMul(x_a[i], input.items[permutation[i]].value, "v["*string(i)*"]*x_a["*string(i)*"]")
-        push!(vars, vx_a_i)
-        maxValue += input.items[permutation[i]].value
-    end
-    y = SeaPearl.IntVar(-maxValue, 0, "y", trailer)
-    SeaPearl.addVariable!(model, y)
-    push!(vars, y)
-    objective = SeaPearl.SumToZero(vars, trailer)
-    push!(model.constraints, objective)
-    SeaPearl.addObjective!(model, y)
-
-
-
-    status = SeaPearl.solve!(model)
-
-    if !benchmark
-        print(status)
-        for oneSolution in model.statistics.solutions
-            if !isnothing(oneSolution)
-                output = solutionFromSeaPearl(oneSolution, input, permutation)
-                printSolution(output)
-            end
-        end
-    end
-    return status
+    model = build_knapsack_model!(data, sorted_relative_value, model, trailer)
+    status = SeaPearl.solve!(model; variableHeuristic=VariableSelection{true}())
+    
+    return model
 end
 
-function solve_knapsack_without_dp(filename::String; benchmark=false)
-    input = parseFile!(filename)
+"""
+    build_knapsack_model!(data::InputData, sorted_relative_value::Vector{Int64}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+Returns a model with variables, constraints and objective of a knapsack problem, defined by the contents of the "data" argument
 
-    permutation = sortperm(input.items; by=(x) -> x.value/x.weight, rev=true)
-
-    n = input.numberOfItems
-
-    trailer = SeaPearl.Trailer()
-    model = SeaPearl.CPModel(trailer)
-
-    ### Variable declaration ###
-    x = SeaPearl.IntVar[]
-    for i in 1:n
-        push!(x, SeaPearl.IntVar(0, 1, "x[" * string(i) * "]", trailer))
-        SeaPearl.addVariable!(model, last(x))
+# Args:
+- data:: InputData. Data loaded from sample datasets available in SeaPearlZoo/classic_cp/knapsack/data. The helper function parseFile!
+  is useful to load these datasets in the proper format 
+- sorted_relative_value:: Vector{Int64}. Contains the index of the items in data ^, after they were sorted by relative weight 
+- model::CPModel. empty model that will be built 
+- trailer::SeaPearl.Trailer. trailer
+"""
+function build_knapsack_model!(data::InputData, sorted_relative_value::Vector{Int64}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    num_items = data.numberOfItems
+    # =========VARIABLES=========
+    # add variables representing item selection
+    item_selection = SeaPearl.IntVar[]
+    for i in 1: num_items
+        push!(item_selection, SeaPearl.IntVar(0, 1, "item[" * string(i) * "]", trailer))
+        SeaPearl.addVariable!(model, last(item_selection))
     end
-
-
-    ### Constraints ###
-
-    # Creating the totalWeight variable
-    varsWeight = SeaPearl.AbstractIntVar[]
-    maxWeight = 0
-    for i in 1:n
-        wx_i = SeaPearl.IntVarViewMul(x[i], input.items[permutation[i]].weight, "w["*string(i)*"]*x["*string(i)*"]")
-        push!(varsWeight, wx_i)
-        maxWeight += input.items[permutation[i]].weight
+    # add variables representing the weight of the item in the knapsack. If the item is not selected, the variable associated to this item will have 
+    # a value of zero
+    item_weight_in_knapsack = SeaPearl.AbstractIntVar[]
+    max_weight = 0
+    for i in 1:num_items
+        current_item_index = sorted_relative_value[i]
+        current_item = data.items[current_item_index]
+        current_item_weight_in_knapsack = SeaPearl.IntVarViewMul(item_selection[i], current_item.weight, "weight_item["*string(i)*"]")
+        push!(item_weight_in_knapsack, current_item_weight_in_knapsack)
+        max_weight += current_item.weight
     end
-    totalWeight = SeaPearl.IntVar(0, maxWeight, "totalWeight", trailer)
-    minusTotalWeight = SeaPearl.IntVarViewOpposite(totalWeight, "-totalWeight")
-    SeaPearl.addVariable!(model, totalWeight)
-    SeaPearl.addVariable!(model, minusTotalWeight)
-    push!(varsWeight, minusTotalWeight)
-    weightEquality = SeaPearl.SumToZero(varsWeight, trailer)
-    push!(model.constraints, weightEquality)
+    total_weight = SeaPearl.IntVar(0, max_weight, "total_weight", trailer) # total weight of items in knapsack
+    negative_total_weight = SeaPearl.IntVarViewOpposite(total_weight, "-total_weight") # -1 * total_weight; necessary because the solver can only minimize objectives
+    SeaPearl.addVariable!(model, total_weight)
+    SeaPearl.addVariable!(model, negative_total_weight)
+    push!(item_weight_in_knapsack, negative_total_weight) # added to array to later add a constraint that the sum of the array's elements == 0
 
-    # Making sure it is below the capacity
-    weightConstraint = SeaPearl.LessOrEqualConstant(totalWeight, input.capacity, trailer)
-    push!(model.constraints, weightConstraint)
-
-
-
-    ### Objective ### minimize: -sum(v[i]*x_a[i])
-
-    # Creating the sum
-    varsValue = SeaPearl.AbstractIntVar[]
-    maxValue = 0
-    for i in 1:n
-        vx_i = SeaPearl.IntVarViewMul(x[i], input.items[permutation[i]].value, "v["*string(i)*"]*x["*string(i)*"]")
-        push!(varsValue, vx_i)
-        maxValue += input.items[permutation[i]].value
+    item_value_in_knapsack = SeaPearl.AbstractIntVar[]
+    max_value = 0
+    for i in 1:num_items
+        current_item_index = sorted_relative_value[i]
+        current_item = data.items[current_item_index]
+        current_item_value = SeaPearl.IntVarViewMul(item_selection[i], current_item.value, "value_item["*string(i)*"]")
+        push!(item_value_in_knapsack, current_item_value)
+        max_value += current_item.value
     end
-    totalValue = SeaPearl.IntVar(-maxValue, 0, "totalValue", trailer)
-    SeaPearl.addVariable!(model, totalValue)
-    push!(varsValue, totalValue)
-    valueEquality = SeaPearl.SumToZero(varsValue, trailer)
+    total_value = SeaPearl.IntVar(-max_value, 0, "totalValue", trailer)
+    SeaPearl.addVariable!(model, total_value)
+    push!(item_value_in_knapsack, total_value)
+
+    # =========CONSTRAINTS=========
+    
+    # consistency of negative weight in knapsack
+    weight_sums_to_zero = SeaPearl.SumToZero(item_weight_in_knapsack, trailer)
+    push!(model.constraints, weight_sums_to_zero)
+    # weight below max capacity
+    weight_constraint = SeaPearl.LessOrEqualConstant(total_weight, data.capacity, trailer) 
+    push!(model.constraints, weight_constraint)
+    # consistency of negative value variable in knapsack
+    valueEquality = SeaPearl.SumToZero(item_value_in_knapsack, trailer)
     push!(model.constraints, valueEquality)
 
-    # Setting it as the objective
-    SeaPearl.addObjective!(model, totalValue)
-
-
-
-    status = SeaPearl.solve!(model; variableHeuristic=selectVariableWithoutDP)
-
-    if !benchmark
-        print(status)
-        for oneSolution in model.statistics.solutions
-            output = solutionFromSeaPearlWithoutDP(oneSolution, input, permutation)
-            printSolution(output)
-        end
-    end
-    return status
+    # =========OBJECTIVE=========
+    SeaPearl.addObjective!(model, total_value)
+    
+    return model
 end
 
-function selectVariable(model::SeaPearl.CPModel)
+struct VariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
+VariableSelection(;take_objective=true) = VariableSelection{take_objective}() # question: take_objective ???
+
+"""(::VariableSelection{true})(model::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
+
+
+"""
+function (::VariableSelection{true})(model::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
     i = 1
-    while SeaPearl.isbound(model.variables["x_a[" * string(i) * "]"])
+    while SeaPearl.isbound(model.variables["item[" * string(i) * "]"])
         i += 1
     end
-    return model.variables["x_a[" * string(i) * "]"]
+    return model.variables["item[" * string(i) * "]"]
 end
 
-function selectVariableWithoutDP(model::SeaPearl.CPModel)
-    i = 1
-    while SeaPearl.isbound(model.variables["x[" * string(i) * "]"])
-        i += 1
-    end
-    return model.variables["x[" * string(i) * "]"]
-end
+input_data = parseFile!("./data/ks_4_0")
+model = build_model_and_solve_knapsack(input_data)
 
-function solutionFromSeaPearl(SeaPearlSol::SeaPearl.Solution, input::InputData, permutation::Array{Int})
-    taken = falses(input.numberOfItems)
-    value = 0
-    weight = 0
-    for i in 1:input.numberOfItems
-        if haskey(SeaPearlSol, "x_a[" * string(i) * "]")
-            taken[permutation[i]] = convert(Bool, SeaPearlSol["x_a[" * string(i) * "]"])
-            if taken[permutation[i]]
-                value += input.items[permutation[i]].value
-                weight += input.items[permutation[i]].weight
-            end
-        end
-    end
-    return Solution(taken, value, weight, false)
-end
-
-
-function solutionFromSeaPearlWithoutDP(SeaPearlSol::SeaPearl.Solution, input::InputData, permutation::Array{Int})
-    taken = falses(input.numberOfItems)
-    value = 0
-    weight = 0
-    for i in 1:input.numberOfItems
-        if haskey(SeaPearlSol, "x[" * string(i) * "]")
-            taken[permutation[i]] = convert(Bool, SeaPearlSol["x[" * string(i) * "]"])
-            if taken[permutation[i]]
-                value += input.items[permutation[i]].value
-                weight += input.items[permutation[i]].weight
-            end
-        end
-    end
-    return Solution(taken, value, weight, false)
-end
+# TODO: print output

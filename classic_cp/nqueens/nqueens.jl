@@ -11,43 +11,64 @@ end
 VariableSelection heuristic that selects the legal (ie. among the not bounded ones) most centered Queen.
 """
 struct MostCenteredVariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
-MostCenteredVariableSelection(;take_objective = true) = MostCenteredVariableSelection{take_objective}()
+MostCenteredVariableSelection(;take_objective=true) = MostCenteredVariableSelection{take_objective}()
 
 function (::MostCenteredVariableSelection{false})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
-    selectedVar = nothing
-    n = length(cpmodel.variables)
+    selected_variable = nothing
+    num_variables = length(cpmodel.variables)
     branchable_variables = collect(SeaPearl.branchable_variables(cpmodel))
     
-    sorted_dict = sort(
+    # sorted_variables will be of type Vector{Pair{String, SeaPearl.AbstractVar}}
+    # all elements of the sorted_variables Vector will contain the variable name in position 1
+    # and the variable in position 2
+    sorted_variables = sort(
         branchable_variables,
-        by=x -> abs(n/2 - parse(Int, match(r"[0-9]*$", x[1]).match)),
+        by=x -> get_centered_score(num_variables, x),
         rev=true
     )
-    while !isempty(sorted_dict)
-        selectedVar = pop!(sorted_dict)[2]
-        if !(selectedVar == cpmodel.objective) && !SeaPearl.isbound(selectedVar)
+    # Loop until an unbound variable is found
+    while !isempty(sorted_variables)
+        selected_variable = pop!(sorted_variables)[2] # as mentionned above, the second element is the variable
+        if !(selected_variable == cpmodel.objective) && !SeaPearl.isbound(selected_variable)
             break
         end
     end
 
-    if SeaPearl.isnothing(selectedVar) && !SeaPearl.isbound(cpmodel.objective)
+    if SeaPearl.isnothing(selected_variable) && !SeaPearl.isbound(cpmodel.objective)
         return cpmodel.objective
     end
-    return selectedVar
+    return selected_variable
 end
 
 function (::MostCenteredVariableSelection{true})(cpmodel::SeaPearl.CPModel)::SeaPearl.AbstractIntVar # question: argument{true} ou {false} ?
-    selectedVar = nothing
-    n = length(cpmodel.variables)
-    sorted_dict = sort(collect(SeaPearl.branchable_variables(cpmodel)),by = x -> abs(n/2-parse(Int, match(r"[0-9]*$", x[1]).match)),rev=true)
+    selected_variable = nothing
+    num_variables = length(cpmodel.variables)
+    branchable_variables = collect(SeaPearl.branchable_variables(cpmodel))
+    sorted_variables = sort(
+        branchable_variables,
+        by = x -> get_centered_score(num_variables, x),
+        rev=true
+    )
+    # Loop until an unbound variable is found
     while true
-        selectedVar= pop!(sorted_dict)[2]
-        if !SeaPearl.isbound(selectedVar)
+        selected_variable= pop!(sorted_variables)[2]
+        if !SeaPearl.isbound(selected_variable)
             break
         end
     end
 
-    return selectedVar
+    return selected_variable
+end
+"""
+    get_centered_score(num_variables::Int, branchable_variable::Pair{String, SeaPearl.AbstractVar})::Float64
+Returns the centered score of a row; i.e. how close the queen is to the center of the board.
+"""
+function get_centered_score(num_variables::Int, branchable_variable::Pair{String, SeaPearl.AbstractVar})::Float64
+    variable_name::String = branchable_variable[1]
+    row_id::Int = parse(Int, match(r"[0-9]*$", variable_name).match)
+    centered_score::Float64 = abs(num_variables / 2 - row_id)
+    
+    return centered_score
 end
 
 """
@@ -83,8 +104,8 @@ function model_queens(board_size::Int)
     end
 
     push!(model.constraints, SeaPearl.AllDifferent(rows, trailer)) # All rows and columns are different - since rows are all different and queens are on different rows
-    push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer))
-    push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer))
+    push!(model.constraints, SeaPearl.AllDifferent(rows_plus, trailer)) 
+    push!(model.constraints, SeaPearl.AllDifferent(rows_minus, trailer)) 
 
     return model
 end
@@ -99,30 +120,9 @@ Solve the SeaPearl model for to the N-Queens problem, using an existing model
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}().
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic().
 """
-function solve_queens(model::SeaPearl.CPModel; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function solve_queens(model::SeaPearl.CPModel; variableSelection=MostCenteredVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
-end
-
-"""
-    outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
-
-Shows the results of the N-Queens problem as type OutputDataQueens.
-
-# Arguments
-- `model::SeaPearl.CPModel`: needs the model to be already solved (by solve_queens)
-"""
-function outputFromSeaPearl(model::SeaPearl.CPModel; optimality=false)
-    solutions = model.statistics.solutions
-    nb_sols = length(solutions)
-    n = length(model.variables)
-    indices = Matrix{Int}(undef, n, nb_sols)
-    for (key,sol) in solutions
-        for i in 1:n
-            indices[i, key]= sol["row_"*string(i)]
-        end
-    end
-    return OutputDataQueens(nb_sols, indices)
 end
 
 """
@@ -160,42 +160,6 @@ function print_queens(model::SeaPearl.CPModel; nb_sols=typemax(Int))
     end
 end
 
-"""
-    print_queens(board_size::Int; nb_sols=typemax(Int), variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-
-Print at max nb_sols solutions to the N-queens problems, N givern as the board_size entry.
-
-# Arguments
-- `board_size::Int`: dimension of the board
-- 'nb_sols::Int' : maximum number of solutions to print
-- 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
-- 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
-"""
-function print_queens(board_size::Int; nb_sols=typemax(Int), variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    model = solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection)
-    variables = model.variables
-    solutions = model.statistics.solutions
-    count = 0
-    real_solutions = filter(e -> !isnothing(e),solutions)
-    println("The solver found "*string(length(real_solutions))*" solutions to the "*string(board_size)*"-queens problem. Let's show them.")
-    println()
-    for key in keys(real_solutions)
-        if(count >= nb_sols)
-            break
-        end
-        println("Solution "*string(count+1))
-        count +=1
-        sol = real_solutions[key]
-        for i in 1:board_size
-            ind_queen = sol["row_"*string(i)]
-            for j in 1:board_size
-                if (j==ind_queen) print("Q ") else print("_ ") end
-            end
-            println()
-        end
-        println()
-    end
-end
 
 """
     nb_solutions_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())::Int
@@ -208,7 +172,7 @@ and  SeaPearl.AllDifferent.
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
 """
-function nb_solutions_queens(board_size::Int; benchmark=false, variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())::Int
+function nb_solutions_queens(board_size::Int; variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())::Int
     return(length(solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection).statistics.solutions))
 end
 
