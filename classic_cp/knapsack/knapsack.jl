@@ -98,21 +98,7 @@ function (::VariableSelection{true})(model::SeaPearl.CPModel)::SeaPearl.Abstract
     return model.variables["item[" * string(i) * "]"]
 end
 
-# function solutionFromSeaPearlWithoutDP(SeaPearlSol::SeaPearl.Solution, data::InputData, sorted_relative_value::Array{Int})
-#     taken = falses(data.numberOfItems)
-#     value = 0
-#     weight = 0
-#     for i in 1:data.numberOfItems
-#         if haskey(SeaPearlSol, "x[" * string(i) * "]")
-#             taken[sorted_relative_value[i]] = convert(Bool, SeaPearlSol["x[" * string(i) * "]"])
-#             if taken[sorted_relative_value[i]]
-#                 value += data.items[sorted_relative_value[i]].value
-#                 weight += data.items[sorted_relative_value[i]].weight
-#             end
-#         end
-#     end
-#     return Solution(taken, value, weight, false)
-# end
-
 input_data = parseFile!("./data/ks_4_0")
-build_model_and_solve_knapsack(input_data)
+model = build_model_and_solve_knapsack(input_data)
+
+# TODO: print output
