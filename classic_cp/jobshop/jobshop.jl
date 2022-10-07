@@ -1,14 +1,6 @@
 using SeaPearl
-
 include("IOmanager.jl")
 
-struct InputData
-    numberOfMachines   :: Int
-    numberOfJobs       :: Int
-    maxTime            :: Int
-    job_times          :: Matrix{Int}
-    job_order          :: Matrix{Int}
-end
 
 """
 solve_jobshop(filename::String)
@@ -34,7 +26,6 @@ function solve_jobshop(filename::String)
     # TODO fix problem with Disjunctive constraint (change IntVar for AbstractIntVar)
 
     ### Initialization ###
-
     inputData = getInputData(filename)
     numberOfMachines = inputData.numberOfMachines   
     numberOfJobs = inputData.numberOfJobs       
@@ -96,7 +87,6 @@ function solve_jobshop(filename::String)
     # TODO? use (n*m - 1) binaryMax constraints to get max value of job_ends 
 
     ### Solve ###
-
     model.limit.numberOfSolutions = 1
     model.limit.searchingTime = 60
     my_heuristic(x::SeaPearl.IntVar; cpmodel=nothing) = minimum(x.domain)
@@ -105,41 +95,5 @@ function solve_jobshop(filename::String)
 
 end
 
-"""
-print_solution(solved_model::SeaPearl.CPModel)
-
-Print solutions found by `solve_jobshop()`
-
-# Print format
-- Job start
-    job_start[i, j] = 33 => job i starts on machine j at time = 33
-- Job end
-    job_end[i, j] = 54 => job i ends on machine j at time = 54
-"""
-function print_solution(solved_model::SeaPearl.CPModel)
-    solutions = solved_model.statistics.solutions
-    realSolutions = filter(e -> !isnothing(e),solutions)
-    numberOfMachines = solved_model.adhocInfo["numberOfMachines"]
-    numberOfJobs = solved_model.adhocInfo["numberOfJobs"] 
-
-    for solution in realSolutions
-        println("Job start: ")
-        for i in 1:numberOfJobs
-            for j in 1:numberOfMachines
-                id = "job_start_"*string(i)*"_"*string(j)
-                val = string(solution[id])
-                print(val*" ")
-            end
-            println()
-        end
-        println("Job end: ")
-        for i in 1:numberOfJobs
-            for j in 1:numberOfMachines
-                id = "job_end_"*string(i)*"_"*string(j)
-                val = string(solution[id])
-                print(val*" ")
-            end
-            println()
-        end
-    end
-end
+solved_model = solve_jobshop("./data/js_3_3")
+print_solution(solved_model)
