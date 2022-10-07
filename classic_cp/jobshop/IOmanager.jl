@@ -1,3 +1,11 @@
+struct InputData
+    numberOfMachines   :: Int
+    numberOfJobs       :: Int
+    maxTime            :: Int
+    job_times          :: Matrix{Int}
+    job_order          :: Matrix{Int}
+end
+
 function getInputData(filename::String)
     inputData = nothing
     if filename == ""
@@ -29,4 +37,43 @@ function parseInput(raw_input)
     end
 
     return InputData(numberOfMachines, numberOfJobs, maxTime, job_times, job_order)
+end
+
+"""
+print_solution(solved_model::SeaPearl.CPModel)
+
+Print solutions found by `solve_jobshop()`
+
+# Print format
+- Job start
+    job_start[i, j] = 33 => job i starts on machine j at time = 33
+- Job end
+    job_end[i, j] = 54 => job i ends on machine j at time = 54
+"""
+function print_solution(solved_model::SeaPearl.CPModel)
+    solutions = solved_model.statistics.solutions
+    realSolutions = filter(e -> !isnothing(e),solutions)
+    numberOfMachines = solved_model.adhocInfo["numberOfMachines"]
+    numberOfJobs = solved_model.adhocInfo["numberOfJobs"] 
+
+    for solution in realSolutions
+        println("Job start: ")
+        for i in 1:numberOfJobs
+            for j in 1:numberOfMachines
+                id = "job_start_"*string(i)*"_"*string(j)
+                val = string(solution[id])
+                print(val*" ")
+            end
+            println()
+        end
+        println("Job end: ")
+        for i in 1:numberOfJobs
+            for j in 1:numberOfMachines
+                id = "job_end_"*string(i)*"_"*string(j)
+                val = string(solution[id])
+                print(val*" ")
+            end
+            println()
+        end
+    end
 end
