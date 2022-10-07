@@ -1,3 +1,9 @@
+struct InputData
+    numberOfPairs         :: Int
+    density               :: Float16
+    compatibilities       :: Vector{Vector{Int}}
+end
+
 """
 parseInput(raw_input)
 
@@ -57,3 +63,6 @@ function getInputData(filename::String)
     end
     return inputData
 end
+
+data = getInputData("./data/kep_8_0.2")
+a = 1
