@@ -140,6 +140,66 @@ function print_solutions_matrix(solved_model::SeaPearl.CPModel; max_nb_sols=noth
 end
 
 """
+print_solutions_vector(solved_model::SeaPearl.CPModel; max_nb_sols=nothing)
+By default, print all solutions (in vector form and as a set of cycles) calculated by solve_kidneyexchange_vector()
+If `max_nb_sols` is setted, we print only `max_nb_sols` best solutions
+If `isReduced` is true, `print_pairsEquivalence()` is called
+# Print format (for each solution)
+- vector form
+    v[i] = j => pair j receive a kidney from pair i
+- set of cycles form
+    4 -> 7 -> 1 => pair 4 gives a kidney to pair 7, pair 7 gives a kidney to pair 1 and pair 1 gives a kidney to pair 4
+"""
+function print_solutions_vector(solved_model::SeaPearl.CPModel; max_nb_sols=nothing)
+    #Filter solutions to remove "nothing" 
+    solutions = solved_model.statistics.solutions
+    if isdefined(solved_model, :adhocInfo)
+        isReduced = true
+        pairsEquivalence = solved_model.adhocInfo
+    else
+        isReduced = false
+        pairsEquivalence = nothing
+    end
+    numberOfPairs = trunc(Int, length(solved_model.variables) - 1)
+    realSolutions = filter(e -> !isnothing(e),solutions)
+
+    if isnothing(max_nb_sols)
+        # Print all solutions
+        solutionsToPrint = realSolutions
+    else
+        # Print `nb_sols` best solutions
+        @assert max_nb_sols ≥ 1 
+        nbSolutions = length(realSolutions)
+        solutionsToPrint = realSolutions[max(1, nbSolutions - max_nb_sols + 1):nbSolutions]
+    end
+
+    counter = 1
+    objective = solved_model.objective.id
+    for solution in solutionsToPrint
+        score = solution[objective]
+        println("### nº"*string(counter)*" -> "*string(score * -1)*" exchanges  ###")
+        counter += 1
+
+        #Print vector
+        print("Solution as a vector")
+        if isReduced print(" (reduced instance)") end
+        vector_solution = [solution["x_"*string(i)] for i in 1:numberOfPairs]
+        println()
+        println(vector_solution)
+        println()
+
+        #Print cycles
+        tupleSolution = [(i, vector_solution[i]) for i in 1:numberOfPairs]
+        print_cycles(tupleSolution, isReduced, pairsEquivalence)
+    end
+
+    #Print pairsEquivalence (link between the original pairs and the reduced pairs)
+    if isReduced
+        print_pairsEquivalence(pairsEquivalence)
+    end
+end
+
+"""
 print_cycles(exchangeTuples)
 
 Print cycles that make up the optimal solution 
