@@ -7,15 +7,10 @@ Reference https://en.wikipedia.org/wiki/Eternity_II_puzzle
 
 include("IOmanager.jl")
 
-struct InputData
-    n    ::Int #number of lines
-    m    ::Int #number of columns
-    pieces ::Matrix{Int} #the n*m pieces
-end
 
 struct OutputDataEternityII
     nb_sols ::Int
-    orientation::Array{Int, 4}# dims = (nb_sols, n, m, 5) where five corresponds to (id, u,r, d, l) (u=upper edge, ...)
+    orientation::Array{Int, 4} # dims = (nb_sols, n, m, 5) where five corresponds to (id, u,r, d, l) (u=upper edge, ...)
 end
 
 
@@ -53,10 +48,10 @@ function model_eternity2(input_file; order=[1,2,3,4], limit=nothing)
 
 
     id = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)
-    u = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)#up
-    r = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)#right
-    d = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)#down
-    l = Matrix{SeaPearl.AbstractIntVar}(undef, n, m)#left
+    u = Matrix{SeaPearl.AbstractIntVar}(undef, n, m) # up
+    r = Matrix{SeaPearl.AbstractIntVar}(undef, n, m) # right
+    d = Matrix{SeaPearl.AbstractIntVar}(undef, n, m) # down
+    l = Matrix{SeaPearl.AbstractIntVar}(undef, n, m) # left
 
     for i = 1:n, j=1:m
         id[i,j] = SeaPearl.IntVar(1, n*m, "id_"*string(i)*string(j), trailer)
@@ -289,15 +284,22 @@ Solve the SeaPearl model for to the eternity2 problem, using SeaPearl.MinDomainV
 and  SeaPearl.AllDifferent and SeaPearl.TableConstraint, and the function model_AIS
 
 # Arguments
-- `n::Int`: dimension
+- 'input_file': String; path to the data
+- 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
 - 'variableSelection': SeaPearl variable selection. By default: SeaPearl.MinDomainVariableSelection{false}()
 - 'valueSelection': SeaPearl value selection. By default: =SeaPearl.BasicHeuristic()
-- 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
 - 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will lookk for all the solutions
-- 'modeling' : modeling funciton, fast by default
+- 'model' : Function; model to use, defaults to model_eternity2_fast
 """
-function solve_eternity2(input_file; order=[1,2,3,4], variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic(), limit=1,modeling=model_eternity2_fast)
-    model = modeling(input_file; order=order,variableSelection=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
+function solve_eternity2(
+        input_file; 
+        order=[1, 2, 3, 4], 
+        variableSelection=SeaPearl.MinDomainVariableSelection{false}(), 
+        valueSelection=SeaPearl.BasicHeuristic(), 
+        limit=1, 
+        model=model_eternity2_fast
+    )
+    model = model(input_file; order=order, limit)
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
 end
@@ -361,88 +363,5 @@ function outputFromSeaPearl_fast_orientation(model::SeaPearl.CPModel; optimality
     return OutputDataEternityII(nb_sols, orientation)
 end
 
-"""
-    print_eternity2(sol::Array{Int,3})
 
-print a solution
-
-# Arguments
-- 'sol::Array{Int,3}' : one solution from OutputDataEternityII
-"""
-function print_eternity2(sol::Array{Int,3})
-    id = sol[:,:,1]
-    u = sol[:,:,2]
-    r = sol[:,:,3]
-    d = sol[:,:,4]
-    l = sol[:,:,5]
-    n = size(id,1)
-    m = size(id,2)
-    for k in 1:9*m
-        print("-")
-    end
-    println()
-    for i in 1:n
-        print("|")
-        for j in 1:m
-            printstyled("   "*string(u[i,j],pad=2)*"   ", color=u[i,j])
-            print("|")
-        end
-        println()
-        print("|")
-        for j in 1:m
-            printstyled(string(l[i,j],pad=2),color=l[i,j])
-            printstyled(" "*string(id[i,j],pad=2)*" ")
-            printstyled(string(r[i,j],pad=2),color=r[i,j])
-            print("|")
-        end
-        println()
-        print("|")
-        for j in 1:m
-            printstyled("   "*string(d[i,j],pad=2)*"   ", color=d[i,j])
-            print("|")
-        end
-        println()
-        for k in 1:9*m
-            print("-")
-        end
-        println()
-    end
-end
-
-"""
-    print_eternity2(output::OutputDataEternityII;limit=1)
-
-print a certain number of solution
-
-# Arguments
-- 'output::OutputDataEternityII' : output from outputFromSeaPearl2
-- 'limit::Int' : number of solutions to print
-"""
-function print_eternity2(output::OutputDataEternityII;limit=1)
-    println("Let's show "*string(limit)*" solutions :")
-    for i in 1:limit
-        sol = output.orientation[i,:,:,:]
-        println("Solution "*string(i))
-        print_eternity2(sol)
-    end
-end
-
-
-"""
-    print_eternity2(model::SeaPearl.CPModel;limit=1)
-
-print a certain number of solution
-
-# Arguments
-- 'model::SeaPearl.CPModel' : model solved
-- 'limit::Int' : number of solutions to print
-"""
-function print_eternity2(model::SeaPearl.CPModel;limit=1)
-    output = outputFromSeaPearl(model)
-    print_eternity2(output;limit=limit)
-end
-
-function print_eternity2_fast_orientation(model::SeaPearl.CPModel;limit=1)
-    output = outputFromSeaPearl_fast_orientation(model)
-    print_eternity2(output;limit=limit)
-end
+solve_eternity2("./data/eternity3x3")
