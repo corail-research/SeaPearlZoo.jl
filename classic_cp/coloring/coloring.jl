@@ -1,4 +1,5 @@
 using SeaPearl
+include("IOmanager.jl")
 
 struct Edge
     vertex1     :: Int
@@ -16,8 +17,6 @@ struct OutputData
     edgeColors          :: Array{Int}
     optimality          :: Bool
 end
-
-include("IOmanager.jl")
 
 function outputFromSeaPearl(sol::SeaPearl.Solution; optimality=false)
     numberOfColors = 0
@@ -67,32 +66,6 @@ function solve_coloring(input_file; benchmark=false)
     end
     SeaPearl.addObjective!(model, numberOfColors)
 
-    # TODO fix function selectVariable in order to use it for solving the problem
-    ### Variable selection heurstic ###
-    # function selectVariable(model::SeaPearl.CPModel, sortedPermutation, degrees)
-    #     maxDegree = 0
-    #     toReturn = nothing
-    #     for i in sortedPermutation
-    #         if !SeaPearl.isbound(model.variables[string(i)])
-    #             if isnothing(toReturn)
-    #                 toReturn = model.variables[string(i)]
-    #                 maxDegree = degrees[i]
-    #             end
-    #             if degrees[i] < maxDegree
-    #                 return toReturn
-    #             end
-
-    #             if length(model.variables[string(i)].domain) < length(toReturn.domain)
-    #                 toReturn = model.variables[string(i)]
-    #             end
-    #         end
-    #     end
-    #     return toReturn
-    # end
-
-    # return model
-
-    # TODO: When selectVariable() will work, remove the current call to solve!() to use the commented one
     SeaPearl.solve!(model; variableHeuristic=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
     # status = SeaPearl.solve!(model; variableHeuristic=((m; cpmodel=nothing) -> selectVariable(m, sortedPermutation, degrees)))
 
@@ -106,26 +79,26 @@ function solve_coloring(input_file; benchmark=false)
     end
 end
 
-# TODO remove those 3 commented lines if packages are not needed
-# using Gadfly
-# using LightGraphs
-# using GraphPlot
+# ## Variable selection heurstic ###
+# function selectVariable(model::SeaPearl.CPModel, sortedPermutation, degrees)
+#     maxDegree = 0
+#     toReturn = nothing
+#     for i in sortedPermutation
+#         if !SeaPearl.isbound(model.variables[string(i)])
+#             if isnothing(toReturn)
+#                 toReturn = model.variables[string(i)]
+#                 maxDegree = degrees[i]
+#             end
+#             if degrees[i] < maxDegree
+#                 return toReturn
+#             end
 
-# TODO remove function testGraph() if not usefull
-# function testGraph(input_file)
-#     model = solve_coloring(input_file)
-#     g = SeaPearl.CPLayerGraph(model)
-#     nodelabel = map((x) -> SeaPearl.labelOfVertex(g, x)[1], collect(1:nv(g)))
-
-#     nlist = Vector{Int}[] # two shells
-#     push!(nlist, collect((g.numberOfConstraints+1):(g.numberOfConstraints+g.numberOfVariables))) # second shell
-#     push!(nlist, collect((g.numberOfConstraints+g.numberOfVariables+1):(g.numberOfConstraints+g.numberOfVariables+g.numberOfValues))) # second shell
-#     push!(nlist, collect(1:g.numberOfConstraints)) # first shell
-
-#     membership = map((x) -> SeaPearl.labelOfVertex(g, x)[2], collect(1:nv(g)))
-#     nodecolor = [colorant"red", colorant"purple", colorant"green"]
-#     # membership color
-#     nodefillc = nodecolor[membership]
-#     # locs_x, locs_y = shell_layout(g, nlist)
-#     return g, nodefillc, nodelabel
+#             if length(model.variables[string(i)].domain) < length(toReturn.domain)
+#                 toReturn = model.variables[string(i)]
+#             end
+#         end
+#     end
+#     return toReturn
 # end
+
+solve_coloring("./data/gc_4_1")
