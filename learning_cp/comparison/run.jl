@@ -1,0 +1,13 @@
+include("nqueens.jl")
+include("graphcoloring.jl")
+
+# experiment_nn_heterogeneous_nqueens(25, 20001, 1; reward=SeaPearl.GeneralReward)
+# experiment_explorer_heterogeneous_nqueens(20, 10001, 10)
+# experiment_chosen_features_heterogeneous_nqueens(10, 1001, 10; )
+# experiment_pooling_heterogeneous_graphcoloring(10, 5, 0.95, 3001, 10)
+# experiment_chosen_features_heterogeneous_graphcoloring(10, 5, 0.95, 3001, 10)
+# experiment_nn_heterogeneous_graphcoloring(40, 5, 0.95, 4001, 10; n_eval=40)
+# experiment_activation_heterogeneous_graphcoloring(20, 5, 0.95, 3001, 10; n_eval=40)
+# experiment_activation_heterogeneous_nqueens(10, 1001, 1; reward=SeaPearl.GeneralReward)
+# experiment_features_pooling_heterogeneous_graphcoloring(20, 5, 0.95, 3001, 10; n_eval=40)
+experiment_update_freq_graphcoloring(25, 25, 5, .95, 1500, 10)

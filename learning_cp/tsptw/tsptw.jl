@@ -47,28 +47,10 @@ include("agents.jl")
 # -------------------
 # Value Heuristic definition
 # -------------------
-heuristic_used = "simple"
-rewardType = SeaPearl.TsptwReward
-
-if heuristic_used == "simple"
-    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.VariableOutput}(agent)
-
-# SupevisedLEarnedHeuristic is not compatible with TsptwStateRepresentation yet
-
-#=elseif heuristic_used == "supervised"
-    eta_init = .9
-    eta_stable = .1
-    warmup_steps = 300
-    decay_steps = 700
-
-    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, rewardType, SeaPearl.VariableOutput}(
-        agent;
-        eta_init=eta_init, 
-        eta_stable=eta_stable, 
-        warmup_steps=warmup_steps, 
-        decay_steps=decay_steps,
-        rng=MersenneTwister(1234)
-    ) =#
+if default_representation
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.CPReward, SeaPearl.FixedOutput}(agent)
+else
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, SeaPearl.TsptwReward, SeaPearl.VariableOutput}(agent)
 end
 
 include("nearest_heuristic.jl")

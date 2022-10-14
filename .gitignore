@@ -39,3 +39,22 @@ exp_*/
 
 # Plot files
 *plot.ipynb
+*plot.py
+
+# Save experiment files
+*save_experiment.py
+
+# nohup output
+nohup*.out
+
+learning_cp/tsptw/old_exp/
+learning_cp/tsptw/TSPTW*
+# all run files
+run*.jl
+*.sh
+learning_cp/comparison/plots.jl
+
+# all .out files (nohup output)
+*.out
+
+learning_cp/comparison/tensorboard_logs

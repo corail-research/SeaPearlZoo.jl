@@ -12,7 +12,7 @@ using Dates
 # -------------------
 # Generator
 # -------------------
-n_city = 7
+n_city = 10
 grid_size = 25
 max_tw_gap = 0
 max_tw = 100
@@ -51,7 +51,6 @@ nbEpisodes = 2001
 evalFreq = 200
 nbInstances = 10
 nbRandomHeuristics = 1
-restartPerInstances = 1
 
 # -------------------
 # Agent definition
@@ -128,16 +127,16 @@ function trytrain(nbEpisodes::Int)
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
     expParameters = Dict(
-        :experimentParameters => Dict(
+            :experimentParameters => Dict(
             :nbEpisodes => nbEpisodes,
             :evalFreq => evalFreq,
-            :nbInstances => nbInstances
+            :nbInstances => nbInstances,
         ),
         :generatorParameters => Dict(
             :nCity => n_city,
             :gridSize => grid_size,
             :maxTwGap => max_tw_gap,
-            :maxTw => max_tw
+            :maxTw => max_tw,
         ),
         :nbRandomHeuristics => nbRandomHeuristics,
         :Featurization => Dict(
@@ -151,11 +150,11 @@ function trytrain(nbEpisodes::Int)
             :update_horizon => agent.policy.learner.sampler.n,
             :min_replay_history => agent.policy.learner.min_replay_history,
             :update_freq => agent.policy.learner.update_freq,
-            :target_update_freq => agent.policy.learner.target_update_freq
+            :target_update_freq => agent.policy.learner.target_update_freq,
         ),
         :explorerParameters => Dict(
             :ϵ_stable => agent.policy.explorer.ϵ_stable,
-            :decay_steps => agent.policy.explorer.decay_steps
+            :decay_steps => agent.policy.explorer.decay_steps,
         ),
         :trajectoryParameters => Dict(
             :trajectoryType => typeof(agent.trajectory),
@@ -173,10 +172,9 @@ function trytrain(nbEpisodes::Int)
     nbEpisodes=nbEpisodes,
     strategy=SeaPearl.DFSearch(),
     variableHeuristic=variableSelection,
-    out_solver=true,
-    verbose=false,
-    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances),
-    restartPerInstances=1
+    out_solver = true,
+    verbose = true,
+    evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,tsptw_generator; evalFreq = evalFreq, nbInstances = nbInstances)
 )
 
     trained_weights = params(agent.policy.learner.approximator.model)
