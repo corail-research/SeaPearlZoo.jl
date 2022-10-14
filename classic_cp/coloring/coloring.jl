@@ -1,22 +1,6 @@
 using SeaPearl
 include("IOmanager.jl")
 
-struct Edge
-    vertex1     :: Int
-    vertex2     :: Int
-end
-
-struct InputData
-    edges               :: Array{Edge}
-    numberOfEdges       :: Int
-    numberOfVertices    :: Int
-end
-
-struct OutputData
-    numberOfColors      :: Int
-    edgeColors          :: Array{Int}
-    optimality          :: Bool
-end
 
 function outputFromSeaPearl(sol::SeaPearl.Solution; optimality=false)
     numberOfColors = 0
@@ -56,7 +40,6 @@ function solve_coloring(input_file; benchmark=false)
         degrees[e.vertex1] += 1
         degrees[e.vertex2] += 1
     end
-    sortedPermutation = sortperm(degrees; rev=true)
 
     ### Objective ###
     numberOfColors = SeaPearl.IntVar(0, input.numberOfVertices, "numberOfColors", trailer)
@@ -67,7 +50,6 @@ function solve_coloring(input_file; benchmark=false)
     SeaPearl.addObjective!(model, numberOfColors)
 
     SeaPearl.solve!(model; variableHeuristic=SeaPearl.MinDomainVariableSelection{false}(), valueSelection=SeaPearl.BasicHeuristic())
-    # status = SeaPearl.solve!(model; variableHeuristic=((m; cpmodel=nothing) -> selectVariable(m, sortedPermutation, degrees)))
 
     if !benchmark
         for oneSolution in model.statistics.solutions
