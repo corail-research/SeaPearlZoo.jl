@@ -1,4 +1,19 @@
+struct Edge
+    vertex1     :: Int
+    vertex2     :: Int
+end
 
+struct InputData
+    edges               :: Array{Edge}
+    numberOfEdges       :: Int
+    numberOfVertices    :: Int
+end
+
+struct OutputData
+    numberOfColors      :: Int
+    edgeColors          :: Array{Int}
+    optimality          :: Bool
+end
 
 function parseInput(raw_input)
     lines = split(raw_input, '\n')
