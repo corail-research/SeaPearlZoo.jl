@@ -1,11 +1,11 @@
-struct InputData
+struct EternityInputData
     n    ::Int
     m    ::Int
     pieces ::Matrix{Int}
 end
 
 
-function parseInput(raw_input; order=[1,2,3,4])
+function parseEternityInput(raw_input; order=[1,2,3,4])
     lines = split(raw_input, '\n')
 
     firstLine = split(lines[1], ' ')
@@ -22,16 +22,16 @@ function parseInput(raw_input; order=[1,2,3,4])
         end
     end
 
-    return InputData(n, m, pieces)
+    return EternityInputData(n, m, pieces)
 end
 
 
-function getInputData(filename;order=[1,2,3,4])
+function getEternityInputData(filename;order=[1,2,3,4])
 
     inputData = nothing
 
     open(filename, "r") do openedFile
-        inputData = parseInput(read(openedFile, String);order=order)
+        inputData = parseEternityInput(read(openedFile, String);order=order)
     end
 
     return inputData
@@ -83,24 +83,6 @@ function print_eternity2(sol::Array{Int,3})
             print("-")
         end
         println()
-    end
-end
-
-"""
-    print_eternity2(output::OutputDataEternityII;limit=1)
-
-print a certain number of solution
-
-# Arguments
-- 'output::OutputDataEternityII' : output from outputFromSeaPearl2
-- 'limit::Int' : number of solutions to print
-"""
-function print_eternity2(output::OutputDataEternityII;limit=1)
-    println("Let's show "*string(limit)*" solutions :")
-    for i in 1:limit
-        sol = output.orientation[i,:,:,:]
-        println("Solution "*string(i))
-        print_eternity2(sol)
     end
 end
 

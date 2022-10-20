@@ -1,5 +1,5 @@
 using SeaPearl
-include("IOmanager.jl")
+include("jobshopIOmanager.jl")
 
 
 """
@@ -26,7 +26,7 @@ function solve_jobshop(filename::String)
     # TODO fix problem with Disjunctive constraint (change IntVar for AbstractIntVar)
 
     ### Initialization ###
-    inputData = getInputData(filename)
+    inputData = getJobshopInputData(filename)
     numberOfMachines = inputData.numberOfMachines   
     numberOfJobs = inputData.numberOfJobs       
     maxTime = inputData.maxTime            
@@ -95,5 +95,5 @@ function solve_jobshop(filename::String)
 
 end
 
-solved_model = solve_jobshop("./data/js_3_3")
-print_solution(solved_model)
+# solved_model = solve_jobshop("./data/js_3_3")
+# print_solution(solved_model)

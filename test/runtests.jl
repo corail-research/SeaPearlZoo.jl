@@ -1,4 +1,5 @@
 using SeaPearl
+using SeaPearlZoo
 using Test
 
 include("classic_cp/classic_cp.jl")

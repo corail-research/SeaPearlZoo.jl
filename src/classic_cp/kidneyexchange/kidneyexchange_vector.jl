@@ -1,11 +1,11 @@
 using SeaPearl
-struct InputData
+struct KidneyExchangeInputData
     numberOfPairs         :: Int
     density               :: Float16
     compatibilities       :: Vector{Vector{Int}}
 end
 
-include("IOmanager.jl")
+include("kidneyexchangeIOmanager.jl")
 
 """
 solve_kidneyexchange_vector(filename::String)
@@ -26,7 +26,7 @@ This model does not allow self-compatible pairs, as there will be no way to dist
     v[i] = i => pair i does not participate in any cycle
 """
 function solve_kidneyexchange_vector(filename::String)
-    inputData = getInputData(filename)
+    inputData = getKidneyExchangeInputData(filename)
     c = inputData.compatibilities
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
@@ -163,5 +163,5 @@ function reduce_instance(inputData)
     end 
 end
 
-solved_model = solve_kidneyexchange_vector("./data/kep_8_0.2")
-print_solutions_vector(solved_model)
+# solved_model = solve_kidneyexchange_vector("./data/kep_8_0.2")
+# print_solutions_vector(solved_model)

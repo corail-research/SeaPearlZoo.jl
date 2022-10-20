@@ -3,7 +3,7 @@ struct Edge
     vertex2     :: Int
 end
 
-struct InputData
+struct ColoringInputData
     edges               :: Array{Edge}
     numberOfEdges       :: Int
     numberOfVertices    :: Int
@@ -15,7 +15,7 @@ struct OutputData
     optimality          :: Bool
 end
 
-function parseInput(raw_input)
+function parseColoringInput(raw_input)
     lines = split(raw_input, '\n')
 
     firstLine = split(lines[1], ' ')
@@ -34,7 +34,7 @@ function parseInput(raw_input)
         edges[i] = edge
     end
 
-    return InputData(edges, numberOfEdges, numberOfVertices)
+    return ColoringInputData(edges, numberOfEdges, numberOfVertices)
 end
 
 function solutionString(solution::OutputData)
@@ -62,15 +62,15 @@ function writeSolution(solution::OutputData, filename::String)
     return
 end
 
-function getInputData(filename)
+function getColoringInputData(filename)
     if filename == ""
         throw(ArgumentError("You must specify a data file"))
     end
 
-    input = InputData([], 0, 0)
+    input = ColoringInputData([], 0, 0)
 
     open(filename, "r") do openedFile
-        input = parseInput(read(openedFile, String))
+        input = parseColoringInput(read(openedFile, String))
     end
 
     return input

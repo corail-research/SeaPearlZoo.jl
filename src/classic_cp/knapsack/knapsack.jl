@@ -1,11 +1,11 @@
 using SeaPearl
-include("IOmanager.jl")
+include("knapsackIOmanager.jl")
 
-"""build_model_and_solve_knapsack(data::InputData; benchmark=false)
+"""build_model_and_solve_knapsack(data::KnapsackInputData; benchmark=false)
 builds knapsack model based on input data provided and returns model
 
 """
-function build_model_and_solve_knapsack(data::InputData; benchmark=false)::SeaPearl.CPModel
+function build_model_and_solve_knapsack(data::KnapsackInputData; benchmark=false)::SeaPearl.CPModel
     sorted_relative_value = sortperm(data.items; by=(x) -> x.value/x.weight, rev=true) # sort items by relative value
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
@@ -16,17 +16,17 @@ function build_model_and_solve_knapsack(data::InputData; benchmark=false)::SeaPe
 end
 
 """
-    build_knapsack_model!(data::InputData, sorted_relative_value::Vector{Int64}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+    build_knapsack_model!(data::KnapsackInputData, sorted_relative_value::Vector{Int64}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
 Returns a model with variables, constraints and objective of a knapsack problem, defined by the contents of the "data" argument
 
 # Args:
-- data:: InputData. Data loaded from sample datasets available in SeaPearlZoo/classic_cp/knapsack/data. The helper function parseFile!
+- data:: KnapsackInputData. Data loaded from sample datasets available in SeaPearlZoo/classic_cp/knapsack/data. The helper function parseFile!
   is useful to load these datasets in the proper format 
 - sorted_relative_value:: Vector{Int64}. Contains the index of the items in data ^, after they were sorted by relative weight 
 - model::CPModel. empty model that will be built 
 - trailer::SeaPearl.Trailer. trailer
 """
-function build_knapsack_model!(data::InputData, sorted_relative_value::Vector{Int64}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
+function build_knapsack_model!(data::KnapsackInputData, sorted_relative_value::Vector{Int64}, model::SeaPearl.CPModel, trailer::SeaPearl.Trailer)
     num_items = data.numberOfItems
     # =========VARIABLES=========
     # add variables representing item selection
@@ -98,7 +98,5 @@ function (::VariableSelection{true})(model::SeaPearl.CPModel)::SeaPearl.Abstract
     return model.variables["item[" * string(i) * "]"]
 end
 
-input_data = parseFile!("./data/ks_4_0")
-model = build_model_and_solve_knapsack(input_data)
-
-# TODO: print output
+# input_data = parseFile!("./data/ks_4_0")
+# model = build_model_and_solve_knapsack(input_data)

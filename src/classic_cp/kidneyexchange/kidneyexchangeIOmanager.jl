@@ -1,4 +1,4 @@
-struct InputData
+struct KidneyExchangeInputData
     numberOfPairs         :: Int
     density               :: Float16
     compatibilities       :: Vector{Vector{Int}}
@@ -7,7 +7,7 @@ end
 """
 parseInput(raw_input)
 
-Return an InputData with the following fields:
+Return an KidneyExchangeInputData with the following fields:
 - numberOfPairs::Int                 -> number of donor-patient pairs
 - density::Float16                   -> probability of compatibility between 2 pairs (density ∈ [0,1])
 - compabilities::Vector{Vector{Int}} -> v[i] contains the pairs that can give a kidney to pair i  
@@ -22,7 +22,7 @@ Return an InputData with the following fields:
 4      #pair 3 can receive a kidney from pair 4
 3      #pair 4 can receive a kidney from pair 3
 """
-function parseInput(raw_input)
+function parseKidneyExchangeInput(raw_input)
     lines = split(raw_input, '\n')
     firstLine = split(lines[1], ' ')
 
@@ -41,7 +41,7 @@ function parseInput(raw_input)
             compabilities[i-1] = map(x->parse(Int,x), line)
         end
     end
-    return InputData(numberOfPairs, density, compabilities)
+    return KidneyExchangeInputData(numberOfPairs, density, compabilities)
 end
 
 """
@@ -52,14 +52,14 @@ return the KEP instance corresponding to filemane
 # Arguments
 - `filename`: file containing the compatibilities between pairs
 """
-function getInputData(filename::String)
+function getKidneyExchangeInputData(filename::String)
     inputData = nothing
     if filename == ""
         throw(ArgumentError("You must specify a data file"))
     end
 
     open(filename, "r") do openedFile
-        inputData = parseInput(read(openedFile, String))
+        inputData = parseKidneyExchangeInput(read(openedFile, String))
     end
     return inputData
 end

@@ -1,5 +1,5 @@
 using SeaPearl
-include("IOmanager.jl")
+include("coloringIOmanager.jl")
 
 
 function outputFromSeaPearl(sol::SeaPearl.Solution; optimality=false)
@@ -17,7 +17,7 @@ function outputFromSeaPearl(sol::SeaPearl.Solution; optimality=false)
 end
 
 function solve_coloring(input_file; benchmark=false)
-    input = getInputData(input_file)
+    input = getColoringInputData(input_file)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
 
@@ -61,26 +61,4 @@ function solve_coloring(input_file; benchmark=false)
     end
 end
 
-# ## Variable selection heurstic ###
-# function selectVariable(model::SeaPearl.CPModel, sortedPermutation, degrees)
-#     maxDegree = 0
-#     toReturn = nothing
-#     for i in sortedPermutation
-#         if !SeaPearl.isbound(model.variables[string(i)])
-#             if isnothing(toReturn)
-#                 toReturn = model.variables[string(i)]
-#                 maxDegree = degrees[i]
-#             end
-#             if degrees[i] < maxDegree
-#                 return toReturn
-#             end
-
-#             if length(model.variables[string(i)].domain) < length(toReturn.domain)
-#                 toReturn = model.variables[string(i)]
-#             end
-#         end
-#     end
-#     return toReturn
-# end
-
-solve_coloring("./data/gc_4_1")
+# solve_coloring("./data/gc_4_1")

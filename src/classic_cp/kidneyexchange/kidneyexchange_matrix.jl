@@ -1,14 +1,14 @@
 using SeaPearl
-include("IOmanager.jl")
+include("kidneyexchangeIOmanager.jl")
 
 """
-solve_kidneyexchange_matrix(inputData::InputData)
+solve_kidneyexchange_matrix(inputData::KidneyExchangeInputData)
 
 Return the SeaPearl model solved (solution as a matrix) for to the KEP problem, using SeaPearl.MinDomainVariableSelection and SeaPearl.BasicHeuristic
 This model does allow self-compatible pairs. If donor from pair i gives a kidney to patient of pair i, it will be a size 1 cycle represented as a 1 in the i-th element of the diagonal of the matrix solution.
 
 # Arguments
-- `inputData`: parsed input data file
+- `inputData`: parsed input data file 
 
 # Constraints
 - SumLessThan
@@ -22,7 +22,7 @@ This model does allow self-compatible pairs. If donor from pair i gives a kidney
     x[i, j] = 1 => pair i receive a kidney from pair j
     x[i, j] = 0 => pair i do not receive a kidney from pair j
 """
-function solve_kidneyexchange_matrix(inputData::InputData)
+function solve_kidneyexchange_matrix(inputData::KidneyExchangeInputData)
     compatibilities = inputData.compatibilities
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
@@ -137,6 +137,6 @@ function reduce_instance(inputData)
 end
 
 
-inputData = getInputData("./data/kep_8_0.2")
-solved_model = solve_kidneyexchange_matrix(inputData)
-print_solutions_matrix(solved_model)
+# inputData = getKidneyExchangeInputData("./data/kep_8_0.2")
+# solved_model = solve_kidneyexchange_matrix(inputData)
+# print_solutions_matrix(solved_model)

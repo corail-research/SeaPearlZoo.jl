@@ -1,3 +1,4 @@
 @testset "classic_cp.jl" begin
-    include("kidneyexchange.jl")
+    include("coloring/coloring.jl")
+    include("eternity2/eternity2.jl")
 end

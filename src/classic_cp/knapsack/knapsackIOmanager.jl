@@ -11,7 +11,7 @@ struct Item
     weight  :: Int
 end
 
-struct InputData
+struct KnapsackInputData
     items               :: AbstractArray{Union{Item, Nothing}}
     sortedItems         :: AbstractArray{Union{Item, Nothing}}
     numberOfItems       :: Int
@@ -26,19 +26,19 @@ function printSolution(solution::Solution)
     println()
 end
 
-function parseFile!(filename)
+function parseKnapsackFile!(filename)
     if filename == ""
         throw(ArgumentError("You must specify a data file"))
     end
     data = nothing
     open(filename, "r") do openedFile
-        data = parseInput!(read(openedFile, String))
+        data = parseKnapsackInput!(read(openedFile, String))
     end
     
     return data
 end
 
-function parseInput!(input_data)
+function parseKnapsackInput!(input_data)
     lines = split(input_data, '\n')
     firstLine = split(lines[1], ' ')
     numberOfItems = parse(Int, firstLine[1])
@@ -53,5 +53,5 @@ function parseInput!(input_data)
         items[i] = item
     end
 
-    return InputData(items, Item[], numberOfItems, capacity)
+    return KnapsackInputData(items, Item[], numberOfItems, capacity)
 end

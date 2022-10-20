@@ -5,7 +5,7 @@ Proposition for using SeaPearl CP solver for the Eternity II puzzle
 Reference https://en.wikipedia.org/wiki/Eternity_II_puzzle
 """
 
-include("IOmanager.jl")
+include("eternityIOmanager.jl")
 
 
 struct OutputDataEternityII
@@ -28,7 +28,7 @@ function model_eternity2(input_file; order=[1,2,3,4], limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
-    inputData = getInputData(input_file;order=order)
+    inputData = getEternityInputData(input_file;order=order)
     n = inputData.n
     m = inputData.m
     pieces = inputData.pieces
@@ -106,7 +106,7 @@ function model_eternity2_fast(input_file; order=[1,2,3,4], limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
-    inputData = getInputData(input_file;order=order)
+    inputData = getEternityInputData(input_file;order=order)
     n = inputData.n
     m = inputData.m
     pieces = inputData.pieces
@@ -196,7 +196,7 @@ function model_eternity2_rotation(input_file; order=[1,2,3,4], limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
-    inputData = getInputData(input_file;order=order)
+    inputData = getEternityInputData(input_file;order=order)
     n = inputData.n
     m = inputData.m
     pieces = inputData.pieces
@@ -362,6 +362,3 @@ function outputFromSeaPearl_fast_orientation(model::SeaPearl.CPModel; optimality
     end
     return OutputDataEternityII(nb_sols, orientation)
 end
-
-
-solve_eternity2("./data/eternity3x3")

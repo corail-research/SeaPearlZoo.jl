@@ -1,4 +1,4 @@
-struct InputData
+struct JobshopInputData
     numberOfMachines   :: Int
     numberOfJobs       :: Int
     maxTime            :: Int
@@ -6,19 +6,19 @@ struct InputData
     job_order          :: Matrix{Int}
 end
 
-function getInputData(filename::String)
+function getJobshopInputData(filename::String)
     inputData = nothing
     if filename == ""
         throw(ArgumentError("You must specify a data file"))
     end
 
     content = open(f->read(f, String), filename)
-    inputData = parseInput(content)
+    inputData = parseJobshopInput(content)
 
     return inputData
 end
 
-function parseInput(raw_input)
+function parseJobshopInput(raw_input)
     lines = split(raw_input, '\n')
     firstLine = split(lines[1], ' ')
 
@@ -36,7 +36,7 @@ function parseInput(raw_input)
         job_order[i,:] = map(x->parse(Int,x), orders)
     end
 
-    return InputData(numberOfMachines, numberOfJobs, maxTime, job_times, job_order)
+    return JobshopInputData(numberOfMachines, numberOfJobs, maxTime, job_times, job_order)
 end
 
 """

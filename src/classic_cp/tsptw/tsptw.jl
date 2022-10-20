@@ -133,4 +133,4 @@ function solve_tsptw_known_instance(distances, time_windows)
     println("Solution: ", filter( x -> !isnothing(x),model.statistics.solutions)[end])
     println("Nodes visited: ", model.statistics.numberOfNodes)
 end
-solve_tsptw_known_instance(distances, time_windows)
+# solve_tsptw_known_instance(distances, time_windows)
