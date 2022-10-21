@@ -1,5 +1,5 @@
 using Test
-include("../../classic_cp/kidneyexchange/kidneyexchange.jl")
+include("../../src/classic_cp/kidneyexchange/kidneyexchange.jl")
 
 const pathToData = "../classic_cp/kidneyexchange/data/"
 instancesToSolve = ["kep_13_0.1", "kep_20_0.3", "kep_40_0.05"]

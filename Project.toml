@@ -1,0 +1,12 @@
+name = "SeaPearlZoo"
+uuid = "853471db-344c-4b2c-bd56-32633c9dad42"
+
+[deps]
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
+SeaPearl="c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
