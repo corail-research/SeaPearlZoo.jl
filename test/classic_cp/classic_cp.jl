@@ -4,4 +4,7 @@
     include("jobshop/jobshop.jl")
     include("kidneyexchange/kidneyexchange.jl")
     include("knapsack/knapsack.jl")
+    include("latin/latin.jl")
+    include("nqueens/nqueens.jl")
+    include("tsptw/tsptw.jl")
 end
