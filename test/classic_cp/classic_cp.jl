@@ -2,4 +2,6 @@
     include("coloring/coloring.jl")
     include("eternity2/eternity2.jl")
     include("jobshop/jobshop.jl")
+    include("kidneyexchange/kidneyexchange.jl")
+    include("knapsack/knapsack.jl")
 end
