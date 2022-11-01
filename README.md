@@ -9,7 +9,7 @@ First, clone SeaPearlZoo locally:
 $ git clone https://github.com/corail-research/SeaPearlZoo
 ```
 
-Now, making sure you have Julia 1.6 installed, go to the [Graph-Coloring](https://en.wikipedia.org/wiki/Graph_coloring) directory.
+Now, making sure you have Julia 1.7 installed, go to the [Graph-Coloring](https://en.wikipedia.org/wiki/Graph_coloring) directory.
 ```bash
 $ cd SeaPearlZoo/learning_cp/graphcoloring
 ```
@@ -18,7 +18,7 @@ Now, activate and instantiate (download and install all the packages) the enviro
 ```
 $ julia
 julia> ]
-(@v1.6) pkg> activate . 
+(@v1.7) pkg> activate . 
 (graphcoloring) pkg> instantiate
 ```
 
