@@ -7,8 +7,8 @@ JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 SeaPearl = "c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
 
 [compat]
-SeaPearl = ">= 0.4.1"
-JuMP = ">= 0.21"
+SeaPearl = "^0.4"
+JuMP = "< 0.22"
 julia = "1.7"
 
 [extras]
