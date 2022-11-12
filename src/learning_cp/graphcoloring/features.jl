@@ -2,7 +2,7 @@ struct BetterFeaturization <: SeaPearl.AbstractFeaturization end
 
 function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{BetterFeaturization,TS}) where TS
     g = sr.cplayergraph
-    features = zeros(Float32, coloring_generator.n+6, nv(g))
+    features = zeros(Float32, instance_generator.n+6, nv(g))
     for i in 1:nv(g)
         cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
         if isa(cp_vertex, SeaPearl.VariableVertex)
@@ -31,7 +31,7 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{BetterFeatur
 end
 
 function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{BetterFeaturization, TS}}) where TS
-    coloring_generator.n+6
+    instance_generator.n+6
 end
 
 function SeaPearl.global_feature_length(::Type{SeaPearl.DefaultStateRepresentation{BetterFeaturization, TS}}) where TS

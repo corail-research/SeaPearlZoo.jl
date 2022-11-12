@@ -1,5 +1,5 @@
 using SeaPearl
-using SeaPearlExtras
+import Pkg
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
@@ -9,7 +9,7 @@ using BSON: @save, @load
 using Dates
 using Random
 using LightGraphs
-
+include("features.jl")
 
 # -------------------
 # Experience variables
@@ -24,13 +24,6 @@ nbNodes = 20
 nbMinColor = 5
 density = 0.95
 # -------------------
-# Generator
-# -------------------
-coloring_generator = SeaPearl.ClusterizedGraphColoringGenerator(nbNodes, nbMinColor, density)
-
-#include("rewards.jl")
-include("features.jl")
-
 # -------------------
 # Internal variables
 # -------------------
@@ -39,6 +32,7 @@ rewardType = SeaPearl.CPReward
 
 SR = SeaPearl.DefaultStateRepresentation{featurizationType, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
+instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(nbNodes, nbMinColor)
 #numGlobalFeature = SeaPearl.global_feature_length(SR)
 
 # -------------------
@@ -130,30 +124,30 @@ function trytrain(nbEpisodes::Int)
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
-        generator=coloring_generator,
+        generator=instance_generator,
         nbEpisodes=nbEpisodes,
         strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=true,
         verbose = false,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,coloring_generator; evalFreq = evalFreq, nbInstances = nbInstances),
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,instance_generator; evalFreq = evalFreq, nbInstances = nbInstances),
         restartPerInstances = restartPerInstances
     )
 
     #saving model weights
     model = agent.policy.learner.approximator
-    @save dir*"/model_gc"*string(coloring_generator.n)*".bson" model
+    @save dir*"/model_gc"*string(instance_generator.n)*".bson" model
 
-    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/graph_coloring_$(nbNodes)_traininglearned")
-    SeaPearlExtras.storedata(metricsArray[2]; filename=dir*"/graph_coloring_$(nbNodes)_traininggreedy")
-    for i = 1:nbRandomHeuristics
-        SeaPearlExtras.storedata(metricsArray[2+i]; filename=dir*"/graph_coloring_$(nbNodes)_trainingrandom$(i)")
-    end
-    SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/graph_coloring_$(nbNodes)_learned")
-    SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/graph_coloring_$(nbNodes)_greedy")
-    for i = 1:nbRandomHeuristics
-        SeaPearlExtras.storedata(eval_metricsArray[:,i+2]; filename=dir*"/graph_coloring_$(nbNodes)_random$(i)")
-    end
+    # SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/graph_coloring_$(nbNodes)_traininglearned")
+    # SeaPearlExtras.storedata(metricsArray[2]; filename=dir*"/graph_coloring_$(nbNodes)_traininggreedy")
+    # for i = 1:nbRandomHeuristics
+        # SeaPearlExtras.storedata(metricsArray[2+i]; filename=dir*"/graph_coloring_$(nbNodes)_trainingrandom$(i)")
+    # end
+    # SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/graph_coloring_$(nbNodes)_learned")
+    # SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/graph_coloring_$(nbNodes)_greedy")
+    # for i = 1:nbRandomHeuristics
+    #     SeaPearlExtras.storedata(eval_metricsArray[:,i+2]; filename=dir*"/graph_coloring_$(nbNodes)_random$(i)")
+    # end
 
     return metricsArray, eval_metricsArray
 end

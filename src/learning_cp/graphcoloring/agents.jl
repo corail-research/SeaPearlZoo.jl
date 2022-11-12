@@ -1,5 +1,5 @@
 # Model definition
-n = coloring_generator.n
+n = instance_generator.n
 trajectory_capacity = 3000
 
 approximator_model = SeaPearl.CPNN(
