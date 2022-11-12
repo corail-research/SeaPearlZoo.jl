@@ -10,35 +10,30 @@ using Dates
 using Random
 using LightGraphs
 include("features.jl")
+include("agents.jl")
 
 # -------------------
 # Experience variables
 # -------------------
-nbEpisodes = 1001
-restartPerInstances = 1
-evalFreq = 100
-nbInstances = 50
-nbRandomHeuristics = 1
+struct ColoringSettings
+    nbEpisodes          :: Int# = 1
+    restartPerInstances :: Int # = 1
+    evalFreq            :: Int # = 100
+    nbInstances         :: Int # =50
+    nbRandomHeuristics  :: Int # = 1
+    nbNodes             :: Int # = 20
+    nbMinColor          :: Int # = 5
+    density             :: Float32 #  = 0.95
 
-nbNodes = 20
-nbMinColor = 5
-density = 0.95
 # -------------------
 # -------------------
 # Internal variables
 # -------------------
 featurizationType = BetterFeaturization
 rewardType = SeaPearl.CPReward
-
 SR = SeaPearl.DefaultStateRepresentation{featurizationType, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
-instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(nbNodes, nbMinColor)
-#numGlobalFeature = SeaPearl.global_feature_length(SR)
-
-# -------------------
-# Agent definition
-# -------------------
-include("agents.jl")
+instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor)
 
 # -------------------
 # Value Heuristic definition
@@ -61,16 +56,13 @@ function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
 end
 
 randomHeuristics = []
-for i in 1:nbRandomHeuristics
+for i in 1:coloring_settings.nbRandomHeuristics
     push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
 valueSelectionArray = [learnedHeuristic, heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
-# -------------------
-# Variable Heuristic definition
-# -------------------
-variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+variableSelection = SeaPearl.MinDomainVariableSelection{false}() # Variable Heuristic definition
 
 # -------------------
 # -------------------
@@ -78,20 +70,20 @@ variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 # -------------------
 # -------------------
 
-function trytrain(nbEpisodes::Int)
+function solve_learning_coloring(coloring_settings::ColoringSettings)
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
     expParameters = Dict(
         :experimentParameters => Dict(
-            :nbEpisodes => nbEpisodes,
-            :restartPerInstances => restartPerInstances,
-            :evalFreq => evalFreq,
-            :nbInstances => nbInstances,
+            :nbEpisodes => coloring_settings.nbEpisodes ,
+            :restartPerInstances => coloring_settings.restartPerInstances,
+            :evalFreq => coloring_settings.evalFreq,
+            :nbInstances => coloring_settings.nbInstances,
         ),
         :generatorParameters => Dict(
-            :nbNodes => nbNodes,
-            :nbMinColor => nbMinColor,
-            :density => density
+            :nbNodes => coloring_settings.nbNodes,
+            :nbMinColor => coloring_settings.nbMinColor,
+            :density => coloring_settings.density
         ),
         :nbRandomHeuristics => nbRandomHeuristics,
         :Featurization => Dict(
@@ -125,32 +117,33 @@ function trytrain(nbEpisodes::Int)
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
         generator=instance_generator,
-        nbEpisodes=nbEpisodes,
+        nbEpisodes=coloring_settings.nbEpisodes ,
         strategy=SeaPearl.DFSearch(),
         variableHeuristic=variableSelection,
         out_solver=true,
         verbose = false,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,instance_generator; evalFreq = evalFreq, nbInstances = nbInstances),
-        restartPerInstances = restartPerInstances
+        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,instance_generator; evalFreq = coloring_settings.evalFreq, nbInstances = coloring_settings.nbInstances),
+        restartPerInstances = coloring_settings.restartPerInstances
     )
 
     #saving model weights
     model = agent.policy.learner.approximator
     @save dir*"/model_gc"*string(instance_generator.n)*".bson" model
 
-    # SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/graph_coloring_$(nbNodes)_traininglearned")
-    # SeaPearlExtras.storedata(metricsArray[2]; filename=dir*"/graph_coloring_$(nbNodes)_traininggreedy")
+    # SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/graph_coloring_$(coloring_settings.nbNodes)_traininglearned")
+    # SeaPearlExtras.storedata(metricsArray[2]; filename=dir*"/graph_coloring_$(coloring_settings.nbNodes)_traininggreedy")
     # for i = 1:nbRandomHeuristics
-        # SeaPearlExtras.storedata(metricsArray[2+i]; filename=dir*"/graph_coloring_$(nbNodes)_trainingrandom$(i)")
+        # SeaPearlExtras.storedata(metricsArray[2+i]; filename=dir*"/graph_coloring_$(coloring_settings.nbNodes)_trainingrandom$(i)")
     # end
-    # SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/graph_coloring_$(nbNodes)_learned")
-    # SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/graph_coloring_$(nbNodes)_greedy")
+    # SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/graph_coloring_$(coloring_settings.nbNodes)_learned")
+    # SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/graph_coloring_$(coloring_settings.nbNodes)_greedy")
     # for i = 1:nbRandomHeuristics
-    #     SeaPearlExtras.storedata(eval_metricsArray[:,i+2]; filename=dir*"/graph_coloring_$(nbNodes)_random$(i)")
+    #     SeaPearlExtras.storedata(eval_metricsArray[:,i+2]; filename=dir*"/graph_coloring_$(coloring_settings.nbNodes)_random$(i)")
     # end
 
     return metricsArray, eval_metricsArray
 end
 
-metricsArray, eval_metricsArray = trytrain(nbEpisodes)
+coloring_settings = ColoringSettings()
+metricsArray, eval_metricsArray = trytrain(coloring_settings)
 nothing
