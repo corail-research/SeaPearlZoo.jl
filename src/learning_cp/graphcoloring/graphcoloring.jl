@@ -3,43 +3,77 @@ import Pkg
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
-using GeometricFlux
-using JSON
-using BSON: @save, @load
+# using GeometricFlux
+# using JSON
+# using BSON: @save, @load
 using Dates
 using Random
 using LightGraphs
-include("features.jl")
-include("agents.jl")
 
-# -------------------
-# Experience variables
-# -------------------
-struct ColoringSettings
-    nbEpisodes          :: Int# = 1
-    restartPerInstances :: Int # = 1
-    evalFreq            :: Int # = 100
-    nbInstances         :: Int # =50
-    nbRandomHeuristics  :: Int # = 1
-    nbNodes             :: Int # = 20
-    nbMinColor          :: Int # = 5
-    density             :: Float32 #  = 0.95
+include("agent_config.jl")
+include("coloring_config.jl")
+# include("features.jl")
+include("models.jl")
 
-# -------------------
 # -------------------
 # Internal variables
 # -------------------
-featurizationType = BetterFeaturization
+# featurizationType = BetterFeaturization
+coloring_settings = ColoringSettings(1, 1, 100, 50, 1, 20, 5, 0.95)
 rewardType = SeaPearl.CPReward
-SR = SeaPearl.DefaultStateRepresentation{featurizationType, SeaPearl.DefaultTrajectoryState}
+SR = SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
 instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor)
 
+function SeaPearl.featurize(
+    sr::SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization,TS}
+    ) where TS
+
+    g = sr.cplayergraph
+    features = zeros(Float32, instance_generator.n + 6, nv(g))
+    for i in 1:nv(g)
+        cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+        if isa(cp_vertex, SeaPearl.VariableVertex)
+            features[1,i] = 1.
+            if g.cpmodel.objective == cp_vertex.variable
+                features[6, i] = 1.
+            end
+        end
+        if isa(cp_vertex, SeaPearl.ConstraintVertex)
+            features[2, i] = 1.
+            constraint = cp_vertex.constraint
+            if isa(constraint, SeaPearl.NotEqual)
+                features[4, i] = 1.
+            end
+            if isa(constraint, SeaPearl.LessOrEqual)
+                features[5, i] = 1.
+            end
+        end
+        if isa(cp_vertex, SeaPearl.ValueVertex)
+            features[3, i] = 1.
+            value = cp_vertex.value
+            features[6+value, i] = 1.
+        end
+    end
+    features
+end
+
+function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, TS}}) where TS
+    instance_generator.n + 6
+end
+
+function SeaPearl.global_feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, TS}}) where TS
+    return 0
+end
 # -------------------
 # Value Heuristic definition
 # -------------------
-
+agent_config = AgentConfig(0.99f0, 16, 4 128, 1, 200, 3000)
+approximator_model = build_graph_coloring_approximator_model(instance_generator.n)
+target_approximator_model = build_graph_coloring_target_approximator_model(instance_generator.n)
+agent = build_graph_coloring_agent(approximator_model, target_approximator_model, agent_config)
 learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent)
+
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
@@ -65,12 +99,10 @@ append!(valueSelectionArray, randomHeuristics)
 variableSelection = SeaPearl.MinDomainVariableSelection{false}() # Variable Heuristic definition
 
 # -------------------
-# -------------------
 # Core function
 # -------------------
-# -------------------
 
-function solve_learning_coloring(coloring_settings::ColoringSettings)
+function solve_learning_coloring(coloring_settings::ColoringSettings, instance_generator::SeaPearl.AbstractModelGenerator)
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
     expParameters = Dict(
@@ -110,9 +142,9 @@ function solve_learning_coloring(coloring_settings::ColoringSettings)
         ),
         :reward => rewardType
     )
-    open(dir*"/params.json", "w") do file
-        JSON.print(file, expParameters)
-    end
+    # open(dir*"/params.json", "w") do file
+    #     JSON.print(file, expParameters)
+    # end
 
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
@@ -144,6 +176,5 @@ function solve_learning_coloring(coloring_settings::ColoringSettings)
     return metricsArray, eval_metricsArray
 end
 
-coloring_settings = ColoringSettings()
-metricsArray, eval_metricsArray = trytrain(coloring_settings)
+metricsArray, eval_metricsArray = trytrain(coloring_settings, instance_generator)
 nothing
