@@ -67,7 +67,7 @@ function build_graph_coloring_agent(approximator_model, target_approximator_mode
         trajectory = RL.CircularArraySLARTTrajectory(
             capacity = agent_config.trajectory_capacity,
             state = SeaPearl.DefaultTrajectoryState[] => (),
-            legal_actions_mask = Vector{Bool} => (n, ),
+            legal_actions_mask = Vector{Bool} => (agent_config.output_size, ),
         )
     )
     return agent
