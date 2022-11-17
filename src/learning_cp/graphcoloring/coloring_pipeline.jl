@@ -13,9 +13,10 @@ function solve_learning_coloring(
     save_experiment_parameters::Bool = false,
     save_model::Bool = false
     )
-    experiment_time = now()
-    dir = mkdir(string("exp_",Base.replace("$(round(experiment_time, Dates.Second(3)))",":" => "-")))
+    
     if save_experiment_parameters
+        experiment_time = now()
+        dir = mkdir(string("exp_",Base.replace("$(round(experiment_time, Dates.Second(3)))",":" => "-")))
         experiment_parameters = get_experiment_parameters(agent, agent_config, coloring_settings)
         open(dir*"/params.json", "w") do file
             JSON.print(file, experiment_parameters)
