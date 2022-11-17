@@ -3,23 +3,16 @@ import Pkg
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
-# using GeometricFlux
-# using JSON
-using BSON: @save, @load
 using Dates
 using Random
 using LightGraphs
 
-include("agent_config.jl")
 include("coloring_config.jl")
-include("models.jl")
-include("pipeline.jl")
+include("coloring_models.jl")
+include("coloring_pipeline.jl")
 
-# # -------------------
-# # Internal variables
-# # -------------------
 
-coloring_settings = ColoringSettings(1, 1, 100, 50, 1, 20, 5, 0.95)
+coloring_settings = ColoringExperimentSettings(100, 1, 100, 50, 1, 20, 5, 0.95)
 instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor)
 
 function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, TS}}) where TS
@@ -71,7 +64,7 @@ numInFeatures = SeaPearl.feature_length(SR)
 # Value Heuristic definition
 # -------------------
 output_size = instance_generator.n
-agent_config = AgentConfig(0.99f0, 16, output_size, 4, 128, 1, 200, 3000)
+agent_config = ColoringAgentConfig(0.99f0, 16, output_size, 4, 128, 1, 200, 3000)
 approximator_model = build_graph_coloring_approximator_model(instance_generator.n)
 target_approximator_model = build_graph_coloring_target_approximator_model(instance_generator.n)
 agent = build_graph_coloring_agent(approximator_model, target_approximator_model, agent_config)
@@ -101,9 +94,4 @@ valueSelectionArray = [learnedHeuristic, heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
 variableSelection = SeaPearl.MinDomainVariableSelection{false}() # Variable Heuristic definition
 
-# -------------------
-# Core function
-# -------------------
-
 metricsArray, eval_metricsArray = solve_learning_coloring(agent, agent_config, coloring_settings, instance_generator)
-# nothing

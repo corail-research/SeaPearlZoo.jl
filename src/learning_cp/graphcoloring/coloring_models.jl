@@ -1,5 +1,5 @@
 # Model definition
-include("agent_config.jl")
+include("coloring_config.jl")
 
 function build_graph_coloring_approximator_model(output_size:: Int)
     approximator_model = SeaPearl.CPNN(
@@ -37,7 +37,7 @@ function build_graph_coloring_target_approximator_model(output_size:: Int)
     return target_approximator_model
 end
 
-function build_graph_coloring_agent(approximator_model, target_approximator_model, agent_config :: AgentConfig)
+function build_graph_coloring_agent(approximator_model, target_approximator_model, agent_config :: ColoringAgentConfig)
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = RL.DQNLearner(

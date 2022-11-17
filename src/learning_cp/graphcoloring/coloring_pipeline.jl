@@ -3,12 +3,12 @@ using ReinforcementLearning
 const RL = ReinforcementLearning
 using SeaPearl
 
-include("agent_config.jl")
+include("coloring_config.jl")
 
 function solve_learning_coloring(
     agent::RL.Agent,
-    agent_config::AgentConfig,
-    coloring_settings::ColoringSettings,
+    agent_config::ColoringAgentConfig,
+    coloring_settings::ColoringExperimentSettings,
     instance_generator::SeaPearl.AbstractModelGenerator,
     save_experiment_parameters::Bool = false,
     save_model::Bool = false
@@ -41,7 +41,7 @@ function solve_learning_coloring(
     return metricsArray, eval_metricsArray
 end
 
-function get_experiment_parameters(agent::RL.Agent, agent_config::AgentConfig, coloring_settings::ColoringSettings)
+function get_experiment_parameters(agent::RL.Agent, agent_config::ColoringAgentConfig, coloring_settings::ColoringExperimentSettings)
     experiment_parameters = Dict(
         :experimentParameters => Dict(
             :nbEpisodes => coloring_settings.nbEpisodes ,
