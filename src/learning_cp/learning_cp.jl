@@ -1,4 +1,5 @@
-include("graphcoloring/agent_config.jl")
 include("graphcoloring/coloring_config.jl")
+include("graphcoloring/coloring_models.jl")
+include("graphcoloring/coloring_pipeline.jl")
+include("graphcoloring/coloring_rewards.jl")
 include("graphcoloring/graphcoloring.jl")
-
