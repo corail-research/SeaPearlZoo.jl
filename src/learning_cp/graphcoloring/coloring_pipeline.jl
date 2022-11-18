@@ -1,3 +1,4 @@
+using BSON: @save, @load
 using JSON
 using ReinforcementLearning
 const RL = ReinforcementLearning
