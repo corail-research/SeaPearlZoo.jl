@@ -2,7 +2,7 @@ using LightGraphs
 
 struct KnapsackFeaturization <: SeaPearl.AbstractFeaturization end
 
-numberOfFeatures =10
+numberOfFeatures =16
 """
     SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{KnapsackFeaturization})
 
@@ -32,7 +32,6 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{KnapsackFeat
             if g.cpmodel.objective == variable
                 features[2,i] = 1.
             end
-
             if isa(variable, SeaPearl.IntVarViewOpposite)
                 features[3, i] = 1.
             end

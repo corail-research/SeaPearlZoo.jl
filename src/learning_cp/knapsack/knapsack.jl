@@ -10,14 +10,22 @@ using Statistics
 using Dates
 using JSON
 
-include("agents.jl")
+include("experiment_setup.jl")
 include("features.jl")
+include("model_config.jl")
+include("models.jl")
 include("rewards.jl")
 
 knapsack_generator = SeaPearl.KnapsackGenerator(10, 10, 0.2)
 StateRepresentation = SeaPearl.DefaultStateRepresentation{KnapsackFeaturization, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(StateRepresentation)
 experiment_setup = KnapsackExperimentConfig(1000, 100, 3, 0)
+approximator_config = KnapsackApproximatorConfig(16, 2, SeaPearl.GraphConv(16 => 16, Flux.leakyrelu), false)
+target_approximator_config = KnapsackApproximatorConfig(16, 2, SeaPearl.GraphConv(16 => 16, Flux.leakyrelu), false)
+approximator_model = build_knapsack_approximator_model(approximator_config)
+target_approximator_model = build_knapsack_target_approximator_model(target_approximator_config)
+knapsack_agent_config = KnapsackAgentConfig( 0.9f0, 8, 10, 8, 8, 100, experiment_setup.num_episodes)
+agent = build_knapsack_agent(approximator_model, target_approximator_model, knapsack_agent_config)
 
 # Value Heuristic definition
 learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{StateRepresentation, knapsackReward, SeaPearl.FixedOutput}(agent)
@@ -38,14 +46,14 @@ valueSelectionArray = [learnedHeuristic, basicHeuristic]
 
 function solve_knapsack_with_learning!(experiment_setup::KnapsackExperimentConfig, save_experiment_artefacts::Bool=false)
     experiment_parameters = Dict(
-        :nbEpisodes => experiment_setup.nbEpisodes,
-        :evalFreq => experiment_setup.evalFreq,
-        :nbInstances => experiment_setup.nbInstances
+        :nbEpisodes => experiment_setup.num_episodes,
+        :evalFreq => experiment_setup.eval_freq,
+        :nbInstances => experiment_setup.num_instances
     )
     metricsArray, eval_metricsArray = SeaPearl.train!(;
         valueSelectionArray= valueSelectionArray,
         generator=knapsack_generator,
-        nbEpisodes=experiment_setup.nbEpisodes,
+        nbEpisodes=experiment_setup.num_episodes,
         strategy=SeaPearl.DFSearch(),
         variableHeuristic=KnapsackVariableSelection(),
         out_solver=false,
@@ -53,8 +61,8 @@ function solve_knapsack_with_learning!(experiment_setup::KnapsackExperimentConfi
         evaluator=SeaPearl.SameInstancesEvaluator(
             valueSelectionArray, 
             knapsack_generator; 
-            evalFreq=experiment_setup.evalFreq, 
-            nbInstances=experiment_setup.nbInstances
+            evalFreq=experiment_setup.eval_freq, 
+            nbInstances=experiment_setup.num_instances
         ),
         restartPerInstances = 1
     )
@@ -75,4 +83,3 @@ function solve_knapsack_with_learning!(experiment_setup::KnapsackExperimentConfi
 end
 
 metricsArray, eval_metricsArray = solve_knapsack_with_learning!(experiment_setup)
-nothing
