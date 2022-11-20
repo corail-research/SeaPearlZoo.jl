@@ -132,9 +132,8 @@ function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool,
     for (j, search_strategy) in enumerate(eval_strategies)
         println("Evaluation with strategy : ", search_strategy)
 
-        if budget_for_strat[j] != nothing
-            SeaPearl.setNodesBudget!(evaluator, budget_for_strat[j])
-        end
+        SeaPearl.setNodesBudget!(evaluator, budget_for_strat[j])
+
         SeaPearl.evaluate(evaluator, variableHeuristic, search_strategy; verbose = verbose)
         eval_metrics = evaluator.metrics
         for i in 1:size(eval_metrics)[2]
