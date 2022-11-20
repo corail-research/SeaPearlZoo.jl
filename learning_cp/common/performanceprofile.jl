@@ -108,9 +108,7 @@ function performanceProfile(folder::String, n::Int, chosen_features, has_objecti
     for (j, search_strategy) in enumerate(eval_strategies)
         println("Evaluation with strategy : ", search_strategy)
 
-        if budget_for_strat[j] != nothing
-            SeaPearl.setNodesBudget!(evaluator, budget_for_strat[j])
-        end
+        SeaPearl.setNodesBudget!(evaluator, budget_for_strat[j])
 
         SeaPearl.evaluate(evaluator, variableHeuristic, eval_strategy; verbose = verbose)
         eval_metrics = evaluator.metrics
