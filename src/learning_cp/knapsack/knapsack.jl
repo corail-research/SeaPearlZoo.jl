@@ -82,4 +82,6 @@ function solve_knapsack_with_learning!(experiment_setup::KnapsackExperimentConfi
     return metricsArray, eval_metricsArray
 end
 
-metricsArray, eval_metricsArray = solve_knapsack_with_learning!(experiment_setup)
+if abspath(PROGRAM_FILE) == @__FILE__
+    metricsArray, eval_metricsArray = solve_knapsack_with_learning!(experiment_setup)
+end
