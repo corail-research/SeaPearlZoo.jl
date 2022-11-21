@@ -1,14 +1,14 @@
-using GeometricFlux
+using SeaPearl
 include("model_config.jl")
 
 
 function build_approximator_model(eternity_model_config::EternityModelConfig)
     approximator_model = SeaPearl.FullFeaturedCPNN(
         graphChain = Flux.Chain(
-            GeometricFlux.GraphConv(
+            SeaPearl.GraphConv(
                 eternity_model_config.num_input_features=>12, 
                 eternity_model_config.activation_function),
-            GeometricFlux.GraphConv(
+                SeaPearl.GraphConv(
                 12=>12, 
                 eternity_model_config.activation_function
                 )
