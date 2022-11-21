@@ -1,6 +1,58 @@
 @testset "learning_eternity2.jl" begin
     eternity2_generator = SeaPearl.Eternity2Generator(6, 6, 6)
     struct EternityFeaturization <: SeaPearl.AbstractFeaturization end
+    function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{EternityFeaturization,TS}) where TS
+        g = sr.cplayergraph
+        pieces  = g.cpmodel.adhocInfo
+        features = zeros(Float32, 6, nv(g))
+        for i in 1:nv(g)
+            cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+            if isa(cp_vertex, SeaPearl.VariableVertex)
+                id = cp_vertex.variable.id
+                prefix, suffix = split(id,'_')
+                if prefix=="id"
+                    a, b = parse(Int, suffix[1]), parse(Int, suffix[2])
+                    features[1,i] = a
+                    features[2,i] = b
+                    features[3,i] = -1
+                    features[4,i] = -1
+                    features[5,i] = -1
+                    features[6,i] = -1
+                end
+            elseif isa(cp_vertex, SeaPearl.ValueVertex)
+                v = cp_vertex.value
+                piece = pieces[v,:]
+                features[1,i] = piece[1]
+                features[2,i] = piece[2]
+                features[3,i] = piece[3]
+                features[4,i] = piece[4]
+            end
+        end
+        features
+    end
+    
+    function SeaPearl.update_features!(sr::SeaPearl.DefaultStateRepresentation{EternityFeaturization,TS}, model::SeaPearl.CPModel) where TS
+        g = sr.cplayergraph
+        features = sr.nodeFeatures
+        for i in 1:nv(g)
+            cp_vertex = SeaPearl.cpVertexFromIndex(g, i)
+            if isa(cp_vertex, SeaPearl.VariableVertex)
+                id = cp_vertex.variable.id
+                prefix, suffix = split(id,'_')
+                if prefix=="id"
+                    a, b = parse(Int, suffix[1]), parse(Int, suffix[2])
+                    var = sr.cplayergraph.cpmodel.variables["src_v"*string(a)*string(b)]
+                    features[3,i] = SeaPearl.isbound(var) ? SeaPearl.assignedValue(var) : -1
+                    var = sr.cplayergraph.cpmodel.variables["src_v"*string(a)*string(b+1)]
+                    features[4,i] = SeaPearl.isbound(var) ? SeaPearl.assignedValue(var) : -1
+                    var = sr.cplayergraph.cpmodel.variables["src_h"*string(a)*string(b)]
+                    features[5,i] = SeaPearl.isbound(var) ? SeaPearl.assignedValue(var) : -1
+                    var = sr.cplayergraph.cpmodel.variables["src_h"*string(a+1)*string(b)]
+                    features[6,i] = SeaPearl.isbound(var) ? SeaPearl.assignedValue(var) : -1
+                end
+            end
+        end
+    end
     function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{EternityFeaturization, TS}}) where TS
         return 6
     end
@@ -10,7 +62,7 @@
     SR = SeaPearl.DefaultStateRepresentation{EternityFeaturization, SeaPearl.DefaultTrajectoryState}
     num_input_features = SeaPearl.feature_length(SR)
 
-    experiment_config = SeaPearlZoo.ExperimentConfig(eternity2_generator, 100, 30, 1, 1)
+    experiment_config = SeaPearlZoo.ExperimentConfig(eternity2_generator, 1, 3, 1, 1)
     model_config = SeaPearlZoo.EternityModelConfig(Flux.leakyrelu, false, num_input_features)
     approximator_model = SeaPearlZoo.build_approximator_model(model_config)
     target_approximator_model = SeaPearlZoo.build_approximator_model(model_config)
