@@ -1,6 +1,5 @@
 using BSON: @save, @load
 using Flux
-using GeometricFlux
 using LightGraphs
 using Random
 using ReinforcementLearning
