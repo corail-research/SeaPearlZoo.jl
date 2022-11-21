@@ -1,7 +1,6 @@
-@testset "learning_coloring.jl" begin
-    
+@testset "learning_knapsack.jl" begin
     knapsack_generator = SeaPearl.KnapsackGenerator(10, 10, 0.2)
-    StateRepresentation = SeaPearl.DefaultStateRepresentation{KnapsackFeaturization, SeaPearl.DefaultTrajectoryState}
+    StateRepresentation = SeaPearl.DefaultStateRepresentation{SeaPearlZoo.KnapsackFeaturization, SeaPearl.DefaultTrajectoryState}
     numInFeatures = SeaPearl.feature_length(StateRepresentation)
     experiment_setup = SeaPearlZoo.KnapsackExperimentConfig(1, 2, 1, 1)
     approximator_config = SeaPearlZoo.KnapsackApproximatorConfig(16, 1, SeaPearl.GraphConv(16 => 16, Flux.leakyrelu), false)
@@ -12,7 +11,7 @@
     agent = SeaPearlZoo.build_knapsack_agent(approximator_model, target_approximator_model, knapsack_agent_config)
     
     # Value Heuristic definition
-    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{StateRepresentation, knapsackReward, SeaPearl.FixedOutput}(agent)
+    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{StateRepresentation, SeaPearlZoo.knapsackReward, SeaPearl.FixedOutput}(agent)
     basicHeuristic = SeaPearl.BasicHeuristic((x; cpmodel=nothing) -> SeaPearl.maximum(x.domain)) 
     
     # Variable Heuristic definition
@@ -50,15 +49,6 @@
             ),
             restartPerInstances = 1
         )
-        if save_experiment_artefacts
-            experience_time = now()
-            dir = mkdir(string("exp_",Base.replace("$(round(experience_time, Dates.Second(3)))",":"=>"-")))
-            open(dir*"/params.json", "w") do file
-                JSON.print(file, experiment_parameters)
-            end    
-            trained_weights = params(agent.policy.learner.approximator.model)
-            @save dir*"/model_weights_knapsack.bson" trained_weights
-        end
 
         return metricsArray, eval_metricsArray
     end
