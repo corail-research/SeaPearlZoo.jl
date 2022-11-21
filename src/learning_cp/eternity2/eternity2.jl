@@ -147,5 +147,6 @@ function train_eternity2_model(
 
     return metrics_array, eval_metrics_array
 end
-
-metrics_array, eval_metrics_array = train_eternity2_model(experiment_config, value_selection_array, variable_selection)
+if abspath(PROGRAM_FILE) == @__FILE__
+    metrics_array, eval_metrics_array = train_eternity2_model(experiment_config, value_selection_array, variable_selection)
+end
