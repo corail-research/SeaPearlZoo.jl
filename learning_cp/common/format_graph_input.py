@@ -4,19 +4,18 @@
 """
     This python script is usefull to change the format of the input graph given as a .txt file.  
 """
-
-with open(path+'my_input.txt') as f:
-    lines = f.readlines()
-    
-output = []
-output.append(lines[0])
-for i,line in enumerate(lines[1:]) :
-    print(i, line.split())
-    for j in line.split() :
-        print(j)
-        if int(j) > i+1 :
-            print(str(i+1)+" "+j+" 1\n")
-            output.append(str(i+1)+" "+j+" 1\n")
-
-with open(path+'my_output.txt', 'w') as f:
-    f.write(" ".join(output))
+for idx in range(1,20) :
+    with open(path+'instance_' + str(idx) + '.txt') as f:
+        lines = f.readlines()
+        
+    output = []
+    output.append(lines[0])
+    for i,line in enumerate(lines[1:]) :
+        print(i, line.split())
+        for j in line.split() :
+            print(j)
+            if int(j) > i+1 :
+                print(str(i+1)+" "+j+" 1\n")
+                output.append(str(i+1)+" "+j+" 1\n")
+    with open(path + 'instance_transformed_' + str(idx) + '.txt', 'w') as f:
+        f.write(" ".join(output))
