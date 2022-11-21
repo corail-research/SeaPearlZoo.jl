@@ -1,11 +1,9 @@
-using SeaPearl
-import Pkg
+using Flux
+using LightGraphs
+using Random
 using ReinforcementLearning
 const RL = ReinforcementLearning
-using Flux
-using Dates
-using Random
-using LightGraphs
+using SeaPearl
 
 include("coloring_config.jl")
 include("coloring_models.jl")

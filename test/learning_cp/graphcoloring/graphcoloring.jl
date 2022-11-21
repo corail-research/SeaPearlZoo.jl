@@ -1,5 +1,5 @@
 @testset "learning_coloring.jl" begin
-    coloring_settings = ColoringExperimentSettings(1, 1, 100, 1, 1, 20, 5, 0.95)
+    coloring_settings = SeaPearlZoo.ColoringExperimentSettings(1, 1, 2, 1, 1, 20, 5, 0.95)
     instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor)
 
     function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, TS}}) where TS
@@ -51,10 +51,10 @@
     # Value Heuristic definition
     # -------------------
     output_size = instance_generator.n
-    agent_config = ColoringAgentConfig(0.99f0, 16, output_size, 4, 128, 1, 200, 3000)
-    approximator_model = build_graph_coloring_approximator_model(instance_generator.n)
-    target_approximator_model = build_graph_coloring_target_approximator_model(instance_generator.n)
-    agent = build_graph_coloring_agent(approximator_model, target_approximator_model, agent_config)
+    agent_config = SeaPearlZoo.ColoringAgentConfig(0.99f0, 16, output_size, 4, 128, 1, 200, 3000)
+    approximator_model = SeaPearlZoo.build_graph_coloring_approximator_model(instance_generator.n)
+    target_approximator_model = SeaPearlZoo.build_graph_coloring_target_approximator_model(instance_generator.n)
+    agent = SeaPearlZoo.build_graph_coloring_agent(approximator_model, target_approximator_model, agent_config)
     learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.FixedOutput}(agent)
 
     # Basic value-selection heuristic
@@ -81,6 +81,6 @@
     append!(valueSelectionArray, randomHeuristics)
     variableSelection = SeaPearl.MinDomainVariableSelection{false}() # Variable Heuristic definition
 
-    metricsArray, eval_metricsArray = solve_learning_coloring(agent, agent_config, coloring_settings, instance_generator)
+    metricsArray, eval_metricsArray = SeaPearlZoo.solve_learning_coloring(agent, agent_config, coloring_settings, instance_generator)
     
 end
