@@ -1,12 +1,11 @@
-using SeaPearl
-using SeaPearlExtras
+using BSON: @save, @load
+using Random
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
 using GeometricFlux
-using BSON: @save, @load
-using Random
-
+using SeaPearl
+using SeaPearlExtras
 
 include("rewards.jl")
 include("features.jl")
