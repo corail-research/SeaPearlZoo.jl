@@ -1,5 +1,5 @@
 using Flux
-using GeometricFlux
+# using GeometricFlux
 using LightGraphs
 using Random
 using ReinforcementLearning
@@ -8,13 +8,12 @@ using SeaPearl
 using Statistics
 
 include("agents.jl")
-# include("arg_parsing_utils.jl")
 include("kep_config.jl")
 include("features.jl")
 include("train_kep_agent.jl")
 include("utils.jl")
 
-function main(args::KepParameters)
+function main_learning_kep(args::KepParameters)
     kep_generator = SeaPearl.KepGenerator(args.num_nodes, args.density)
     kep_eval_generator = SeaPearl.KepGenerator(args.num_nodes, args.density)
     SR = SeaPearl.DefaultStateRepresentation{KepFeaturization, SeaPearl.DefaultTrajectoryState}
@@ -27,7 +26,7 @@ function main(args::KepParameters)
     random_heuristics = []
     
     for i in 1:args.num_random_heuristics
-        push!(random_heuristics, SeaPearl.BasicHeuristic(select_random_value(random_generator)))
+        push!(random_heuristics, SeaPearl.BasicHeuristic(select_random_value_kep(random_generator)))
     end
 
     value_selection_array = [learned_heuristic, basic_heuristic]
@@ -37,5 +36,5 @@ function main(args::KepParameters)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    main(KepParameters())
+    main_learning_kep(KepParameters())
 end

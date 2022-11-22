@@ -8,14 +8,14 @@ using SeaPearl
 
 include("kep_config.jl")
 
-struct select_random_value <: Function
+struct select_random_value_kep <: Function
     rng::MersenneTwister
-    function select_random_value(rng::MersenneTwister)
+    function select_random_value_kep(rng::MersenneTwister)
         return new(rng)
     end
 end
 
-function (func::select_random_value)(x::SeaPearl.IntVar; cpmodel=nothing)
+function (func::select_random_value_kep)(x::SeaPearl.IntVar; cpmodel=nothing)
 
     selected_number = rand(func.rng, 1: length(x.domain))
     i = 1
