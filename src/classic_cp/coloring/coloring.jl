@@ -61,4 +61,6 @@ function solve_coloring(input_file; benchmark=false)
     end
 end
 
-# solve_coloring("./data/gc_4_1")
+if abspath(PROGRAM_FILE) == @__FILE__
+    solve_coloring("./data/gc_4_1")
+end

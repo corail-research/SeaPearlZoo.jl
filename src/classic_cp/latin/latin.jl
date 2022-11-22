@@ -87,7 +87,9 @@ function print_latin(model)
     end
 end
 
-# tile::Matrix{Int} = zeros(Int64, (3, 3))
-# model = model_latin(tile)
-# solved_model = solve_latin!(model)
-# print_latin(solved_model)
+if abspath(PROGRAM_FILE) == @__FILE__
+    tile::Matrix{Int} = zeros(Int64, (3, 3))
+    model = model_latin(tile)
+    solved_model = solve_latin!(model)
+    print_latin(solved_model)
+end
