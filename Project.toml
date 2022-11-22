@@ -3,6 +3,7 @@ uuid = "853471db-344c-4b2c-bd56-32633c9dad42"
 version = "0.0.1"
 
 [deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -17,6 +18,7 @@ SeaPearl = "c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
+ArgParse = "1.0-1.1.4" 
 BSON = "0.3.6"
 ChainRulesCore = "1.0 - 1.15.6"
 Flux = "0.11 - 0.12"
