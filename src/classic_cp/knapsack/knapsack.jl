@@ -98,5 +98,7 @@ function (::VariableSelection{true})(model::SeaPearl.CPModel)::SeaPearl.Abstract
     return model.variables["item[" * string(i) * "]"]
 end
 
-# input_data = parseFile!("./data/ks_4_0")
-# model = build_model_and_solve_knapsack(input_data)
+if abspath(PROGRAM_FILE) == @__FILE__
+    input_data = parseFile!("./data/ks_4_0")
+    model = build_model_and_solve_knapsack(input_data)
+end

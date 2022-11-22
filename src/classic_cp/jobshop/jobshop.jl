@@ -95,5 +95,7 @@ function solve_jobshop(filename::String)
 
 end
 
-# solved_model = solve_jobshop("./data/js_3_3")
-# print_solution(solved_model)
+if abspath(PROGRAM_FILE) == @__FILE__
+    solved_model = solve_jobshop("./data/js_3_3")
+    print_solution(solved_model)
+end

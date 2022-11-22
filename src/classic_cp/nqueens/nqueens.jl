@@ -176,6 +176,8 @@ function nb_solutions_queens(board_size::Int; variableSelection=SeaPearl.MinDoma
     return(length(solve_queens(board_size; variableSelection=variableSelection, valueSelection=valueSelection).statistics.solutions))
 end
 
-# base_model = model_queens(5)
-# solved_model = solve_queens(base_model)
-# print_queens(solved_model)
+if abspath(PROGRAM_FILE) == @__FILE__
+    base_model = model_queens(5)
+    solved_model = solve_queens(base_model)
+    print_queens(solved_model)
+end

@@ -10,6 +10,9 @@ include("graphcoloring/coloring_pipeline.jl")
 include("graphcoloring/coloring_rewards.jl")
 include("graphcoloring/graphcoloring.jl")
 
+include("kep/kep_config.jl")
+include("kep/kidneyexchange.jl")
+
 include("knapsack/features.jl")
 include("knapsack/models.jl")
 include("knapsack/model_config.jl")

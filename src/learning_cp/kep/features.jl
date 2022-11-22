@@ -32,11 +32,9 @@ function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{KepFeaturiza
             if isa(variable, SeaPearl.IntVar) && g.cpmodel.objective !== variable
                 features[2, i] = 1.
             end
-
             if g.cpmodel.objective == variable
                 features[3,i] = 1.
             end
-
             if isa(variable, SeaPearl.IntVarViewOpposite)
                 features[4, i] = 1.
             end

@@ -263,15 +263,6 @@ function model_eternity2_rotation(input_file; order=[1,2,3,4], limit=nothing)
         if (i==n) push!(model.constraints, SeaPearl.EqualConstant(d[i,j], 0, trailer)) end
     end
 
-    #breaking some symmetries
-
-    #if count(==(2),count(==(0),pieces,dims=2))==4
-        #index = findfirst(==(2),vec(count(==(0),pieces,dims=2)))
-        #push!(model.constraints,SeaPearl.EqualConstant(id[1,1], index, trailer))
-        #SeaPearl.assign!(id[1,1].domain, index)
-    #end
-
-
     push!(model.constraints, SeaPearl.AllDifferent(id, trailer))
     model.adhocInfo = Dict([("n", n), ("m", m)])
     return model

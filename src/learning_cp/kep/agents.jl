@@ -1,8 +1,12 @@
-function create_agent(args::Any)
+using Flux
+using ReinforcementLearning
+const RL = ReinforcementLearning
+using SeaPearl
 
+function create_agent(args::Any)
     approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
-            SeaPearl.GraphConv(args.numInFeatures => 32, Flux.leakyrelu),
+            SeaPearl.GraphConv(args.num_input_features => 32, Flux.leakyrelu),
             SeaPearl.GraphConv(32 => 32, Flux.leakyrelu),
             SeaPearl.GraphConv(32 => 32, Flux.leakyrelu)
             
@@ -15,7 +19,7 @@ function create_agent(args::Any)
     )
     target_approximator_model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
-            SeaPearl.GraphConv(args.numInFeatures => 32, Flux.leakyrelu),
+            SeaPearl.GraphConv(args.num_input_features => 32, Flux.leakyrelu),
             SeaPearl.GraphConv(32 => 32, Flux.leakyrelu),
             SeaPearl.GraphConv(32 => 32, Flux.leakyrelu)
             
@@ -26,7 +30,6 @@ function create_agent(args::Any)
         ),
         outputChain = Flux.Dense(32, 2),
     )
-
 
     agent = RL.Agent(
         policy = RL.QBasedPolicy(

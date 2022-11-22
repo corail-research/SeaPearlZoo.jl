@@ -136,7 +136,8 @@ function reduce_instance(inputData)
     end 
 end
 
-
-# inputData = getKidneyExchangeInputData("./data/kep_8_0.2")
-# solved_model = solve_kidneyexchange_matrix(inputData)
-# print_solutions_matrix(solved_model)
+if abspath(PROGRAM_FILE) == @__FILE__
+    inputData = getKidneyExchangeInputData("./data/kep_8_0.2")
+    solved_model = solve_kidneyexchange_matrix(inputData)
+    print_solutions_matrix(solved_model)
+end

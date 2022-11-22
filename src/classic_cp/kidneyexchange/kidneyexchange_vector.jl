@@ -163,5 +163,7 @@ function reduce_instance(inputData)
     end 
 end
 
-# solved_model = solve_kidneyexchange_vector("./data/kep_8_0.2")
-# print_solutions_vector(solved_model)
+if abspath(PROGRAM_FILE) == @__FILE__
+    solved_model = solve_kidneyexchange_vector("./data/kep_8_0.2")
+    print_solutions_vector(solved_model)
+end

@@ -133,4 +133,7 @@ function solve_tsptw_known_instance(distances, time_windows)
     println("Solution: ", filter( x -> !isnothing(x),model.statistics.solutions)[end])
     println("Nodes visited: ", model.statistics.numberOfNodes)
 end
-# solve_tsptw_known_instance(distances, time_windows)
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    solve_tsptw_known_instance(distances, time_windows)
+end
