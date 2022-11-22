@@ -1,7 +1,3 @@
-import Pkg
-Pkg.activate("")
-Pkg.instantiate()
-
 using ArgParse
 using SeaPearl
 using SeaPearlExtras
@@ -17,49 +13,6 @@ using GeometricFlux
 
 include("agents.jl")
 include("features.jl")
-
-mutable struct KepParameters
-    nbNodes             ::Int
-    nbNodesEval         ::Int
-    density             ::Float64
-    nbEpisodes          ::Int 
-    restartPerInstance  ::Int
-    nbEvals             ::Int
-    nbInstances         ::Int
-    nbRandomHeuristics  ::Int
-    evalTimeout         ::Int
-    batchSize           ::Int
-    seed                ::Union{Nothing,Int}
-    seedEval            ::Union{Nothing,Int}
-    reward              ::Type{<:SeaPearl.AbstractReward}
-    strategy            ::SeaPearl.SearchStrategy
-    evalStrategy        ::SeaPearl.SearchStrategy
-    SR                  ::Union{Nothing,Type{<:SeaPearl.AbstractStateRepresentation}}
-    numInFeatures       ::Union{Nothing,Int}
-
-    # Experiment default values
-    function KepParameters()
-        return new(
-            10,         #nbNodes
-            10,         #nbNodeEval
-            0.2,        #density
-            500,        #nbEpisodes #usually 1000
-            20,         #restartPerInstance
-            20,         #nbEval
-            10,         #nbInstances
-            1,          #nbRandomHeuristics #usually 5
-            300,        #evalTimeOut
-            1,          #batchSize
-            nothing,       #seed
-            nothing,       #seedEval
-            SeaPearl.GeneralReward,
-            SeaPearl.DFSearch(),
-            SeaPearl.DFSearch(),
-            nothing,
-            nothing
-        )
-    end
-end
 
 struct select_random_value <: Function
     rng::MersenneTwister
@@ -98,8 +51,8 @@ function trytrain(
     end
 
     println("Setting seed for evaluation")
-    if !isnothing(args.seedEval)
-        rngEval = MersenneTwister(args.seedEval)
+    if !isnothing(args.seed_eval)
+        rngEval = MersenneTwister(args.seed_eval)
     else
         rngEval = MersenneTwister()
     end
@@ -114,29 +67,29 @@ function trytrain(
     metricsArray, evalMetricsArray = SeaPearl.train!(
         valueSelectionArray=heuristics,
         generator=generator,
-        nbEpisodes=args.nbEpisodes,
+        nbEpisodes=args.num_episodes,
         strategy=args.strategy,
-        eval_strategy=args.evalStrategy,
+        eval_strategy=args.eval_strategy,
         variableHeuristic=variableSelection,
         out_solver = true,
         verbose = true,
         evaluator=SeaPearl.SameInstancesEvaluator(heuristics, evalGenerator;
-            evalFreq = div(args.nbEpisodes,args.nbEvals), 
-            nbInstances = args.nbInstances, 
-            evalTimeOut = args.evalTimeout
+            evalFreq = div(args.num_episodes, args.num_evals), 
+            nbInstances = args.num_instances, 
+            evalTimeOut = args.eval_timeout
         ),
         metrics = nothing, 
-        restartPerInstances = args.restartPerInstance,
+        restartPerInstances = args.num_restarts_per_instance,
     )
     println("\n\nExperiment done, writing weights")
     trainedWeights = Flux.params(agent.policy.learner.approximator.model)
-    @save dir*"/model_weights_kep"*string(args.nbNodes)*".bson" trainedWeights
+    @save dir*"/model_weights_kep"*string(args.num_nodes)*".bson" trainedWeights
     println("Writing files")
 
-    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/kep_$(args.nbNodes)_training")
-    SeaPearlExtras.storedata(evalMetricsArray[:,1]; filename=dir*"/kep_$(args.nbNodes)_trained")
-    for i = 1:args.nbRandomHeuristics
-        SeaPearlExtras.storedata(evalMetricsArray[:,i+2]; filename=dir*"/kep_$(args.nbNodes)_random$(i)")
+    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/kep_$(args.num_nodes)_training")
+    SeaPearlExtras.storedata(evalMetricsArray[:,1]; filename=dir*"/kep_$(args.num_nodes)_trained")
+    for i = 1:args.num_random_heuristics
+        SeaPearlExtras.storedata(evalMetricsArray[:,i+2]; filename=dir*"/kep_$(args.num_nodes)_random$(i)")
     end
 
     return metricsArray, evalMetricsArray
@@ -148,12 +101,12 @@ function main(args::KepParameters)
     # -------------------
     # Generator
     # ------------------- 
-    kepGenerator = SeaPearl.KepGenerator(args.nbNodes, args.density)
-    kepEvalGenerator = SeaPearl.KepGenerator(args.nbNodes, args.density)
+    kepGenerator = SeaPearl.KepGenerator(args.num_nodes, args.density)
+    kepEvalGenerator = SeaPearl.KepGenerator(args.num_nodes, args.density)
 
     SR = SeaPearl.DefaultStateRepresentation{KepFeaturization, SeaPearl.DefaultTrajectoryState}
     args.SR = SR
-    args.numInFeatures = SeaPearl.feature_length(SR)
+    args.num_input_features = SeaPearl.feature_length(SR)
 
     # -------------------
     # Agent definition
@@ -168,7 +121,7 @@ function main(args::KepParameters)
 
     rngHeuristic = MersenneTwister(33)
     randomHeuristics = []
-    for i in 1:args.nbRandomHeuristics
+    for i in 1:args.num_random_heuristics
         push!(randomHeuristics, SeaPearl.BasicHeuristic(select_random_value(rngHeuristic)))
     end
 
@@ -213,7 +166,7 @@ function parse_commandline()
             help = "Number of random heuristic for evaluation"
             arg_type = Int
             default = 3
-        "--nbNodes"
+        "--num_nodes"
             help = "Number of nodes for the generated instances"
             arg_type = Int
             default = 20
@@ -229,7 +182,7 @@ function parse_commandline()
             help = "seed used to generate model and randomheuristic"
             arg_type = Int
             default = 15
-        "--seedEval"
+        "--seed_eval"
             help = "seed used to generate eval instances"
             arg_type = Int
             default = 15
@@ -241,15 +194,15 @@ end
 function script()
     args = parse_commandline()
     kepParams = KepParameters()
-    kepParams.nbEpisodes = args[:n]
-    kepParams.restartPerInstance = args[:r]
-    kepParams.evalTimeout = args[:timeout]
+    kepParams.num_episodes = args[:n]
+    kepParams.num_restarts_per_instance = args[:r]
+    kepParams.eval_timeout = args[:timeout]
     kepParams.nbInstances = args[:i]
-    kepParams.nbRandomHeuristics = args[:random]
-    kepParams.nbNodes = args[:nbNodes]
-    kepParams.nbNodesEval = args[:nbNodes]
+    kepParams.num_random_heuristics = args[:random]
+    kepParams.num_nodes = args[:num_nodes]
+    kepParams.num_nodesEval = args[:num_nodes]
     kepParams.seed = args[:seed]
-    kepParams.seedEval = args[:seedEval]
+    kepParams.seed_eval = args[:seed_eval]
     kepParams.density = args[:density]
     kepParams.reward = SeaPearl.GeneralReward
 
@@ -265,8 +218,8 @@ function exp_restart()
         println("Starting experiment for restarts = $r")
         total_ep = 50000
         args = KepParameters()
-        args.nbEpisodes = round(total_ep/r)
-        args.restartPerInstance = round(r)
+        args.num_episodes = round(total_ep/r)
+        args.num_restarts_per_instance = round(r)
         main(args)
     end
 end
