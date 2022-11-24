@@ -53,7 +53,7 @@ function generate_graph_txt(graph)
     return str
 end
 
-dir = "/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/experiment_for_paper/Final_Benchmark/GC/L/exp_004_final_benchmark_GC_L_target_500_80_80_6000_161_15-57-06/" #don't forget to add the "/"
+dir = "/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/experiment_for_paper/Final_Benchmark/Max-Cut/M/exp_maxwell05_020_final_benchmark_MC_M_50_50_10000_161_17-08-48/" #don't forget to add the "/"
 
 chosen_features = Dict(
     "node_number_of_neighbors" => true,
@@ -67,18 +67,23 @@ chosen_features = Dict(
     "variable_is_bound" => true,
     "values_raw" => true)
 feature_size = [6, 5, 2] 
-generator = SeaPearl.ClusterizedGraphColoringGenerator(80,12, 0.9)
+#generator = SeaPearl.MaximumIndependentSetGenerator(100,15)
+#generator = SeaPearl.ClusterizedGraphColoringGenerator(80,12, 0.9)
+generator = SeaPearl.MaxCutGenerator(50,4)
+
+#--------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------
 
 n = 20 # Number of instances to evaluate on
 budget = 100000 # Budget of visited nodes
-has_objective = false # Set it to true if we have to branch on the objective variable
+has_objective = false # Set it to true if we have to branch on the object ive variable
 eval_strategy = SeaPearl.ILDSearch(2)
 include_dfs = (eval_strategy == SeaPearl.DFSearch()) # Set it to true if you want to evaluate with DFS in addition to ILDS
 
 basicHeuristics = OrderedDict(
     "random" => SeaPearl.RandomHeuristic()
     )
-
+ 
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 basicHeuristics = OrderedDict()
@@ -121,7 +126,7 @@ import numpy as np
 #path ="experiment_for_paper/Final_Benchmark/MIS/M/exp_010_thanos0_MIS_final_benchmark_S_50_50_10000_161_15-47-33"
 #plots.performance(path +"/", ilds= eval)
 
-path="experiment_for_paper/Final_Benchmark/MIS/M/exp_010_thanos0_MIS_final_benchmark_S_50_50_10000_161_15-47-33/"
+path="experiment_for_paper/Final_Benchmark/Max-Cut/M/exp_maxwell05_020_final_benchmark_MC_M_50_50_10000_161_17-08-48/"
 print_all(path)
-
 """
+
