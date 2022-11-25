@@ -1,82 +1,65 @@
-# Model definition
-N = latin_generator.N
-p = latin_generator.p
-approximator_GNN = SeaPearl.GraphConv(32 => 32, Flux.leakyrelu)
-target_approximator_GNN = SeaPearl.GraphConv(32 => 32, Flux.leakyrelu)
-gnnlayers = 2
+using Flux
+using SeaPearl
 
-approximator_model = SeaPearl.CPNN(
-    graphChain = Flux.Chain(
-        SeaPearl.GraphConv(numInFeatures => 32, Flux.leakyrelu),
-        [approximator_GNN for i = 1:gnnlayers]...
-    ),
-    nodeChain = Flux.Chain(
-        Flux.Dense(32, 32, Flux.leakyrelu),
-        Flux.Dense(32, 32, Flux.leakyrelu),
-        Flux.Dense(32, 16, Flux.leakyrelu),
-    ),
-    globalChain = Flux.Chain(
-        Flux.Dense(numGlobalFeature, 32, Flux.leakyrelu),
-        Flux.Dense(32, 32, Flux.leakyrelu),
-        Flux.Dense(32, 16, Flux.leakyrelu),
-    ),
-    outputChain = Flux.Chain(
-        Flux.Dense(32, 32, Flux.leakyrelu),
-        Flux.Dense(32, N),
-    )
-)
- #|> gpu
-target_approximator_model = SeaPearl.CPNN(
-    graphChain = Flux.Chain(
-        SeaPearl.GraphConv(numInFeatures => 32, Flux.leakyrelu),
-        [approximator_GNN for i = 1:gnnlayers]...
-    ),
-    nodeChain = Flux.Chain(
-        Flux.Dense(32, 32, Flux.leakyrelu),
-        Flux.Dense(32, 32, Flux.leakyrelu),
-        Flux.Dense(32, 16, Flux.leakyrelu),
-    ),
-    globalChain = Flux.Chain(
-        Flux.Dense(numGlobalFeature, 32, Flux.leakyrelu),
-        Flux.Dense(32, 32, Flux.leakyrelu),
-        Flux.Dense(32, 16, Flux.leakyrelu),
-    ),
-    outputChain = Flux.Chain(
-        Flux.Dense(32, 32, Flux.leakyrelu),
-        Flux.Dense(32, N),
-    )
-) #|> gpu
+include("agent_config.jl")
 
-agent = RL.Agent(
-    policy = RL.QBasedPolicy(
-        learner = RL.DQNLearner(
-            approximator = RL.NeuralNetworkApproximator(
-                model = approximator_model,
-                optimizer = ADAM()
-            ),
-            target_approximator = RL.NeuralNetworkApproximator(
-                model = target_approximator_model,
-                optimizer = ADAM()
-            ),
-            loss_func = Flux.Losses.huber_loss,
-            batch_size = 16, #32,
-            update_horizon = 3, #what if the number of nodes in a episode is smaller
-            min_replay_history = 10,
-            update_freq = 8,
-            target_update_freq = 100,
-            #rng = rng,
+function build_latin_model(model_config::LatinModelConfig)
+    model = SeaPearl.CPNN(
+        graphChain = Flux.Chain(
+            SeaPearl.GraphConv(model_config.num_imput_features => 32, Flux.leakyrelu),
+            [model_config.layer for i = 1: model_config.num_layers]...
         ),
-        explorer = RL.EpsilonGreedyExplorer(
-            ϵ_stable = 0.1,
-            #kind = :exp,
-            decay_steps = 2000,
-            step = 1,
-            #rng = rng
+        nodeChain = Flux.Chain(
+            Flux.Dense(32, 32, Flux.leakyrelu),
+            Flux.Dense(32, 32, Flux.leakyrelu),
+            Flux.Dense(32, 16, Flux.leakyrelu),
+        ),
+        globalChain = Flux.Chain(
+            Flux.Dense(model_config.num_global_features, 32, Flux.leakyrelu),
+            Flux.Dense(32, 32, Flux.leakyrelu),
+            Flux.Dense(32, 16, Flux.leakyrelu),
+        ),
+        outputChain = Flux.Chain(
+            Flux.Dense(32, 32, Flux.leakyrelu),
+            Flux.Dense(32, model_config.N),
         )
-    ),
-    trajectory = RL.CircularArraySLARTTrajectory(
-        capacity = 1000,
-        state = SeaPearl.DefaultTrajectoryState[] => (),
-        legal_actions_mask = Vector{Bool} => (N, ),
     )
-)
+    if model_config.gpu
+        return model |> gpu
+    end
+    return model
+end
+
+function build_latin_agent(agent_config::LatinAgentConfig)
+    agent = RL.Agent(
+        policy = RL.QBasedPolicy(
+            learner = RL.DQNLearner(
+                approximator = RL.NeuralNetworkApproximator(
+                    model = agent_config.approximator,
+                    optimizer = ADAM()
+                ),
+                target_approximator = RL.NeuralNetworkApproximator(
+                    model = agent_config.target_approximator,
+                    optimizer = ADAM()
+                ),
+                loss_func = Flux.Losses.huber_loss,
+                batch_size = agent_config.batch_size,                
+                update_horizon = agent_config.update_horizon,        
+                min_replay_history = agent_config.min_replay_history,
+                update_freq = agent_config.update_freq,              
+                target_update_freq = agent_config.target_update_freq 
+            ),
+            explorer = RL.EpsilonGreedyExplorer(
+                ϵ_stable = agent_config.ϵ_stable,
+                decay_steps = agent_config.decay_steps,
+                step = agent_config.explorer_step
+            )
+        ),
+        trajectory = RL.CircularArraySLARTTrajectory(
+            capacity = agent_config.trajectory_capacity,
+            state = SeaPearl.DefaultTrajectoryState[] => (),
+            legal_actions_mask = Vector{Bool} => (agent_config.N, ),
+        )
+    )
+    return agent
+end
