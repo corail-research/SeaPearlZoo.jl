@@ -11,7 +11,7 @@
         0.6
     )
 
-    function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{LatinFeaturization,TS}) where TS
+    function SeaPearl.featurize(sr::SeaPearl.DefaultStateRepresentation{SeaPearlZoo.LatinFeaturization,TS}) where TS
         g = sr.cplayergraph
         features = zeros(Float32, 7, nv(g))
         for i in 1:nv(g)
@@ -35,7 +35,7 @@
         features
     end
 
-    function SeaPearl.global_featurize(sr::SeaPearl.DefaultStateRepresentation{LatinFeaturization,TS}) where TS
+    function SeaPearl.global_featurize(sr::SeaPearl.DefaultStateRepresentation{SeaPearlZoo.LatinFeaturization,TS}) where TS
         N = latin_exp_config.generator.N
         g = sr.cplayergraph
         feature = zeros(Float32, N^2)
@@ -53,7 +53,7 @@
         feature
     end
 
-    function SeaPearl.update_features!(sr::SeaPearl.DefaultStateRepresentation{LatinFeaturization,TS}, model::SeaPearl.CPModel) where TS
+    function SeaPearl.update_features!(sr::SeaPearl.DefaultStateRepresentation{SeaPearlZoo.LatinFeaturization,TS}, model::SeaPearl.CPModel) where TS
         N = latin_exp_config.generator.N
         g = sr.cplayergraph
         globalFeature = sr.globalFeatures
@@ -76,11 +76,11 @@
         end
     end
 
-    function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{LatinFeaturization, TS}}) where TS
+    function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearlZoo.LatinFeaturization, TS}}) where TS
         return 7
     end
 
-    function SeaPearl.global_feature_length(::Type{SeaPearl.DefaultStateRepresentation{LatinFeaturization, TS}}) where TS
+    function SeaPearl.global_feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearlZoo.LatinFeaturization, TS}}) where TS
         return latin_exp_config.generator.N * latin_exp_config.generator.N
     end
 
