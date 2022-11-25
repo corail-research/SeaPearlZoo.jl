@@ -1,7 +1,6 @@
 using BSON: @load, @save
 using Dates
 using Flux
-# using GeometricFlux
 using JSON
 using LightGraphs
 using Random
