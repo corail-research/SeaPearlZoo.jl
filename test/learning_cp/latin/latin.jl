@@ -111,7 +111,7 @@
     )
     agent = SeaPearlZoo.build_latin_agent(agent_config)
 
-    learned_heuristic = SeaPearl.SimpleLearnedHeuristic{state_representation, SeaPearlZoo.InspectReward, SeaPearl.FixedOutput}(agent)
+    learned_heuristic = SeaPearl.SimpleLearnedHeuristic{state_representation, SeaPearlZoo.InspectLatinReward, SeaPearl.FixedOutput}(agent)
     selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
     heuristic_min = SeaPearl.BasicHeuristic(selectMin)
     random_heuristics = []
