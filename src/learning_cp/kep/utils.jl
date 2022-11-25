@@ -16,7 +16,6 @@ struct select_random_value_kep <: Function
 end
 
 function (func::select_random_value_kep)(x::SeaPearl.IntVar; cpmodel=nothing)
-
     selected_number = rand(func.rng, 1: length(x.domain))
     i = 1
     for value in x.domain
