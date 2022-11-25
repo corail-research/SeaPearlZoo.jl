@@ -10,6 +10,14 @@ include("graphcoloring/coloring_pipeline.jl")
 include("graphcoloring/coloring_rewards.jl")
 include("graphcoloring/graphcoloring.jl")
 
+include("latin/agent_config.jl")
+include("latin/agents.jl")
+include("latin/latin_config.jl")
+include("latin/featurization.jl")
+include("latin/latin.jl")
+include("latin/utils.jl")
+include("latin/rewards.jl")
+
 include("kep/kep_config.jl")
 include("kep/kidneyexchange.jl")
 

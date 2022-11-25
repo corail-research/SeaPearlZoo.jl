@@ -110,8 +110,8 @@ model_config = LatinModelConfig(
     latin_exp_config.generator.p,
     false,
 )
-approximator_model = build_model(model_config)
-target_approximator_model = build_model(model_config)
+approximator_model = build_latin_model(model_config)
+target_approximator_model = build_latin_model(model_config)
 agent_config = LatinAgentConfig(
     latin_exp_config.generator.N,
     approximator_model,
@@ -126,7 +126,7 @@ agent_config = LatinAgentConfig(
     1,
     1000
 )
-agent = build_agent(agent_config)
+agent = build_latin_agent(agent_config)
 
 learned_heuristic = SeaPearl.SimpleLearnedHeuristic{state_representation, InspectReward, SeaPearl.FixedOutput}(agent)
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
@@ -175,6 +175,7 @@ function train_latin_agent(
 
     return metrics_array, eval_metrics_array
 end
-# if abspath(PROGRAM_FILE) == @__FILE__
-metrics_array, eval_metrics_array = train_latin_agent(agent, latin_exp_config, value_selection_array, variable_selection, false)
-# end
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    metrics_array, eval_metrics_array = train_latin_agent(agent, latin_exp_config, value_selection_array, variable_selection, false)
+end

@@ -3,7 +3,7 @@ using SeaPearl
 
 include("agent_config.jl")
 
-function build_model(model_config::LatinModelConfig)
+function build_latin_model(model_config::LatinModelConfig)
     model = SeaPearl.CPNN(
         graphChain = Flux.Chain(
             SeaPearl.GraphConv(model_config.num_imput_features => 32, Flux.leakyrelu),
@@ -30,7 +30,7 @@ function build_model(model_config::LatinModelConfig)
     return model
 end
 
-function build_agent(agent_config::LatinAgentConfig)
+function build_latin_agent(agent_config::LatinAgentConfig)
     agent = RL.Agent(
         policy = RL.QBasedPolicy(
             learner = RL.DQNLearner(
