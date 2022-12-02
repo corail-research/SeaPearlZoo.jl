@@ -1,5 +1,5 @@
-include("coloring/coloring.jl")
-include("coloring/coloringIOmanager.jl")
+include("graph_coloring/graph_coloring.jl")
+include("graph_coloring/coloringIOmanager.jl")
 include("eternity2/eternity2.jl")
 include("eternity2/eternityIOmanager.jl")
 include("jobshop/jobshop.jl")

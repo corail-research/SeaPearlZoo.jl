@@ -1,5 +1,5 @@
 @testset "classic_cp.jl" begin
-    include("coloring/coloring.jl")
+    include("graph_coloring/graph_coloring.jl")
     include("eternity2/eternity2.jl")
     include("jobshop/jobshop.jl")
     include("kidneyexchange/kidneyexchange.jl")
