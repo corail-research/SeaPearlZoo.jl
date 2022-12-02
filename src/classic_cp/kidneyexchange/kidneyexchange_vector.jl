@@ -158,7 +158,7 @@ function reduce_instance(inputData)
         return true, pairsEquivalence, c
         
     else
-        println("Irreductible instance")
+        println("Irreducible instance")
         return false, nothing, nothing
     end 
 end
