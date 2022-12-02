@@ -16,15 +16,15 @@ To launch this example, you need to have the package `SeaPearl` added to your en
 
 ## Usage
 
-Being inside that folder in the terminal (`classic_cp/kidneyexchange/`), you can launch:
+Being inside that folder in the terminal (`classic_cp/kidney_exchange/`), you can launch:
 
 ### Model A (solution as a matrix)
 
 This model does allow self-compatible pairs. If donor from pair i gives a kidney to patient of pair i, it will be a size 1 cycle represented as a 1 in the i-th element of the diagonal of the matrix solution.
 
 ```julia
-julia> include("kidneyexchange.jl");
-julia> model_solved = solve_kidneyexchange_matrix("data/kep_8_0.2");
+julia> include("kidney_exchange.jl");
+julia> model_solved = solve_kidney_exchange_matrix("data/kep_8_0.2");
 julia> print_solutions_matrix(model_solved);
 ```
 
@@ -35,8 +35,8 @@ This will print the solutions found as a matrix and a list of cycles.
 This model does not allow self-compatible pairs, as there will be no way to distinguish a self-compatible pair (size one cycle) from a pair that does not participate in any cycle. 
 
 ```julia
-julia> include("kidneyexchange.jl");
-julia> model_solved = solve_kidneyexchange_vector("data/kep_8_0.2");
+julia> include("kidney_exchange.jl");
+julia> model_solved = solve_kidney_exchange_vector("data/kep_8_0.2");
 julia> print_solutions_vector(model_solved);
 ```
 
@@ -52,7 +52,7 @@ This will print the solutions found as a vector and a list of cycles.
 ```
 ## Output example: 
 ```
-julia> model_solved = solve_kidneyexchange_vector("data/kep_13_0.1");
+julia> model_solved = solve_kidney_exchange_vector("data/kep_13_0.1");
 julia> print_solutions_vector(model_solved; max_nb_sols=2);
 ### nº1 -> 3 exchanges  ###
 Solution as a vector (reduced instance)

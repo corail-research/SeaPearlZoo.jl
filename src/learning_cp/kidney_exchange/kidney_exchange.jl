@@ -8,7 +8,7 @@ using SeaPearl
 using Statistics
 
 include("agents.jl")
-include("kep_config.jl")
+include("kidney_exchange_config.jl")
 include("features.jl")
 include("train_kep_agent.jl")
 include("utils.jl")

@@ -18,8 +18,8 @@ include("latin/latin.jl")
 include("latin/utils.jl")
 include("latin/rewards.jl")
 
-include("kep/kep_config.jl")
-include("kep/kidneyexchange.jl")
+include("kidney_exchange/kidney_exchange_config.jl")
+include("kidney_exchange/kidney_exchange.jl")
 
 include("knapsack/features.jl")
 include("knapsack/models.jl")

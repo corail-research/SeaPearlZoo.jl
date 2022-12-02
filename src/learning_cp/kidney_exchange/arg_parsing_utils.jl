@@ -1,7 +1,7 @@
 using ArgParse
 using SeaPearl
 
-include("kep_config.jl")
+include("kidney_exchange_config.jl")
 
 function get_kep_parameters_from_args()
     args = parse_commandline()

@@ -38,7 +38,7 @@ Here you should see a ProgressBar showing you the evolution of the training and 
     - graph_coloring
     - eternity2
     - jobshop
-    - kidneyexchange
+    - kidney_exchange
     - knapsack
     - latin
     - nqueens
@@ -46,7 +46,7 @@ Here you should see a ProgressBar showing you the evolution of the training and 
 - learning_cp (using SeaPearl.jl to have an agent learn a value selection heuristic)
     - eternity2
     - graph_coloring
-    - kep
+    - kidney_exchange
     - knapsack
     - latin
     - nqueens
