@@ -6,7 +6,7 @@ This project provides some examples of [SeaPearl.jl](https://github.com/corail-r
 
 First, clone SeaPearlZoo locally:
 ```bash
-$ git clone https://github.com/corail-research/SeaPearlZoo
+$ git clone https://github.com/corail-research/SeaPearlZoo.jl
 ```
 
 Now, making sure you have Julia 1.7 installed, go to the [Graph-Coloring](https://en.wikipedia.org/wiki/Graph_coloring) directory.
@@ -34,19 +34,20 @@ Here you should see a ProgressBar showing you the evolution of the training and 
 ## Repo organisation
 
 - classic_cp (just constraint programming problems without learning)
-    - graphcoloring
+    - All-interval_Series
+    - coloring
+    - eternity2
+    - jobshop
+    - kidneyexchange
     - knapsack
+    - latin
+    - nqueens
+    - tsptw
 - learning_cp (using SeaPearl.jl to have an agent learn a value selection heuristic)
+    - eternity2
     - graphcoloring
+    - kep
     - knapsack
-
-
-## Learning example organisation
-
-- graphcoloring/
-    - agents.jl
-    - features.jl
-    - graphcoloring.jl (main file)
-    - rewards.jl
-    - Project.toml (here lies the dependencies of the example, used when you activate the environment)
-
+    - latin
+    - nqueens
+    - tsptw
