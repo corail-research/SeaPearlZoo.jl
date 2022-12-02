@@ -6,7 +6,7 @@ using ReinforcementLearning
 const RL = ReinforcementLearning
 using SeaPearl
 
-include("kep_config.jl")
+include("kidney_exchange_config.jl")
 
 struct select_random_value_kep <: Function
     rng::MersenneTwister

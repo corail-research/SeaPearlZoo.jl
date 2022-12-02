@@ -67,7 +67,7 @@ end
 """
 print_solutions_matrix(solved_model::SeaPearl.CPModel; max_nb_sols=nothing)
 
-By default, print all solutions (in matrix form and as a set of cycles) calculated by solve_kidneyexchange_matrix()
+By default, print all solutions (in matrix form and as a set of cycles) calculated by solve_kidney_exchange_matrix()
 If `max_nb_sols` is setted, we print only `max_nb_sols` best solutions
 If `isReduced` is true, `print_pairsEquivalence()` is called
 
@@ -141,7 +141,7 @@ end
 
 """
 print_solutions_vector(solved_model::SeaPearl.CPModel; max_nb_sols=nothing)
-By default, print all solutions (in vector form and as a set of cycles) calculated by solve_kidneyexchange_vector()
+By default, print all solutions (in vector form and as a set of cycles) calculated by solve_kidney_exchange_vector()
 If `max_nb_sols` is setted, we print only `max_nb_sols` best solutions
 If `isReduced` is true, `print_pairsEquivalence()` is called
 # Print format (for each solution)

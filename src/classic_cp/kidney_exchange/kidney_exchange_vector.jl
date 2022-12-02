@@ -5,10 +5,10 @@ struct KidneyExchangeInputData
     compatibilities       :: Vector{Vector{Int}}
 end
 
-include("kidneyexchangeIOmanager.jl")
+include("kidney_exchange_IOmanager.jl")
 
 """
-solve_kidneyexchange_vector(filename::String)
+solve_kidney_exchange_vector(filename::String)
 Return the SeaPearl model solved (solution as a vector) for to the KEP problem, using SeaPearl.MinDomainVariableSelection and SeaPearl.BasicHeuristic
 This model does not allow self-compatible pairs, as there will be no way to distinguish a self-compatible pair (size one cycle) from a pair that does not participate in any cycle. 
 # Arguments
@@ -25,7 +25,7 @@ This model does not allow self-compatible pairs, as there will be no way to dist
     v[i] = j => pair j receive a kidney from pair i
     v[i] = i => pair i does not participate in any cycle
 """
-function solve_kidneyexchange_vector(filename::String)
+function solve_kidney_exchange_vector(filename::String)
     inputData = getKidneyExchangeInputData(filename)
     c = inputData.compatibilities
     trailer = SeaPearl.Trailer()
@@ -158,12 +158,12 @@ function reduce_instance(inputData)
         return true, pairsEquivalence, c
         
     else
-        println("Irreductible instance")
+        println("Irreducible instance")
         return false, nothing, nothing
     end 
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    solved_model = solve_kidneyexchange_vector("./data/kep_8_0.2")
+    solved_model = solve_kidney_exchange_vector("./data/kep_8_0.2")
     print_solutions_vector(solved_model)
 end
