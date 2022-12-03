@@ -1,8 +1,0 @@
-[deps]
-BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
-Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
-GeometricFlux = "7e08b658-56d3-11e9-2997-919d5b31e4ea"
-JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-ReinforcementLearning = "158674fc-8238-5cab-b5ba-03dfc80d1318"
-SeaPearl = "c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
-SeaPearlExtras = "90978a9a-af5e-4113-9033-e3aa0a1ac968"

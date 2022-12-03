@@ -1,9 +1,7 @@
 using SeaPearl
-# using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
-# using GeometricFlux
 using BSON: @save, @load
 using Random
 using Statistics
@@ -76,9 +74,6 @@ function solve_knapsack_with_learning!(experiment_setup::KnapsackExperimentConfi
         @save dir*"/model_weights_knapsack.bson" trained_weights
     end
 
-    # SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/knapsack_training")
-    # SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/knapsack_learned")
-    # SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/knapsack_basic")
     return metricsArray, eval_metricsArray
 end
 

@@ -1,7 +1,3 @@
-####################
-# InspectReward
-####################
-
 mutable struct InspectReward <: SeaPearl.AbstractReward
     value::Float32
 end
@@ -31,10 +27,6 @@ function SeaPearl.set_reward!(::Type{SeaPearl.EndingPhase}, lh::SeaPearl.Learned
     lh.reward.value += 10
     nothing
 end
-
-####################
-# NQueenReward
-####################
 
 struct NQueenReward <: SeaPearl.AbstractReward end  
 
