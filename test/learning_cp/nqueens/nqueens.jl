@@ -1,8 +1,8 @@
 @testset "learning_nqueens.jl" begin
     board_size = 15
-    features_type = BetterFeaturization
+    features_type = SeaPearlZoo.BetterFeaturization
     SR = SeaPearl.DefaultStateRepresentation{features_type, SeaPearl.DefaultTrajectoryState}
-    experiment_config = NQueensConfig(
+    experiment_config = SeaPearlZoo.NQueensConfig(
         board_size, 
         SeaPearl.feature_length(SR), 
         1,
@@ -13,10 +13,10 @@
         SeaPearl.CPReward,
         false
     )
-    model_config = ModelConfig(SeaPearl.feature_length(SR), experiment_config.board_size, false)
-    approximator_model = build_model(model_config)
-    target_approximator_model = build_model(model_config)
-    agent_config = AgentConfig(
+    model_config = SeaPearlZoo.NQueensModelConfig(SeaPearl.feature_length(SR), experiment_config.board_size, false)
+    approximator_model = SeaPearlZoo.build_nqueens_model(model_config)
+    target_approximator_model = SeaPearlZoo.build_nqueens_model(model_config)
+    agent_config = SeaPearlZoo.NQueensAgentConfig(
         approximator_model,
         target_approximator_model,
         32,
@@ -32,9 +32,9 @@
         50000,
         board_size
     )
-    agent = build_agent(agent_config)
+    agent = SeaPearlZoo.build_nqueens_agent(agent_config)
 
-    learned_heuristic_config = LearnedHeuristicConfig(1., 0.1 , 50, 50)
+    learned_heuristic_config = SeaPearlZoo.NQueensLearnedHeuristicConfig(1., 0.1 , 50, 50)
     learned_heuristic = SeaPearl.SupervisedLearnedHeuristic{SR, experiment_config.reward_type, SeaPearl.FixedOutput}(
         agent, 
         eta_init=learned_heuristic_config.eta_init,
@@ -55,5 +55,5 @@
     append!(value_selection_array, random_heuristics)
     variable_selection = SeaPearl.MinDomainVariableSelection{false}()
 
-    solve_learning_nqueens(experiment_config, agent, learned_heuristic, variable_selection, value_selection_array)
+    SeaPearlZoo.solve_learning_nqueens(experiment_config, agent, learned_heuristic, variable_selection, value_selection_array)
 end

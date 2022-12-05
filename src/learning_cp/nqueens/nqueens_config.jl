@@ -1,6 +1,6 @@
 using SeaPearl
 
-struct LearnedHeuristicConfig
+struct NQueensLearnedHeuristicConfig
     eta_init :: Float64
     eta_stable :: Float64
     warmup_steps :: Int
