@@ -1,5 +1,4 @@
 using SeaPearl
-using SeaPearlExtras
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using Flux
@@ -9,6 +8,7 @@ using BSON: @load, @save
 using Random
 using Dates
 
+include("agents.jl")
 # -------------------
 # Generator
 # -------------------
@@ -18,58 +18,18 @@ max_tw_gap = 0
 max_tw = 100
 tsptw_generator = SeaPearl.TsptwGenerator(n_city, grid_size, max_tw_gap, max_tw, true)
 
-# -------------------
-# Representation
-# -------------------
-
 SR = SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}
-
-# -------------------
-# Internal variables
-# -------------------
 numInFeatures=SeaPearl.feature_length(SR)
 
-# -------------------
-# Experience variables
-# -------------------
 nbEpisodes = 5
 evalFreq = 200
 nbInstances = 10
 nbRandomHeuristics = 1
 restartPerInstances = 1
 
-# -------------------
-# Agent definition
-# -------------------
-
-include("agents.jl")
-
-# -------------------
-# Value Heuristic definition
-# -------------------
-heuristic_used = "simple"
 rewardType = SeaPearl.TsptwReward
 
-if heuristic_used == "simple"
-    learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.VariableOutput}(agent)
-
-# SupevisedLEarnedHeuristic is not compatible with TsptwStateRepresentation yet
-
-#=elseif heuristic_used == "supervised"
-    eta_init = .9
-    eta_stable = .1
-    warmup_steps = 300
-    decay_steps = 700
-
-    learnedHeuristic = SeaPearl.SupervisedLearnedHeuristic{SR, rewardType, SeaPearl.VariableOutput}(
-        agent;
-        eta_init=eta_init, 
-        eta_stable=eta_stable, 
-        warmup_steps=warmup_steps, 
-        decay_steps=decay_steps,
-        rng=MersenneTwister(1234)
-    ) =#
-end
+learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.VariableOutput}(agent)
 
 include("nearest_heuristic.jl")
 nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
@@ -113,7 +73,7 @@ variableSelection = TsptwVariableSelection()
 # Core function
 # -------------------
 # -------------------
-function trytrain(nbEpisodes::Int)
+function solve_tsptw_with_learning(nbEpisodes::Int)
     
     experienceTime = now()
     dir = mkdir(string("exp_",Base.replace("$(round(experienceTime, Dates.Second(3)))",":"=>"-")))
@@ -176,13 +136,6 @@ function trytrain(nbEpisodes::Int)
 )
     trained_weights = params(agent.policy.learner.approximator.model)
     @save dir*"/model_weights_tsptw"*string(n_city)*".bson" trained_weights
-
-    SeaPearlExtras.storedata(metricsArray[1]; filename=dir*"/tsptw_$(n_city)_training")
-    SeaPearlExtras.storedata(eval_metricsArray[:,1]; filename=dir*"/tsptw_$(n_city)_trained")
-    SeaPearlExtras.storedata(eval_metricsArray[:,2]; filename=dir*"/tsptw_$(n_city)_nearest")
-    for i = 1:nbRandomHeuristics
-        SeaPearlExtras.storedata(eval_metricsArray[:,i+2]; filename=dir*"/tsptw_$(n_city)_random$(i)")
-    end
 
     return metricsArray, eval_metricsArray
 end

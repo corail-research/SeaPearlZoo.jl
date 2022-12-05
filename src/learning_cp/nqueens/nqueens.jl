@@ -70,10 +70,10 @@ experiment_config = NQueensConfig(
     SeaPearl.CPReward,
     false
 )
-model_config = ModelConfig(SeaPearl.feature_length(SR), experiment_config.board_size, false)
-approximator_model = build_model(model_config)
-target_approximator_model = build_model(model_config)
-agent_config = AgentConfig(
+model_config = NQueensModelConfig(SeaPearl.feature_length(SR), experiment_config.board_size, false)
+approximator_model = build_nqueens_model(model_config)
+target_approximator_model = build_nqueens_model(model_config)
+agent_config = NQueensAgentConfig(
     approximator_model,
     target_approximator_model,
     32,
@@ -89,9 +89,9 @@ agent_config = AgentConfig(
     50000,
     board_size
 )
-agent = build_agent(agent_config)
+agent = build_nqueens_agent(agent_config)
 
-learned_heuristic_config = LearnedHeuristicConfig(1., 0.1 , 50, 50)
+learned_heuristic_config = NQueensLearnedHeuristicConfig(1., 0.1 , 50, 50)
 learned_heuristic = SeaPearl.SupervisedLearnedHeuristic{SR, experiment_config.reward_type, SeaPearl.FixedOutput}(
     agent, 
     eta_init=learned_heuristic_config.eta_init,

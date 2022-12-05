@@ -1,7 +1,7 @@
 include("model_config.jl")
 
 
-function build_model(model_config::ModelConfig)
+function build_nqueens_model(model_config::ModelConfig)
     model = SeaPearl.CPNN(
         graphChain=Flux.Chain(
             SeaPearl.GraphConv(model_config.num_input_features => 32, Flux.leakyrelu),
@@ -24,7 +24,7 @@ function build_model(model_config::ModelConfig)
     return model
 end
 
-function build_agent(agent_config::AgentConfig)
+function build_nqueens_agent(agent_config::AgentConfig)
     agent = RL.Agent(
         policy=RL.QBasedPolicy(
             learner=RL.DQNLearner(

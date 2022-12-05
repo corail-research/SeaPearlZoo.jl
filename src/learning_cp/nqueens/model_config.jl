@@ -1,10 +1,10 @@
-struct ModelConfig
+struct NQueensModelConfig
     num_input_features :: Int
     board_size :: Int
     gpu :: Bool
 end
 
-struct AgentConfig
+struct NQueensAgentConfig
     approximator_model :: SeaPearl.CPNN
     target_approximator_model :: SeaPearl.CPNN
     batch_size :: Int
