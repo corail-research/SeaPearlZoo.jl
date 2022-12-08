@@ -22,13 +22,10 @@ tsptw_generator = SeaPearl.TsptwGenerator(
     true
 )
 
-# SR = SeaPearl.TsptwStateRepresentation{SeaPearl.TsptwFeaturization, SeaPearl.TsptwTrajectoryState}
 SR = SeaPearl.DefaultStateRepresentation{SeaPearl.DefaultFeaturization, SeaPearl.DefaultTrajectoryState}
 num_input_features = SeaPearl.feature_length(SR)
-# reward_type = SeaPearl.TsptwReward
 reward_type = SeaPearl.GeneralReward
 agent = build_tsptw_agent(num_input_features)
-# learned_heuristic = SeaPearl.SimpleLearnedHeuristic{SR, reward_type, SeaPearl.VariableOutput}(agent)
 values_raw = true
 constraint_type = true
 chosen_features = Dict([("values_raw", values_raw), ("constraint_type", constraint_type)])
@@ -39,22 +36,22 @@ function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{feat
     return num_input_features
 end
 
-nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor) # Basic value-selection heuristic
-
 random_heuristics = []
 for i in 1: experiment_config.num_random_heuristics
     push!(random_heuristics, SeaPearl.BasicHeuristic(select_random_value))
 end
 
+nearest_heuristic = SeaPearl.BasicHeuristic(select_nearest_neighbor)
 value_selection_array = [learned_heuristic, nearest_heuristic]
 append!(value_selection_array, random_heuristics)
-variableSelection = TsptwVariableSelection()
+variable_selection = SeaPearl.MinDomainVariableSelection{false}()
 
 function solve_tsptw_with_learning(
     experiment_config::TSPTWExperimentConfig, 
     value_selection_array::Array, 
     agent::RL.Agent, 
-    learned_heuristic::SeaPearl.SimpleLearnedHeuristic
+    learned_heuristic::SeaPearl.SimpleLearnedHeuristic,
+    variable_selection
 )
 
     metrics_array, eval_metrics_array=SeaPearl.train!(
@@ -62,7 +59,7 @@ function solve_tsptw_with_learning(
         generator=tsptw_generator,
         nbEpisodes=experiment_config.num_episodes,
         strategy=SeaPearl.DFSearch(),
-        variableHeuristic=variableSelection,
+        variableHeuristic=variable_selection,
         out_solver=true,
         verbose = false,
         evaluator=SeaPearl.SameInstancesEvaluator(value_selection_array, tsptw_generator; evalFreq=experiment_config.eval_freq, nbInstances=experiment_config.num_instances),
@@ -78,5 +75,5 @@ end
 
 
 # if abspath(PROGRAM_FILE) == @__FILE__
-metrics_array, eval_metrics_array = solve_tsptw_with_learning(experiment_config, value_selection_array, agent, learned_heuristic)
+metrics_array, eval_metrics_array = solve_tsptw_with_learning(experiment_config, value_selection_array, agent, learned_heuristic, variable_selection)
 # end
