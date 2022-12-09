@@ -1,6 +1,6 @@
 name = "SeaPearlZoo"
 uuid = "853471db-344c-4b2c-bd56-32633c9dad42"
-version = "0.0.1"
+version = "0.0.2"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
