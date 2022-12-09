@@ -33,7 +33,7 @@
 
     random_heuristics = []
     for i in 1: experiment_config.num_random_heuristics
-        push!(random_heuristics, SeaPearl.BasicHeuristic(select_random_value))
+        push!(random_heuristics, SeaPearl.BasicHeuristic(SeaPearlZoo.select_random_value))
     end
     heuristic_min = SeaPearl.BasicHeuristic(SeaPearlZoo.select_min)
     value_selection_array = [learned_heuristic, heuristic_min]
