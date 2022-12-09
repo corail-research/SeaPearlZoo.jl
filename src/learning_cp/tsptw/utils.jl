@@ -1,3 +1,5 @@
+include("tsptw_config.jl")
+
 function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
     selected_number = rand(1:length(x.domain))
     i = 1

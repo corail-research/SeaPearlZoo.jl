@@ -88,7 +88,6 @@ function solve_tsptw_with_learning(
     return metrics_array, eval_metrics_array
 end
 
-
-# if abspath(PROGRAM_FILE) == @__FILE__
-metrics_array, eval_metrics_array = solve_tsptw_with_learning(experiment_config, value_selection_array, agent, learned_heuristic, variable_selection)
-# end
+if abspath(PROGRAM_FILE) == @__FILE__
+    metrics_array, eval_metrics_array = solve_tsptw_with_learning(experiment_config, value_selection_array, agent, learned_heuristic, variable_selection)
+end
