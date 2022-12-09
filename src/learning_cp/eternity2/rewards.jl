@@ -18,7 +18,6 @@ function SeaPearl.set_reward!(::Type{SeaPearl.DecisionPhase}, lh::SeaPearl.Learn
     O <: SeaPearl.ActionOutput
 }
     lh.reward.value += -1
-    nothing
 end
 
 function SeaPearl.set_reward!(::Type{SeaPearl.EndingPhase}, lh::SeaPearl.LearnedHeuristic{SR, InspectReward, O}, model::SeaPearl.CPModel, symbol::Union{Nothing, Symbol}) where {
