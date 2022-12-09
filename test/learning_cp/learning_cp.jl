@@ -14,4 +14,5 @@ const RL = ReinforcementLearning
     include("knapsack/learning_knapsack.jl")
     include("latin/latin.jl")
     include("nqueens/nqueens.jl")
+    include("tsptw/tsptw.jl")
 end
