@@ -1,7 +1,7 @@
-include("nqueens.jl")
-include("graphcoloring.jl")
-include("latin.jl")
-include("kep.jl")
+#include("nqueens.jl")
+#include("graphcoloring.jl")
+#include("latin.jl")
+#include("kep.jl")
 include("MIS.jl")
 include("MaxCut.jl")
 using TensorBoardLogger, Logging, CUDA
@@ -52,13 +52,15 @@ using TensorBoardLogger, Logging, CUDA
 #simple_experiment_MaxCut(20, 4, 600, 10; restartPerInstances = 10, n_eva = 20, k_eva = 4, seedEval = 134, pool = SeaPearl.maxPooling())
 
 #simple_MaxCut_cpnn(20, 4, 600, 10; restartPerInstances = 10, n_eva = 20, k_eva = 4, seedEval = 134)
-#experiment_MIS_dfs_dive(30,5,35000,10, seedEval = 124, restartPerInstances = 1, training_timeout =7200, eval_every=240)
+#experiment_MIS_dfs_dive(30,5,35000,1, seedEval = 124, restartPerInstances = 1, training_timeout =7200, eval_every=240)
 
 #simple_experiment_MaxCut(80, 6, 10000, 20; reward = SeaPearl.ScoreReward,  eval_timeout = 120, restartPerInstances = 1, seedEval = 137, pool = SeaPearl.meanPooling(), eval_strategy = SeaPearl.ILDSearch(2), device = gpu, batch_size = 264)
 
 
 #ARGS =["maxwell01","030"]
 
-simple_experiment_MIS(50,8,20000,10; restartPerInstances = 1, seedEval = 161, reward = SeaPearl.GeneralReward, pool = SeaPearl.sumPooling(), device = gpu, batch_size= 32, update_freq = 1, target_update_freq = 100, name = string(ARGS[2])*"_"*string(ARGS[1])*"_"*"MIS_final_benchmark_M_sumPooling", numDevice = 0, eval_strategy = SeaPearl.DFSearch())
+#simple_experiment_MIS(30,6,30000,5; restartPerInstances = 1, seedEval = 161, reward = SeaPearl.GeneralReward, pool = SeaPearl.sumPooling(), device = gpu, batch_size= 32, update_freq = 1, target_update_freq = 100, name = "MIS_final_benchmark_S_sumPooling_RFS", numDevice = 0, eval_strategy = SeaPearl.DFSearch(), single_dive = true, training_timeout = 40000)
 
 
+
+simple_experiment_MIS(30,6,7500,1; restartPerInstances = 1, seedEval = 148, reward = SeaPearl.DefaultReward, pool = SeaPearl.sumPooling(), device = gpu, batch_size= 32, update_freq = 1, target_update_freq = 100, name = "105_MIS_final_benchmark_S_sumPooling_DFS_40000sec", numDevice = 0, eval_strategy = SeaPearl.DFSearch(), single_dive = false, training_timeout = 40000)

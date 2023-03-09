@@ -53,7 +53,22 @@ function generate_graph_txt(graph)
     return str
 end
 
-dir = "/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/experiment_for_paper/Final_Benchmark/Max-Cut/M/exp_maxwell05_020_final_benchmark_MC_M_50_50_10000_161_17-08-48/" #don't forget to add the "/"
+dir = "/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/experiment_for_paper/Final_Benchmark/MIS/S/merged_result/" #don't forget to add the "/"
+#for other experiment
+"""
+chosen_features = Dict(
+    "variable_is_bound" => true,
+    "variable_assigned_value" => true,
+    "variable_initial_domain_size" => true,
+    "variable_domain_size" => true,
+    "variable_is_objective" => true,
+    "constraint_activity" => true,
+    "constraint_type" => true,
+    "nb_not_bounded_variable" => true,
+    "values_raw" => true,
+)
+feature_size = [5, 4, 1]
+"""
 
 chosen_features = Dict(
     "node_number_of_neighbors" => true,
@@ -67,29 +82,31 @@ chosen_features = Dict(
     "variable_is_bound" => true,
     "values_raw" => true)
 feature_size = [6, 5, 2] 
-#generator = SeaPearl.MaximumIndependentSetGenerator(100,15)
+
+
+generator = SeaPearl.MaximumIndependentSetGenerator(30, 6)
 #generator = SeaPearl.ClusterizedGraphColoringGenerator(80,12, 0.9)
-generator = SeaPearl.MaxCutGenerator(50,4)
+#generator = SeaPearl.MaxCutGenerator(50,4)
 
 #--------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------
 
 n = 20 # Number of instances to evaluate on
-budget = 100000 # Budget of visited nodes
+budget = 10000 # Budget of visited nodes
 has_objective = false # Set it to true if we have to branch on the object ive variable
-eval_strategy = SeaPearl.ILDSearch(2)
+eval_strategy = SeaPearl.DFSearch()
 include_dfs = (eval_strategy == SeaPearl.DFSearch()) # Set it to true if you want to evaluate with DFS in addition to ILDS
 
-basicHeuristics = OrderedDict(
-    "random" => SeaPearl.RandomHeuristic()
-    )
- 
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
 basicHeuristics = OrderedDict()
 for i in 1:10
     push!(basicHeuristics,"random"*string(i) => SeaPearl.RandomHeuristic())
 end
+#push!(basicHeuristics,"min" => heuristic_min)
+push!(basicHeuristics,"impact" => SeaPearl.ImpactHeuristic())
+push!(basicHeuristics,"activity" => SeaPearl.ActivityHeuristic())
+
 include("../common/benchmark.jl")
 include("../common/performanceprofile.jl")
 Base.invokelatest(benchmark, dir, n, chosen_features, has_objective, generator, basicHeuristics, include_dfs, budget; ILDS = eval_strategy)
@@ -114,7 +131,7 @@ dir = replace(dir,"/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/" =>
 
 println(dir)
 py"benchmark"(dir)
-py"performance"(dir)
+#py"performance"(dir)
 
 """
 #add module load anaconda
