@@ -1,0 +1,2 @@
+module load python
+python -m tensorboard.main --logdir=/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/experiment_for_paper/tensorboard_logs/
