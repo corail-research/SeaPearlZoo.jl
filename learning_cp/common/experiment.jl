@@ -46,7 +46,7 @@ function trytrain(; nbEpisodes::Int, evalFreq::Int, nbInstances::Int, restartPer
     experienceTime = Base.replace("$(round(now(), Dates.Second(3)))", ":" => "-")
     date = split(experienceTime, "T")[1]
     time = split(experienceTime, "T")[2]
-    logger =TBLogger("tensorboard_logs/"*exp_name*date*"_"*time, min_level=Logging.Info)
+    logger =TBLogger("experiment_for_paper/tensorboard_logs/"*exp_name*date*"_"*time, min_level=Logging.Info) #this need to be manually set
 
     if !isdir(date)
         mkdir(date)

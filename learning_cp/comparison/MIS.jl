@@ -381,11 +381,15 @@ end
 ######### 
 ###############################################################################
 
-function simple_experiment_MIS(n, k, n_episodes, n_instances; chosen_features=nothing, feature_size=nothing, n_eval=25, n_eva = n, k_eva = k,n_layers_graph=3, reward = SeaPearl.GeneralReward, c=2.0,  trajectory_capacity = 20000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 240, restartPerInstances = 1, seedEval = nothing, device = gpu, batch_size = 64, update_freq = 1,  target_update_freq= 100, name = "", numDevice = 0, eval_strategy = SeaPearl.DFSearch())
+function simple_experiment_MIS(n, k, n_episodes, n_instances; chosen_features=nothing, feature_size=nothing, n_eval=25, n_eva = n, k_eva = k, n_layers_graph=3, reward = SeaPearl.GeneralReward, c=2.0,  trajectory_capacity = 20000, pool = SeaPearl.meanPooling(), nbRandomHeuristics = 1, eval_timeout = 240, training_timeout = nothing, restartPerInstances = 1, seedEval = nothing, device = gpu, batch_size = 64, update_freq = 1,  target_update_freq= 100, name = "", numDevice = 0, strategy = SeaPearl.DFSearch(), eval_strategy = SeaPearl.DFSearch(), single_dive = true)
         """
     Runs a single experiment on MIS
     """
-
+    if  !single_dive && reward != SeaPearl.DefaultReward
+        error("DFS learning must be used with SeaPearl.DefaultReward")
+    elseif single_dive && reward == SeaPearl.DefaultReward
+        error("RBS learning must not be used with SeaPearl.DefaultReward")
+    end   
     n_step_per_episode = Int(round(n//2))+k
 
     update_horizon = Int(round(n_step_per_episode//2))
@@ -395,14 +399,14 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances; chosen_features=no
     end
 
     evalFreq=Int(floor(n_episodes / n_eval))
-    step_explorer = Int(floor(n_episodes*n_step_per_episode*0.02))
-
+    step_explorer = Int(floor(n_episodes*n_step_per_episode/2))
 
     generator = SeaPearl.MaximumIndependentSetGenerator(n,k)
-    eval_generator = SeaPearl.MaximumIndependentSetGenerator(n_eva, k_eva)
+    eval_generator = generator
 
     rngExp = MersenneTwister(seedEval)
     init = Flux.glorot_uniform(MersenneTwister(seedEval))
+
 
     if isnothing(chosen_features)
         chosen_features = Dict(
@@ -425,7 +429,7 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances; chosen_features=no
 
     agent_3 = get_heterogeneous_agent(;
     get_heterogeneous_trajectory = () -> get_heterogeneous_slart_trajectory(capacity=trajectory_capacity, n_actions=2),        
-    get_explorer = () -> get_epsilon_greedy_explorer(step_explorer, 0.1; rng = rngExp ),
+    get_explorer = () -> get_epsilon_greedy_explorer(step_explorer, 0.01; rng = rngExp ),
     batch_size=batch_size,
     update_horizon=update_horizon,
     min_replay_history=Int(round(16*n_step_per_episode//2)),
@@ -466,16 +470,18 @@ function simple_experiment_MIS(n, k, n_episodes, n_instances; chosen_features=no
         nbInstances=n_instances,
         restartPerInstances=restartPerInstances,
         generator=generator,
+        strategy=strategy,
         eval_strategy=eval_strategy,
         variableHeuristic=variableHeuristic,
         learnedHeuristics=learnedHeuristics,
         basicHeuristics=basicHeuristics;
-        out_solver=true,
+        out_solver=single_dive,
         verbose=true,
         seedEval=seedEval,
         nbRandomHeuristics=nbRandomHeuristics,
         exp_name=name *'_'* string(n) *"_"*string(n_eva) * "_" * string(n_episodes) * "_"* string(seedEval) * "_",
-        eval_timeout=eval_timeout, 
+        eval_timeout=eval_timeout,
+        training_timeout = training_timeout,
         eval_generator=eval_generator,
     )
     nothing
@@ -854,7 +860,7 @@ metricsArray, eval_metricsArray = trytrain(
     nbRandomHeuristics=nbRandomHeuristics,
     exp_name=name *'_'* string(n) *"_"*string(n_eva) * "_" * string(n_episodes) * "_"* string(seedEval) * "_",
     eval_timeout=eval_timeout, 
-    eval_generator=eval_generator,
+    eval_generator=generator,
 )
 nothing
 
