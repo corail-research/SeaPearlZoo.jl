@@ -4,15 +4,13 @@ This project provides some examples of [SeaPearl.jl](https://github.com/corail-r
 
 ## Launch graph coloring learning 
 
+You need to have julia 1.8 installed.
+
 First, clone SeaPearlZoo locally:
 ```bash
 $ git clone https://github.com/corail-research/SeaPearlZoo.jl
 ```
-
-Now, making sure you have Julia 1.7 installed, go to the [Graph-Coloring](https://en.wikipedia.org/wiki/Graph_coloring) directory.
-```bash
-$ cd SeaPearlZoo/learning_cp/graph_coloring
-```
+If a Manifest.toml file is present, delete it.
 
 Now, activate and instantiate (download and install all the packages) the environment:
 ```
@@ -20,16 +18,18 @@ $ julia
 julia> ]
 (@v1.7) pkg> activate . 
 (graph_coloring) pkg> instantiate
-```
 
 Go back to the [julia REPL](https://docs.julialang.org/en/v1/stdlib/REPL/) by pressing backspace.
 
 Finally, you can launch the `graph_coloring.jl` file :
 ```julia
-julia> include("graph_coloring.jl")
+julia> include("src/learning_cp/graph_coloring/graph_coloring.jl")
 ```
 
 Here you should see a ProgressBar showing you the evolution of the training and then the progression of the benchmarking. You will end up with csv files stored in the same directory to measure the performances. The trained weights will also be stored in a BSON file.
+```
+
+
 
 ## Repo organisation
 
