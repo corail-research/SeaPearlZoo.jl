@@ -97,20 +97,19 @@ function model_eternity2(eternityInput::EternityInputData; order=[1,2,3,4], limi
 end
 
 """
-    model_eternity2_fast(input_file; order=[1,2,3,4], limit=nothing)
+    model_eternity2_fast(inputData; order=[1,2,3,4], limit=nothing)
 
 return the SeaPearl model for to the solve_eternity2 problem, using SeaPearl.AllDifferent  and SeaPearl.TableConstraint (without solving it). It uses less variables than v1. To be used with print_fast
 
 # Arguments
-- `input_file`: file containing the pieces of the game as well as the dimensions
+- `inputData::EternityInputData`: problem instance
 - 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
 - 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will lookk for all the solutions
 """
-function model_eternity2_fast(input_file; order=[1,2,3,4], limit=nothing)
+function model_eternity2_fast(inputData::EternityInputData; order=[1,2,3,4], limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
-    inputData = getEternityInputData(input_file;order=order)
     n = inputData.n
     m = inputData.m
     pieces = inputData.pieces
@@ -190,15 +189,14 @@ end
 return the SeaPearl model for to the solve_eternity2 problem, using SeaPearl.AllDifferent  and SeaPearl.TableConstraint (without solving it). This time, it branches on id+orientation, which could be more conveninent for learning, but it adds variables.
 
 # Arguments
-- `input_file`: file containing the pieces of the game as well as the dimensions
+- `inputData::EternityInputData`: problem instance
 - 'order' : Vector, giving the order of edges for the IO manager. example : [1,4,2,3] means it is given as [up,down,left,right]
 - 'limit' : Int, giving the number of solutions after which it will stop searching. if nothing given, it will lookk for all the solutions
 """
-function model_eternity2_rotation(input_file; order=[1,2,3,4], limit=nothing)
+function model_eternity2_rotation(inputData::EternityInputData; order=[1, 2, 3, 4], limit=nothing)
     trailer = SeaPearl.Trailer()
     model = SeaPearl.CPModel(trailer)
     model.limit.numberOfSolutions = limit
-    inputData = getEternityInputData(input_file;order=order)
     n = inputData.n
     m = inputData.m
     pieces = inputData.pieces
@@ -292,6 +290,7 @@ function solve_eternity2(
         limit=1, 
         model=model_eternity2_fast
     )
+    inputData::EternityInputData = parseEternityInput(input_file)
     model = model(input_file; order=order, limit)
     status = @time SeaPearl.solve!(model; variableHeuristic=variableSelection, valueSelection=valueSelection)
     return model
@@ -356,5 +355,4 @@ function outputFromSeaPearl_fast_orientation(model::SeaPearl.CPModel; optimality
     return OutputDataEternityII(nb_sols, orientation)
 end
 
-model = solve_eternity2("./data/eternity3x3")
-a=1
+# model = solve_eternity2("./data/eternity3x3")
