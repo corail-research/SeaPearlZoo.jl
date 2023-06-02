@@ -10,7 +10,7 @@ First, clone SeaPearlZoo locally:
 ```bash
 $ git clone https://github.com/corail-research/SeaPearlZoo.jl
 ```
-If a Manifest.toml file is present, delete it.
+If a Manifest.toml file is already present in your repo, delete it.
 
 Now, activate and instantiate (download and install all the packages) the environment:
 ```
@@ -18,6 +18,7 @@ $ julia
 julia> ]
 (@v1.7) pkg> activate . 
 (graph_coloring) pkg> instantiate
+```
 
 Go back to the [julia REPL](https://docs.julialang.org/en/v1/stdlib/REPL/) by pressing backspace.
 
