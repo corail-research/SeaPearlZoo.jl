@@ -33,7 +33,7 @@ This will solve the problem "js_3_3" and print the solution found to the termina
 # numberOfMachines, numberOfJobs, maxTime
 3 3 500     
 
-# duration of each task (i.e. 54 is the duration of job 1 on machine 2)
+# duration of each task (i.e. 54 is the duration of task 1 on machine 2)
 23 54 19    
 45 74 34
 63 73 55
