@@ -35,7 +35,7 @@ exp_*/
 *.DS_Store
 
 # Pictures
-*.png
+# *.png
 
 # Plot files
 *plot.ipynb
