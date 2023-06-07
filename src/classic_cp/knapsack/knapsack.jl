@@ -84,10 +84,9 @@ function build_knapsack_model!(data::KnapsackInputData, sorted_relative_value::V
 end
 
 struct VariableSelection{TakeObjective} <: SeaPearl.AbstractVariableSelection{TakeObjective} end
-VariableSelection(;take_objective=true) = VariableSelection{take_objective}() # question: take_objective ???
+VariableSelection(;take_objective=true) = VariableSelection{take_objective}()
 
 """(::VariableSelection{true})(model::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
-
 
 """
 function (::VariableSelection{true})(model::SeaPearl.CPModel)::SeaPearl.AbstractIntVar
