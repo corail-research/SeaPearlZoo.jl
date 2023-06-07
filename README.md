@@ -16,7 +16,7 @@ Now, activate and instantiate (download and install all the packages) the enviro
 ```
 $ julia
 julia> ]
-(@v1.7) pkg> activate . 
+(@v1.8) pkg> activate . 
 (graph_coloring) pkg> instantiate
 ```
 
