@@ -79,7 +79,7 @@ function set_settings()
         save_performance = true
     end
 
-    @eval(Base.Sys, CPU_THREADS=$nb_core)
+    # @eval(Base.Sys, CPU_THREADS=$nb_core)
 
     Random.seed!(random_seed)
 
@@ -88,11 +88,3 @@ function set_settings()
 
     return coloring_settings, instance_generator, csv_path
 end
-
-
-# metricsArray, eval_metricsArray = run_graph_coloring(nb_episodes, eval_freq)
-# println("Done ! ")
-    # save_csv(metricsArray, eval_metricsArray, csv_path, save_performance)
-# end
-
-# main()
