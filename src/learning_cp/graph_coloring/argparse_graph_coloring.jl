@@ -4,19 +4,6 @@ import ArgParse.parse_args
 using CSV, DataFrames
 using Random
 
-# using Flux
-# using LightGraphs
-# using Random
-# using ReinforcementLearning
-# const RL = ReinforcementLearning
-# using SeaPearl
-
-
-# include("coloring_config.jl")
-# include("coloring_models.jl")
-# include("coloring_pipeline.jl")
-# include("graph_coloring.jl")
-
 function parse_commandline()
     """
     Parse the command line arguments and return a dictionary containing the values
