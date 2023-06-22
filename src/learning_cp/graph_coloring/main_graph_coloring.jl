@@ -8,10 +8,9 @@ using SeaPearl
 include("coloring_config.jl")
 include("coloring_models.jl")
 include("coloring_pipeline.jl")
+include("argparse_graph_coloring.jl")
 
-
-coloring_settings = ColoringExperimentSettings(100, 1, 100, 50, 1, 20, 5, 0.95)
-instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor)
+coloring_settings, instance_generator, csv_path = set_settings()
 
 function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, TS}}) where TS
     instance_generator.n + 6
@@ -54,6 +53,19 @@ function SeaPearl.featurize(
     features
 end
 
+function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
+    selected_number = rand(1:length(x.domain))
+    i = 1
+    for value in x.domain
+        if i == selected_number
+            return value
+        end
+        i += 1
+    end
+    @assert false "This should not happen"
+end
+
+
 rewardType = SeaPearl.CPReward
 SR = SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
@@ -71,17 +83,6 @@ learnedHeuristic = SeaPearl.SimpleLearnedHeuristic{SR, rewardType, SeaPearl.Fixe
 # Basic value-selection heuristic
 selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
 heuristic_min = SeaPearl.BasicHeuristic(selectMin)
-function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
-    selected_number = rand(1:length(x.domain))
-    i = 1
-    for value in x.domain
-        if i == selected_number
-            return value
-        end
-        i += 1
-    end
-    @assert false "This should not happen"
-end
 
 randomHeuristics = []
 for i in 1:coloring_settings.nbRandomHeuristics
@@ -92,6 +93,6 @@ valueSelectionArray = [learnedHeuristic, heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
 variableSelection = SeaPearl.MinDomainVariableSelection{false}() # Variable Heuristic definition
 
-if abspath(PROGRAM_FILE) == @__FILE__
-    metricsArray, eval_metricsArray = solve_learning_coloring(agent, agent_config, coloring_settings, instance_generator)
-end
+metricsArray, eval_metricsArray = solve_learning_coloring(agent, agent_config, coloring_settings, instance_generator)
+
+save_metrics(eval_metricsArray, csv_path)
