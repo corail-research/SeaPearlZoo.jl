@@ -67,7 +67,7 @@ function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
 end
 
 
-rewardType = SeaPearl.CPReward
+rewardType = SeaPearl.GeneralReward
 SR = SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, SeaPearl.DefaultTrajectoryState}
 numInFeatures = SeaPearl.feature_length(SR)
 
