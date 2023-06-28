@@ -34,7 +34,57 @@ function parse_commandline()
         "--nbEpisodes", "-e"
             help = "number of episodes of training the agent"
             arg_type = Int
-            default = 100
+            default = 200
+            required = false
+        "--evalFreq"
+            help = "frequence for the evaluation"
+            arg_type = Int
+            default = 20
+            required = false
+        "--evalTimeOut"
+            help = "time out for the evaluation"
+            arg_type = Int
+            default = 60
+            required = false
+        "--nbNodes"
+            help = "number of nodes of the graph instances for training"
+            arg_type = Int
+            default = 10
+            required = false
+        "--nbNodesEval"
+            help = "number of nodes of the graph instances for evaluation"
+            arg_type = Int
+            default = 10
+            required = false
+        "--seedEval"
+            help = "seed for evaluation"
+            arg_type = Int
+            default = 123
+            required = false
+        "--restartPerInstances"
+            help = "number of restart per instance"
+            arg_type = Int
+            default = 10
+            required = false
+        "--nbInstances"
+            help = "number of instances"
+            arg_type = Int
+            default = 20
+            required = false
+        "--nbRandomHeuristics"
+            help = "number of random heuristics"
+            arg_type = Int
+            default = 1
+            required = false
+        "--nbMinColor"
+            help = "minimum number of colors in the generated graphs"
+            arg_type = Int
+            default = 5
+            required = false
+        "--density"
+            help = "density of the generated graphs"
+            arg_type = Float64
+            default = 0.95
             required = false
         "--csv_path"
             help = "name of the csv file path for saving performance, if not found, nothing is saved"
@@ -55,9 +105,17 @@ function set_settings()
     memory_limit = parsed_args["memory_limit"]
     nb_core = parsed_args["nb_core"]
     nb_episodes = parsed_args["nbEpisodes"]
+    nb_nodes = parsed_args["nbNodes"]
+    nb_nodes_eval = parsed_args["nbNodesEval"]
+    restart_per_instances = parsed_args["restartPerInstances"]
+    nb_instances = parsed_args["nbInstances"]
+    nb_random_heuristics = parsed_args["nbRandomHeuristics"]
+    nb_min_color = parsed_args["nbMinColor"]
+    density = parsed_args["density"]
+    eval_timeout = parsed_args["evalTimeOut"]
+    eval_freq = parsed_args["evalFreq"]
+    seedEval = parsed_args["seedEval"]
     csv_path = parsed_args["csv_path"]
-
-    eval_freq = ceil(nb_episodes/10)
 
     if isnothing(csv_path)
         csv_path = ""
@@ -70,8 +128,10 @@ function set_settings()
 
     Random.seed!(random_seed)
 
-    coloring_settings = ColoringExperimentSettings(nb_episodes, 10, eval_freq, 50, 1, 50, 5, 0.95)
-    instance_generator = SeaPearl.ClusterizedGraphColoringGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor, coloring_settings.density)
+    coloring_settings = ColoringExperimentSettings(nb_episodes, restart_per_instances, eval_freq, eval_timeout, seedEval, nb_instances, nb_random_heuristics, nb_nodes, nb_nodes_eval, nb_min_color, density)
 
-    return coloring_settings, instance_generator, csv_path
+    instance_generator = SeaPearl.ClusterizedGraphColoringGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor, coloring_settings.density)
+    eval_generator = SeaPearl.ClusterizedGraphColoringGenerator(coloring_settings.nbNodesEval, coloring_settings.nbMinColor, coloring_settings.density)
+    
+    return coloring_settings, instance_generator, eval_generator, csv_path
 end

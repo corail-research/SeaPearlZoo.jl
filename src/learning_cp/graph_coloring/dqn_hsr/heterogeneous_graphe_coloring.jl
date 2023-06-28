@@ -11,7 +11,7 @@ include("../coloring_pipeline.jl")
 include("argparse_heterogeneous_graph_coloring.jl")
 include("../../utils/save_metrics.jl")
 
-coloring_settings, instance_generator, csv_path = set_settings()
+coloring_settings, instance_generator, eval_generator, csv_path = set_settings()
 
 function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
     selected_number = rand(1:length(x.domain))
@@ -101,6 +101,6 @@ valueSelectionArray = [learned_heuristic_ffcpnn, heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
 variableSelection = SeaPearl.MinDomainVariableSelection{false}() # Variable Heuristic definition
 
-metricsArray, eval_metricsArray = solve_learning_coloring(agent_ffcpnn, agent_config, coloring_settings, instance_generator)
+metricsArray, eval_metricsArray = solve_learning_coloring(agent_ffcpnn, agent_config, coloring_settings, instance_generator, eval_generator)
 
 save_metrics(eval_metricsArray, csv_path)

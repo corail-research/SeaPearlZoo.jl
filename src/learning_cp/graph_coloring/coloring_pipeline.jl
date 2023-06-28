@@ -12,6 +12,7 @@ function solve_learning_coloring(
     agent_config::ColoringAgentConfig,
     coloring_settings::ColoringExperimentSettings,
     instance_generator::SeaPearl.AbstractModelGenerator,
+    eval_generator::SeaPearl.AbstractModelGenerator = nothing,
     save_experiment_parameters::Bool = false,
     save_model::Bool = false
     )
@@ -23,6 +24,12 @@ function solve_learning_coloring(
         open(dir*"/params.json", "w") do file
             JSON.print(file, experiment_parameters)
         end
+    end
+
+    if !isnothing(eval_generator)
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, eval_generator; evalFreq=coloring_settings.evalFreq, nbInstances=coloring_settings.nbInstances, evalTimeOut = coloring_settings.evalTimeOut, rng = MersenneTwister(seedEval) )
+    else
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, instance_generator; evalFreq=coloring_settings.evalFreq, nbInstances=coloring_settings.nbInstances, evalTimeOut = coloring_settings.evalTimeOut, rng = MersenneTwister(seedEval))
     end
 
     metricsArray, eval_metricsArray = SeaPearl.train!(

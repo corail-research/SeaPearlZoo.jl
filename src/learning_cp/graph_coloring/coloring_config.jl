@@ -13,9 +13,12 @@ struct ColoringExperimentSettings
     nbEpisodes          :: Int     
     restartPerInstances :: Int     
     evalFreq            :: Int     
+    evalTimeOut         :: Int
+    seedEval            :: Int
     nbInstances         :: Int     
     nbRandomHeuristics  :: Int     
-    nbNodes             :: Int     
+    nbNodes             :: Int   
+    nbNodesEval         :: Int  
     nbMinColor          :: Int     
     density             :: Float32
 end
