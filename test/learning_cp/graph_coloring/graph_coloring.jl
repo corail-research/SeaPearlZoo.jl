@@ -1,7 +1,8 @@
 @testset "learning_coloring.jl" begin
     coloring_settings = SeaPearlZoo.ColoringExperimentSettings(1, 1, 2, 1, 42, 1, 1, 2, 2, 1, 0.95)
     instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor)
-
+    eval_generator = instance_generator
+    
     function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, TS}}) where TS
         instance_generator.n + 6
     end
