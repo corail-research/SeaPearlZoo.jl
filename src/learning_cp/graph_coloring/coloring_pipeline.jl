@@ -12,7 +12,7 @@ function solve_learning_coloring(
     agent_config::ColoringAgentConfig,
     coloring_settings::ColoringExperimentSettings,
     instance_generator::SeaPearl.AbstractModelGenerator,
-    eval_generator::SeaPearl.AbstractModelGenerator = nothing,
+    eval_generator= nothing,
     save_experiment_parameters::Bool = false,
     save_model::Bool = false
     )
