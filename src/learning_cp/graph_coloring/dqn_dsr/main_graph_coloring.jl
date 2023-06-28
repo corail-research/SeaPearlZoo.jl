@@ -5,9 +5,9 @@ using ReinforcementLearning
 const RL = ReinforcementLearning
 using SeaPearl
 
-include("coloring_config.jl")
-include("coloring_models.jl")
-include("coloring_pipeline.jl")
+include("../coloring_config.jl")
+include("../coloring_models.jl")
+include("../coloring_pipeline.jl")
 include("argparse_graph_coloring.jl")
 
 coloring_settings, instance_generator, csv_path = set_settings()
