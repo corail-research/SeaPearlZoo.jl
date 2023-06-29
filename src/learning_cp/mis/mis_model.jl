@@ -1,5 +1,4 @@
 # Model definition
-
 struct HeterogeneousModel{A,B}
     Inputlayer::A
     Middlelayers::Vector{B}
@@ -8,20 +7,20 @@ struct HeterogeneousModel{A,B}
         return new{typeof(Inputlayer), eltype(Middlelayers)}(Inputlayer,Middlelayers)
     end
 
-    function HeterogeneousModel(original_features_size::Vector{Int}, mid::Int, out::Int, n_layers::Int; pool=SeaPearl.meanPooling(), init = Flux.glorot_uniform)
-    
-    Middlelayers=SeaPearl.HeterogeneousGraphConv[]
+    function HeterogeneousModel(original_features_size::Vector{Int}, mid::Int, out::Int, n_layers::Int; init = Flux.glorot_uniform)
+        pool = SeaPearl.meanPooling()
+        Middlelayers=SeaPearl.HeterogeneousGraphConv[]
 
-    if n_layers == 1 
-        Inputlayer = get_heterogeneous_graph_conv_init_layer(original_features_size, out, init = init)
-    else
-        Inputlayer = get_heterogeneous_graph_conv_init_layer(original_features_size, mid, init = init)
-        for i in 1:n_layers - 2
-            push!(Middlelayers, get_heterogeneous_graph_conv_layer(mid, mid, original_features_size, pool, init = init))
+        if n_layers == 1 
+            Inputlayer = get_heterogeneous_graph_conv_init_layer(original_features_size, out; init=init)
+        else
+            Inputlayer = get_heterogeneous_graph_conv_init_layer(original_features_size, mid; init=init)
+            for i in 1:n_layers - 2
+                push!(Middlelayers, get_heterogeneous_graph_conv_layer(mid, mid, original_features_size; init=init))
+            end
+            push!(Middlelayers,get_heterogeneous_graph_conv_layer(mid, out, original_features_size; init=init))
         end
-        push!(Middlelayers,get_heterogeneous_graph_conv_layer(mid, out, original_features_size, pool, init = init))
-    end
-    return new{typeof(Inputlayer), eltype(Middlelayers)}(Inputlayer, Middlelayers)
+        return new{typeof(Inputlayer), eltype(Middlelayers)}(Inputlayer, Middlelayers)
 
     end
 end
@@ -41,7 +40,7 @@ function (m::HeterogeneousModel)(fg)
     return out
 end
 
-get_heterogeneous_graph_conv_layer(in, out, original_features_size, pool; init = Flux.glorot_uniform) = SeaPearl.HeterogeneousGraphConv(in => out, original_features_size, Flux.leakyrelu; pool = pool, init = init)
+get_heterogeneous_graph_conv_layer(in, out, original_features_size; init=Flux.glorot_uniform) = SeaPearl.HeterogeneousGraphConv(in => out, original_features_size, Flux.leakyrelu; init = init)
 
 get_heterogeneous_graph_conv_init_layer(original_features_size, out; init = Flux.glorot_uniform) = SeaPearl.HeterogeneousGraphConvInit(original_features_size, out, Flux.leakyrelu, init = init)
 
@@ -120,15 +119,15 @@ function get_epsilon_greedy_explorer(decay_steps, ϵ_stable; rng=nothing)
     end
 end
 
-function get_heterogeneous_graph_chain(original_features_size, mid, out, n_layers; pool=SeaPearl.meanPooling(), init = Flux.glorot_uniform, device = cpu)
+function get_heterogeneous_graph_chain(original_features_size, mid, out, n_layers; init = Flux.glorot_uniform, device = cpu)
     @assert n_layers >= 1
-    return HeterogeneousModel(original_features_size, mid, out, n_layers; pool= pool, init = init)
+    return HeterogeneousModel(original_features_size, mid, out, n_layers; init = init)
 end
 
-function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=Flux.leakyrelu, heads=4, init = Flux.glorot_uniform, device = cpu)
+function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, σ=Flux.leakyrelu, heads=4, init = Flux.glorot_uniform, device = cpu)
     if conv_type == "gc"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
-            get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool, init = init),
+            get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; init = init),
             get_dense_chain(conv_size, dense_size, dense_size, n_layers_node, σ, init = init),
             Flux.Chain(),
             get_dense_chain(2*dense_size, dense_size, output_size, n_layers_output, σ, init = init)
