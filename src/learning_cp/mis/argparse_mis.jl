@@ -9,6 +9,7 @@ function parse_commandline()
     Parse the command line arguments and return a dictionary containing the values
     """
     s = ArgParseSettings()
+    choices = ["cpu", "gpu"]
 
     @add_arg_table s begin
         "--random_seed", "-s"
@@ -70,6 +71,12 @@ function parse_commandline()
             help = "name of the csv file path for saving performance, if not found, nothing is saved"
             arg_type = String
             required = false
+        "--device"
+            help = "device to use for training (cpu or gpu)"
+            arg_type = String
+            default = "cpu"
+            required = false
+            range_tester = (x->x ∈ choices)
     end
     return parse_args(s)
 end
@@ -92,6 +99,7 @@ function set_settings()
     nb_initial_vertices = parsed_args["nbInitialVertices"]
     save_model = parsed_args["save_model"]
     csv_path = parsed_args["csv_path"]
+    device = parsed_args["device"]
 
     eval_freq = ceil(nb_episodes/10)
 
@@ -109,5 +117,5 @@ function set_settings()
     mis_settings = MisExperimentSettings(nb_episodes, restart_per_instances, eval_freq, nb_instances, nb_random_heuristics, nb_new_vertices, nb_initial_vertices)
     instance_generator = SeaPearl.MaximumIndependentSetGenerator(mis_settings.nbNewVertices, mis_settings.nbInitialVertices)
 
-    return mis_settings, instance_generator, csv_path, save_model
+    return mis_settings, instance_generator, csv_path, save_model, device
 end
