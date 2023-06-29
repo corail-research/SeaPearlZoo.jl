@@ -83,7 +83,6 @@ agent_ffcpnn = get_heterogeneous_agent(;
         n_layers_graph=3,
         n_layers_node=2,
         n_layers_output=2, 
-        # pool=pool,
         σ=NNlib.leakyrelu,
         init = init
     ),

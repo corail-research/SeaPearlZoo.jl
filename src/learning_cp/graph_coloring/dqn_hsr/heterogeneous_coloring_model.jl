@@ -120,12 +120,21 @@ function get_epsilon_greedy_explorer(decay_steps, ϵ_stable; rng=nothing)
     end
 end
 
-function get_heterogeneous_graph_chain(original_features_size, mid, out, n_layers; init = Flux.glorot_uniform, device = cpu)
+function get_heterogeneous_graph_chain(original_features_size, mid, out, n_layers; init = Flux.glorot_uniform)
     @assert n_layers >= 1
     return HeterogeneousModel(original_features_size, mid, out, n_layers; init = init)
 end
 
-function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, σ=Flux.leakyrelu, heads=4, init = Flux.glorot_uniform, device = cpu)
+function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, σ=Flux.leakyrelu, heads=4, init = Flux.glorot_uniform, device = "cpu")
+    
+    if device == "cpu"
+        device = cpu
+    elseif device == "gpu"
+        device = gpu
+    else
+        error("device unknown!")
+    end
+    
     if conv_type == "gc"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
             get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; init = init),
