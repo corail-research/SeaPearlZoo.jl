@@ -43,9 +43,9 @@ function solve_learning_coloring(
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,instance_generator; evalFreq = coloring_settings.evalFreq, nbInstances = coloring_settings.nbInstances),
         restartPerInstances = coloring_settings.restartPerInstances
     )
-    if save_model
+    if save_model # works only for DQN
         model = agent.policy.learner.approximator
-        @save dir*"/model_gc"*string(instance_generator.n)*".bson" model
+        @save "saved_model/model_gc"*string(instance_generator.n)*".bson" model
     end
 
     return metricsArray, eval_metricsArray
