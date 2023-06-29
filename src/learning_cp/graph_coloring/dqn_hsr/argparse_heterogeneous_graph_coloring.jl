@@ -9,6 +9,7 @@ function parse_commandline()
     Parse the command line arguments and return a dictionary containing the values
     """
     s = ArgParseSettings()
+    choices = ["cpu", "gpu"]
 
     @add_arg_table s begin
         "--random_seed", "-s"
@@ -95,6 +96,12 @@ function parse_commandline()
             help = "name of the csv file path for saving performance, if not found, nothing is saved"
             arg_type = String
             required = false
+        "--device"
+            help = "device to use for training (cpu or gpu)"
+            arg_type = String
+            default = "cpu"
+            required = false
+            range_tester = (x->x ∈ choices)
     end
     return parse_args(s)
 end
@@ -122,6 +129,7 @@ function set_settings()
     seedEval = parsed_args["seedEval"]
     save_model = parsed_args["save_model"]
     csv_path = parsed_args["csv_path"]
+    device = parsed_args["device"]
 
     if isnothing(csv_path)
         csv_path = ""
@@ -139,5 +147,5 @@ function set_settings()
     instance_generator = SeaPearl.ClusterizedGraphColoringGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor, coloring_settings.density)
     eval_generator = SeaPearl.ClusterizedGraphColoringGenerator(coloring_settings.nbNodesEval, coloring_settings.nbMinColor, coloring_settings.density)
     
-    return coloring_settings, instance_generator, eval_generator, csv_path, save_model
+    return coloring_settings, instance_generator, eval_generator, csv_path, save_model, device
 end
