@@ -61,7 +61,11 @@ function parse_commandline()
             arg_type = Int
             default = 4
             required = false
-
+        "--save_model"
+            help = "save the model"
+            arg_type = Bool
+            default = false
+            required = false
         "--csv_path"
             help = "name of the csv file path for saving performance, if not found, nothing is saved"
             arg_type = String
@@ -86,6 +90,7 @@ function set_settings()
     nb_random_heuristics = parsed_args["nbRandomHeuristics"]
     nb_new_vertices = parsed_args["nbNewVertices"]
     nb_initial_vertices = parsed_args["nbInitialVertices"]
+    save_model = parsed_args["save_model"]
     csv_path = parsed_args["csv_path"]
 
     eval_freq = ceil(nb_episodes/10)
@@ -104,5 +109,5 @@ function set_settings()
     mis_settings = MisExperimentSettings(nb_episodes, restart_per_instances, eval_freq, nb_instances, nb_random_heuristics, nb_new_vertices, nb_initial_vertices)
     instance_generator = SeaPearl.MaximumIndependentSetGenerator(mis_settings.nbNewVertices, mis_settings.nbInitialVertices)
 
-    return mis_settings, instance_generator, csv_path
+    return mis_settings, instance_generator, csv_path, save_model
 end

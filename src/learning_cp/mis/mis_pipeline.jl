@@ -36,9 +36,10 @@ function solve_learning_mis(
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,instance_generator; evalFreq = mis_settings.evalFreq, nbInstances = mis_settings.nbInstances),
         restartPerInstances = mis_settings.restartPerInstances
     )
-    if save_model
+
+    if save_model # works only for DQN
         model = agent.policy.learner.approximator
-        @save dir*"/model_gc"*string(instance_generator.n)*".bson" model
+        @save "saved_model/model_mis"*string(instance_generator.n)*".bson" model
     end
 
     return metricsArray, eval_metricsArray
