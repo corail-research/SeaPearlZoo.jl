@@ -87,7 +87,6 @@ get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
     n_layers_graph=3,
     n_layers_node=3,
     n_layers_output=2, 
-    # pool=pool,
     σ=NNlib.leakyrelu,
     init = init,
     device = device
