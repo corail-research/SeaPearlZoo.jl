@@ -11,7 +11,11 @@ include("mis_pipeline.jl")
 include("argparse_mis.jl")
 include("../utils/save_metrics.jl")
 
-mis_settings, instance_generator, csv_path = set_settings()
+mis_settings, instance_generator, csv_path, save_model, device = set_settings()
+
+if device == gpu
+    CUDA.device!(numDevice)
+end
 
 function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
     selected_number = rand(1:length(x.domain))
@@ -28,7 +32,7 @@ end
 output_size = instance_generator.n
 agent_config = MisAgentConfig(0.99f0, 64, output_size, 4, 400, 1, 100, 20000)
 
-pool = SeaPearl.meanPooling()
+# pool = SeaPearl.meanPooling()
 trajectory_capacity = agent_config.trajectory_capacity
 batch_size = agent_config.batch_size
 seedEval = 123
@@ -37,11 +41,6 @@ target_update_freq= agent_config.target_update_freq
 n_step_per_episode = Int(round(mis_settings.nbNewVertices//2))+mis_settings.nbInitialVertices
 
 update_horizon = Int(round(n_step_per_episode//2))
-device = cpu
-
-if device == gpu
-    CUDA.device!(numDevice)
-end
 
 evalFreq=mis_settings.evalFreq
 step_explorer = Int(floor(mis_settings.nbEpisodes*n_step_per_episode/2))
@@ -88,7 +87,7 @@ get_heterogeneous_nn = () -> get_heterogeneous_fullfeaturedcpnn(
     n_layers_graph=3,
     n_layers_node=3,
     n_layers_output=2, 
-    pool=pool,
+    # pool=pool,
     σ=NNlib.leakyrelu,
     init = init,
     device = device
@@ -112,6 +111,6 @@ valueSelectionArray = [learned_heuristic, heuristic_max]
 append!(valueSelectionArray, randomHeuristics)
 variableSelection = SeaPearl.MinDomainVariableSelection{false}()
 
-metricsArray, eval_metricsArray = solve_learning_mis(agent, agent_config, mis_settings, instance_generator)
+metricsArray, eval_metricsArray = solve_learning_mis(agent, agent_config, mis_settings, instance_generator, false, save_model)
 
 save_metrics(eval_metricsArray, csv_path)
