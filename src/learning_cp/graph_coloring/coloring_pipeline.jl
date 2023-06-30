@@ -53,9 +53,25 @@ function solve_learning_coloring(
         println("Folder already exists!")
     end
 
-    if save_model # works only for DQN
-        model = agent.policy.learner.approximator
-        @save folder_path*"/model_gc"*string(instance_generator.n)*"_"*string(coloring_settings.nbNodes)*"_"*string(coloring_settings.nbNodesEval)*".bson" model
+
+    # for (key, lh) in learnedHeuristics
+    #     if (hasfield(typeof(lh.agent.policy),:approximator)) #PPO
+    #         model = Flux.cpu(lh.agent.policy.approximator)
+    #     else #DQN
+    #         model = Flux.cpu(lh.agent.policy.learner.approximator)
+    #     end
+    #     @save dir * "/model_" * key * ".bson" model
+    # end
+
+
+
+    if save_model 
+        if (hasfield(typeof(lh.agent.policy),:approximator)) # PPO
+            model_to_save = agent.policy.approximator
+        else # DQN
+            model_to_save = agent.policy.learner.approximator
+        end
+        @save folder_path*"/model_gc"*string(instance_generator.n)*"_"*string(coloring_settings.nbNodes)*"_"*string(coloring_settings.nbNodesEval)*".bson" model_to_save
     end
 
     return metricsArray, eval_metricsArray
