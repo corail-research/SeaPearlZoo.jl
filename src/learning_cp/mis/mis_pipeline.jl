@@ -46,8 +46,12 @@ function solve_learning_mis(
         println("Folder already exists!")
     end
 
-    if save_model # works only for DQN
-        model = agent.policy.learner.approximator
+    if save_model 
+        if (hasfield(typeof(lh.agent.policy),:approximator)) # PPO
+            model_to_save = agent.policy.approximator
+        else # DQN
+            model_to_save = agent.policy.learner.approximator
+        end
         @save folder_path*"/model_mis"*string(instance_generator.n)*"_"*string(mis_settings.nbNewVertices)*"_"*string(mis_settings.nbInitialVertices)*".bson" model
     end
 
