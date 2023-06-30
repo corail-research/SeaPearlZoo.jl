@@ -71,7 +71,7 @@ function solve_learning_coloring(
         else # DQN
             model_to_save = agent.policy.learner.approximator
         end
-        @save folder_path*"/model_gc"*string(instance_generator.n)*"_"*string(coloring_settings.nbNodes)*"_"*string(coloring_settings.nbNodesEval)*".bson" model_to_save
+        @save folder_path*"/model_gc"*string(instance_generator.n)*"_"*string(coloring_settings.nbNodes)*"_"*string(coloring_settings.nbNodesEval)*"_"*string(coloring_settings.nbEpisodes)*".bson" model_to_save
     end
 
     return metricsArray, eval_metricsArray

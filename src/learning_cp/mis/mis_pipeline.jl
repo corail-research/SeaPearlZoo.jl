@@ -52,7 +52,7 @@ function solve_learning_mis(
         else # DQN
             model_to_save = agent.policy.learner.approximator
         end
-        @save folder_path*"/model_mis"*string(instance_generator.n)*"_"*string(mis_settings.nbNewVertices)*"_"*string(mis_settings.nbInitialVertices)*".bson" model
+        @save folder_path*"/model_mis"*string(instance_generator.n)*"_"*string(mis_settings.nbNewVertices)*"_"*string(mis_settings.nbInitialVertices)*"_"*string(mis_settings.nbEpisodes)*".bson" model
     end
 
     return metricsArray, eval_metricsArray
