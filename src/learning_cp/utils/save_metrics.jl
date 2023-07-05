@@ -20,6 +20,7 @@ function get_last_solution(solutions::Vector{Union{Nothing, Float32}})
 end
 
 
+
 function save_metrics(eval_metricsArray::Matrix{SeaPearl.AbstractMetrics}, save_path::AbstractString)
 
     column_names = ["num_heuristic", "num_instance", "num_experiment", "heuristic_type", "reward_type", "policy_type", "first_sol", "last_sol", "node_visited_first_sol", "total_node_visited", "total_time"]
@@ -29,7 +30,6 @@ function save_metrics(eval_metricsArray::Matrix{SeaPearl.AbstractMetrics}, save_
     end
 
     nb_instance, nb_heuristic = size(eval_metricsArray)
-
     nb_experiment = length(eval_metricsArray[1,1].scores)
 
     
@@ -72,3 +72,4 @@ function save_metrics(eval_metricsArray::Matrix{SeaPearl.AbstractMetrics}, save_
         end
     end
 end
+
