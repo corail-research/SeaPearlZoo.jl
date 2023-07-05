@@ -125,7 +125,21 @@ function get_heterogeneous_graph_chain(original_features_size, mid, out, n_layer
     return HeterogeneousModel(original_features_size, mid, out, n_layers; pool= pool, init = init)
 end
 
-function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_size=8, dense_size=16, output_size=1, n_layers_graph=3, n_layers_node=2, n_layers_output=2, pool=SeaPearl.meanPooling(), σ=Flux.leakyrelu, heads=4, init = Flux.glorot_uniform, device = cpu)
+function get_heterogeneous_fullfeaturedcpnn(;
+        feature_size,
+        conv_type="gc",
+        conv_size=8,
+        dense_size=16,
+        output_size=1,
+        n_layers_graph=3,
+        n_layers_node=2,
+        n_layers_output=2,
+        pool=SeaPearl.meanPooling(),
+        σ=Flux.leakyrelu,
+        heads=4,
+        init=Flux.glorot_uniform,
+        device=cpu
+    )
     if conv_type == "gc"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
             get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; pool=pool, init = init),
