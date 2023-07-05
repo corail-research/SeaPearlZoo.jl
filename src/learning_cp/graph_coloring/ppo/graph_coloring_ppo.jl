@@ -12,13 +12,16 @@ include("coloring_pipeline_ppo.jl")
 nbEpisodes = 100
 restartPerInstances = 1
 evalFreq = 10
+evalTimeOut = 60
+seedEval = 42
 nbInstances = 5
 nbRandomHeuristics = 1
 nbNodes = 20
+nbNodesEval = 20
 nbMinColor = 5
 density = 0.95
 
-coloring_settings = ColoringExperimentSettings(nbEpisodes, restartPerInstances, evalFreq, nbInstances, nbRandomHeuristics, nbNodes, nbMinColor, density)
+coloring_settings = ColoringExperimentSettings(nbEpisodes, restartPerInstances, evalFreq, evalTimeOut, seedEval, nbInstances, nbRandomHeuristics, nbNodes, nbNodesEval, nbMinColor, density)
 instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor)
 
 function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, TS}}) where TS
