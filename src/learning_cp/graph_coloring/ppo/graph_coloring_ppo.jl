@@ -9,8 +9,16 @@ include("../coloring_config.jl")
 include("coloring_models_ppo.jl")
 include("coloring_pipeline_ppo.jl")
 
+nbEpisodes = 100
+restartPerInstances = 1
+evalFreq = 10
+nbInstances = 5
+nbRandomHeuristics = 1
+nbNodes = 20
+nbMinColor = 5
+density = 0.95
 
-coloring_settings = ColoringExperimentSettings(100, 1, 100, 50, 1, 20, 5, 0.95)
+coloring_settings = ColoringExperimentSettings(nbEpisodes, restartPerInstances, evalFreq, nbInstances, nbRandomHeuristics, nbNodes, nbMinColor, density)
 instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor)
 
 function SeaPearl.feature_length(::Type{SeaPearl.DefaultStateRepresentation{SeaPearl.AbstractFeaturization, TS}}) where TS
@@ -72,7 +80,7 @@ n_microbatches = 32
 actor_loss_weight = 1.0f0
 critic_loss_weight = 0.5f0
 entropy_loss_weight = 0.00f0
-update_freq = 2048
+update_freq = 128 #2048
 trajectory_capacity = update_freq
 
 agent_config = ColoringPPOAgentConfig(gamma, lambda, clip_range, max_grad_norm, n_epochs, n_microbatches, actor_loss_weight, critic_loss_weight, entropy_loss_weight, output_size, update_freq, trajectory_capacity)

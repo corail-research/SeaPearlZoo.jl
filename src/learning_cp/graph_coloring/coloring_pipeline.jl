@@ -43,9 +43,23 @@ function solve_learning_coloring(
         evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,instance_generator; evalFreq = coloring_settings.evalFreq, nbInstances = coloring_settings.nbInstances),
         restartPerInstances = coloring_settings.restartPerInstances
     )
-    if save_model
-        model = agent.policy.learner.approximator
-        @save dir*"/model_gc"*string(instance_generator.n)*".bson" model
+
+    folder_path = "saved_model"
+
+    if !isdir(folder_path)
+        mkdir(folder_path)
+        println(" Folder created successfully!")
+    else
+        println(" Folder already exists!")
+    end
+
+    if save_model 
+        if (hasfield(typeof(agent.policy),:approximator)) # PPO
+            model_to_save = agent.policy.approximator
+        else # DQN
+            model_to_save = agent.policy.learner.approximator
+        end
+        @save folder_path*"/model_gc"*string(instance_generator.n)*"_"*string(coloring_settings.nbNodes)*"_"*string(coloring_settings.nbNodesEval)*"_"*string(coloring_settings.nbEpisodes)*".bson" model_to_save
     end
 
     return metricsArray, eval_metricsArray

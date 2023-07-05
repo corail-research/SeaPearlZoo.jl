@@ -11,7 +11,11 @@ include("../coloring_pipeline.jl")
 include("argparse_heterogeneous_graph_coloring.jl")
 include("../../utils/save_metrics.jl")
 
-coloring_settings, instance_generator, eval_generator, csv_path = set_settings()
+coloring_settings, instance_generator, eval_generator, csv_path, save_model, device = set_settings()
+
+if device == gpu
+    CUDA.device!(numDevice)
+end
 
 function select_random_value(x::SeaPearl.IntVar; cpmodel=nothing)
     selected_number = rand(1:length(x.domain))
@@ -48,7 +52,7 @@ decay_steps = Int(floor(coloring_settings.nbEpisodes*coloring_settings.restartPe
 
 rngExp = MersenneTwister(seedEval)
 init = Flux.glorot_uniform(MersenneTwister(seedEval))
-pool = SeaPearl.sumPooling()
+# pool = SeaPearl.sumPooling()
 trajectory_capacity=10000
 
 chosen_features = Dict(
@@ -79,7 +83,6 @@ agent_ffcpnn = get_heterogeneous_agent(;
         n_layers_graph=3,
         n_layers_node=2,
         n_layers_output=2, 
-        pool=pool,
         σ=NNlib.leakyrelu,
         init = init
     ),
@@ -101,6 +104,6 @@ valueSelectionArray = [learned_heuristic_ffcpnn, heuristic_min]
 append!(valueSelectionArray, randomHeuristics)
 variableSelection = SeaPearl.MinDomainVariableSelection{false}() # Variable Heuristic definition
 
-metricsArray, eval_metricsArray = solve_learning_coloring(agent_ffcpnn, agent_config, coloring_settings, instance_generator, eval_generator)
+metricsArray, eval_metricsArray = solve_learning_coloring(agent_ffcpnn, agent_config, coloring_settings, instance_generator, eval_generator, false, save_model)
 
 save_metrics(eval_metricsArray, csv_path)
