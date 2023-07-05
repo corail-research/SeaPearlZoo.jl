@@ -81,6 +81,7 @@ function build_graph_coloring_approximator_model(device)
     return approximator_model
 end
 
+
 function build_graph_coloring_target_approximator_model(device)
     approximator_model = SeaPearl.HeterogeneousFullFeaturedCPNN(
         graphChain = Flux.Chain(HeterogeneousModel([6,5,2], 8, 8, 3)),
