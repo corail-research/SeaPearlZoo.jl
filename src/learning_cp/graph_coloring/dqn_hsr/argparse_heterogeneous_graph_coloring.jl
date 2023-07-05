@@ -102,6 +102,11 @@ function parse_commandline()
             default = "cpu"
             required = false
             range_tester = (x->x ∈ choices)
+        "--path_json", "-j"
+            help = "use a json file to set the parameters"
+            arg_type = String
+            default = nothing
+            required = false
     end
     return parse_args(s)
 end
@@ -112,24 +117,47 @@ function set_settings()
     """
     parsed_args = parse_commandline()
 
-    random_seed = parsed_args["random_seed"]
-    time_limit = parsed_args["time_limit"]
-    memory_limit = parsed_args["memory_limit"]
-    nb_core = parsed_args["nb_core"]
-    nb_episodes = parsed_args["nbEpisodes"]
-    nb_nodes = parsed_args["nbNodes"]
-    nb_nodes_eval = parsed_args["nbNodesEval"]
-    restart_per_instances = parsed_args["restartPerInstances"]
-    nb_instances = parsed_args["nbInstances"]
-    nb_random_heuristics = parsed_args["nbRandomHeuristics"]
-    nb_min_color = parsed_args["nbMinColor"]
-    density = parsed_args["density"]
-    eval_timeout = parsed_args["evalTimeOut"]
-    eval_freq = parsed_args["evalFreq"]
-    seedEval = parsed_args["seedEval"]
-    save_model = parsed_args["save_model"]
-    csv_path = parsed_args["csv_path"]
-    device = parsed_args["device"]
+    if !isnothing(parsed_args["path_json"])
+        parameters = SeaPearl.read_parameters(parsed_args["path_json"])
+
+        random_seed = parameters["random_seed"]
+        time_limit = parameters["time_limit"]
+        memory_limit = parameters["memory_limit"]
+        nb_core = parameters["nb_core"]
+        nb_episodes = parameters["nbEpisodes"]
+        nb_nodes = parameters["nbNodes"]
+        nb_nodes_eval = parameters["nbNodesEval"]
+        restart_per_instances = parameters["restartPerInstances"]
+        nb_instances = parameters["nbInstances"]
+        nb_random_heuristics = parameters["nbRandomHeuristics"]
+        nb_min_color = parameters["nbMinColor"]
+        density = parameters["density"]
+        eval_timeout = parameters["evalTimeOut"]
+        eval_freq = parameters["evalFreq"]
+        seedEval = parameters["seedEval"]
+        save_model = parameters["save_model"]
+        csv_path = parameters["csv_path"]
+        device = parameters["device"]
+    else
+        random_seed = parsed_args["random_seed"]
+        time_limit = parsed_args["time_limit"]
+        memory_limit = parsed_args["memory_limit"]
+        nb_core = parsed_args["nb_core"]
+        nb_episodes = parsed_args["nbEpisodes"]
+        nb_nodes = parsed_args["nbNodes"]
+        nb_nodes_eval = parsed_args["nbNodesEval"]
+        restart_per_instances = parsed_args["restartPerInstances"]
+        nb_instances = parsed_args["nbInstances"]
+        nb_random_heuristics = parsed_args["nbRandomHeuristics"]
+        nb_min_color = parsed_args["nbMinColor"]
+        density = parsed_args["density"]
+        eval_timeout = parsed_args["evalTimeOut"]
+        eval_freq = parsed_args["evalFreq"]
+        seedEval = parsed_args["seedEval"]
+        save_model = parsed_args["save_model"]
+        csv_path = parsed_args["csv_path"]
+        device = parsed_args["device"]
+    end
 
     if isnothing(csv_path)
         csv_path = ""
