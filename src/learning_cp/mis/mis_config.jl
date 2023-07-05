@@ -12,7 +12,9 @@ end
 struct MisExperimentSettings
     nbEpisodes          :: Int     
     restartPerInstances :: Int     
-    evalFreq            :: Int     
+    evalFreq            :: Int
+    evalTimeOut         :: Int
+    seedEval            :: Int     
     nbInstances         :: Int     
     nbRandomHeuristics  :: Int     
     nbNewVertices       :: Int     
