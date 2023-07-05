@@ -134,7 +134,6 @@ function get_heterogeneous_fullfeaturedcpnn(;feature_size, conv_type="gc", conv_
     else
         error("device unknown!")
     end
-    
     if conv_type == "gc"
         return SeaPearl.HeterogeneousFullFeaturedCPNN(
             get_heterogeneous_graph_chain(feature_size, conv_size, conv_size, n_layers_graph; init = init),
