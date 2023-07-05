@@ -68,6 +68,8 @@ function build_graph_coloring_ppo_agent(actor_model, critic_model, agent_config:
             action_log_prob = Vector{Float32} => (),
             state = SeaPearl.DefaultTrajectoryState[] => (),
             legal_actions_mask = Vector{Bool} => (agent_config.output_size, ),
+            terminal = Bool => (1,),
+            reward = Float32 => (1,),
         ),
     )
     return agent
