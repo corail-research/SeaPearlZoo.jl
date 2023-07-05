@@ -12,6 +12,7 @@ function solve_learning_mis(
     agent_config::MisAgentConfig,
     mis_settings::MisExperimentSettings,
     instance_generator::SeaPearl.AbstractModelGenerator,
+    eval_generator= nothing,
     save_experiment_parameters::Bool = false,
     save_model::Bool = false
     )
@@ -25,6 +26,12 @@ function solve_learning_mis(
         end
     end
 
+    if !isnothing(eval_generator)
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, eval_generator; evalFreq=mis_settings.evalFreq, nbInstances=mis_settings.nbInstances, evalTimeOut = mis_settings.evalTimeOut, rng = MersenneTwister(mis_settings.seedEval))
+    else
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, instance_generator; evalFreq=mis_settings.evalFreq, nbInstances=mis_settings.nbInstances, evalTimeOut = mis_settings.evalTimeOut, rng = MersenneTwister(mis_settings.seedEval))
+    end
+
     metricsArray, eval_metricsArray = SeaPearl.train!(
         valueSelectionArray=valueSelectionArray,
         generator=instance_generator,
@@ -33,7 +40,7 @@ function solve_learning_mis(
         variableHeuristic=variableSelection,
         out_solver=true,
         verbose = false,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,instance_generator; evalFreq = mis_settings.evalFreq, nbInstances = mis_settings.nbInstances),
+        evaluator=evaluator,
         restartPerInstances = mis_settings.restartPerInstances
     )
 

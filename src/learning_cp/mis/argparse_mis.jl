@@ -37,6 +37,21 @@ function parse_commandline()
             arg_type = Int
             default = 100
             required = false
+        "--evalFreq"
+            help = "frequence for the evaluation"
+            arg_type = Int
+            default = 10
+            required = false
+        "--evalTimeOut"
+            help = "time out for the evaluation"
+            arg_type = Int
+            default = 60
+            required = false
+        "--seedEval"
+            help = "seed for the evaluation"
+            arg_type = Int
+            default = 42
+            required = false
         "--restartPerInstances"
             help = "number of restart per instance"
             arg_type = Int
@@ -77,6 +92,11 @@ function parse_commandline()
             default = "cpu"
             required = false
             range_tester = (x->x ∈ choices)
+        "--path_json", "-j"
+            help = "use a json file to set the parameters"
+            arg_type = String
+            default = nothing
+            required = false
     end
     return parse_args(s)
 end
@@ -87,22 +107,44 @@ function set_settings()
     """
     parsed_args = parse_commandline()
 
-    random_seed = parsed_args["random_seed"]
-    time_limit = parsed_args["time_limit"]
-    memory_limit = parsed_args["memory_limit"]
-    nb_core = parsed_args["nb_core"]
-    nb_episodes = parsed_args["nbEpisodes"]
-    restart_per_instances = parsed_args["restartPerInstances"]
-    nb_instances = parsed_args["nbInstances"]
-    nb_random_heuristics = parsed_args["nbRandomHeuristics"]
-    nb_new_vertices = parsed_args["nbNewVertices"]
-    nb_initial_vertices = parsed_args["nbInitialVertices"]
-    save_model = parsed_args["save_model"]
-    csv_path = parsed_args["csv_path"]
-    device = parsed_args["device"]
+    if !isnothing(parsed_args["path_json"])
+        parameters = SeaPearl.read_parameters(parsed_args["path_json"])
 
-    eval_freq = ceil(nb_episodes/10)
-
+        random_seed = parameters["random_seed"]
+        time_limit = parameters["time_limit"]
+        memory_limit = parameters["memory_limit"]
+        nb_core = parameters["nb_core"]
+        nb_episodes = parameters["nbEpisodes"]
+        restart_per_instances = parameters["restartPerInstances"]
+        nb_instances = parameters["nbInstances"]
+        nb_random_heuristics = parameters["nbRandomHeuristics"]
+        nb_new_vertices = parameters["nbNewVertices"]
+        nb_initial_vertices = parameters["nbInitialVertices"]
+        save_model = parameters["save_model"]
+        csv_path = parameters["csv_path"]
+        device = parameters["device"]
+        eval_freq = parameters["evalFreq"]
+        eval_timeout = parameters["evalTimeOut"]
+        seed_eval = parameters["seedEval"]
+    else
+        random_seed = parsed_args["random_seed"]
+        time_limit = parsed_args["time_limit"]
+        memory_limit = parsed_args["memory_limit"]
+        nb_core = parsed_args["nb_core"]
+        nb_episodes = parsed_args["nbEpisodes"]
+        restart_per_instances = parsed_args["restartPerInstances"]
+        nb_instances = parsed_args["nbInstances"]
+        nb_random_heuristics = parsed_args["nbRandomHeuristics"]
+        nb_new_vertices = parsed_args["nbNewVertices"]
+        nb_initial_vertices = parsed_args["nbInitialVertices"]
+        save_model = parsed_args["save_model"]
+        csv_path = parsed_args["csv_path"]
+        device = parsed_args["device"]
+        eval_freq = parsed_args["evalFreq"]
+        eval_timeout = parsed_args["evalTimeOut"]
+        seed_eval = parsed_args["seedEval"]
+    end
+    
     if isnothing(csv_path)
         csv_path = ""
         save_performance = false
@@ -114,7 +156,7 @@ function set_settings()
 
     Random.seed!(random_seed)
 
-    mis_settings = MisExperimentSettings(nb_episodes, restart_per_instances, eval_freq, nb_instances, nb_random_heuristics, nb_new_vertices, nb_initial_vertices)
+    mis_settings = MisExperimentSettings(nb_episodes, restart_per_instances, eval_freq, eval_timeout, seed_eval, nb_instances, nb_random_heuristics, nb_new_vertices, nb_initial_vertices)
     instance_generator = SeaPearl.MaximumIndependentSetGenerator(mis_settings.nbNewVertices, mis_settings.nbInitialVertices)
 
     return mis_settings, instance_generator, csv_path, save_model, device

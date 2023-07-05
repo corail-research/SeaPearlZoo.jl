@@ -27,7 +27,7 @@ function solve_learning_coloring(
     end
 
     if !isnothing(eval_generator)
-        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, eval_generator; evalFreq=coloring_settings.evalFreq, nbInstances=coloring_settings.nbInstances, evalTimeOut = coloring_settings.evalTimeOut, rng = MersenneTwister(coloring_settings.seedEval) )
+        evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, eval_generator; evalFreq=coloring_settings.evalFreq, nbInstances=coloring_settings.nbInstances, evalTimeOut = coloring_settings.evalTimeOut, rng = MersenneTwister(coloring_settings.seedEval))
     else
         evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, instance_generator; evalFreq=coloring_settings.evalFreq, nbInstances=coloring_settings.nbInstances, evalTimeOut = coloring_settings.evalTimeOut, rng = MersenneTwister(coloring_settings.seedEval))
     end
@@ -40,7 +40,7 @@ function solve_learning_coloring(
         variableHeuristic=variableSelection,
         out_solver=true,
         verbose = false,
-        evaluator=SeaPearl.SameInstancesEvaluator(valueSelectionArray,instance_generator; evalFreq = coloring_settings.evalFreq, nbInstances = coloring_settings.nbInstances),
+        evaluator=evaluator,
         restartPerInstances = coloring_settings.restartPerInstances
     )
 
