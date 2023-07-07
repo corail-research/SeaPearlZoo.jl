@@ -51,7 +51,7 @@ function build_knapsack_ppo_agent(actor_model, critic_model, agent_config::Knaps
                     optimizer = ADAM(),
                 ),
                 optimizer = ADAM(),
-            ) |> gpu,
+            ), #|> gpu,
             γ = agent_config.gamma,
             λ = agent_config.lambda,
             actor_loss_weight = agent_config.actor_loss_weight,
