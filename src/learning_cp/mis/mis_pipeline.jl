@@ -46,11 +46,13 @@ function solve_learning_mis(
 
     folder_path = "saved_model/mis"
 
-    if !isdir(folder_path)
-        mkdir(folder_path)
-        println("Folder created successfully!")
-    else
-        println("Folder already exists!")
+    if save_model
+        if !isdir(folder_path)
+            mkdir(folder_path)
+            println("Folder created successfully!")
+        else
+            println("Folder already exists!")
+        end
     end
 
     if save_model 
