@@ -3,15 +3,7 @@ using BSON: @load
 using SeaPearl 
 using Flux 
 using ReinforcementLearning
-using SeaPearlExtras
-
-include("src/learning_cp/mis/mis_config.jl")
-include("src/learning_cp/mis/mis_model.jl")
-
-include("src/learning_cp/graph_coloring/coloring_config.jl")
-include("src/learning_cp/graph_coloring/dqn_hsr/heterogeneous_coloring_model.jl")
-
-include("src/learning_cp/utils/save_metrics.jl")
+include("save_metrics.jl")
 
 
 function generate_graph_txt(graph)
@@ -27,16 +19,16 @@ end
 function load_models(folder::String)
     println("Computing benchmarks...")
     models=[]
-    models_names=[]
+    model_names=[]
     for file in readdir(folder)
         if splitext(file)[2] == ".bson"
             println(folder * "/" * file)
             @load folder * "/" * file model
             push!(models, model)
-            push!(models_names, replace(splitext(file)[1], "model_"=>""))
+            push!(model_names, replace(splitext(file)[1], "model_"=>""))
         end
     end
-    return models, models_names
+    return models, model_names
 end
 
 function set_strategies(include_dfs, budget, ILDS=nothing)
@@ -69,7 +61,7 @@ function set_strategies(include_dfs, budget, ILDS=nothing)
 
 end
 
-function set_agents_and_value_selection(models, models_names, reward, chosen_features, generator, basicHeuristics)
+function set_agents_and_value_selection(models, model_names, reward, chosen_features, generator, basicHeuristics)
     agents = []    
     valueSelectionArray = SeaPearl.ValueSelection[]
 
@@ -102,8 +94,8 @@ function set_agents_and_value_selection(models, models_names, reward, chosen_fea
         push!(valueSelectionArray, SeaPearl.SimpleLearnedHeuristic{state_representation,reward,SeaPearl.FixedOutput}(agent; chosen_features=chosen_features))
     end
     append!(valueSelectionArray, collect(values(basicHeuristics)))
-    append!(models_names, collect(keys(basicHeuristics)))
-    return valueSelectionArray, models_names
+    append!(model_names, collect(keys(basicHeuristics)))
+    return valueSelectionArray, model_names
 end 
 
 function manage_evaluation_folder(folder, evaluator)
@@ -112,7 +104,7 @@ function manage_evaluation_folder(folder, evaluator)
     else
         eval_instances_dir = folder*"/eval_instances/"
     end
-    for (idx,instance) in enumerate(evaluator.instances)
+    for (idx, instance) in enumerate(evaluator.instances)
         if !isnothing(instance.adhocInfo)
             open(eval_instances_dir*"instance_"*string(idx)*".txt", "w") do io
                 write(io, generate_graph_txt(instance.adhocInfo))
@@ -128,70 +120,52 @@ function manage_evaluation_folder(folder, evaluator)
     return dir
 end
 
-function benchmark(folder::String, n::Int, chosen_features, has_objective::Bool, generator, basicHeuristics, include_dfs, budget::Int; verbose=true, ILDS = nothing)
-    models, models_names = load_models(folder)
-
+function benchmark(;
+        models::Array{}, 
+        model_folder=nothing, 
+        evaluation_folder::String, 
+        num_instances::Int, 
+        chosen_features, 
+        take_objective::Bool, 
+        generator, 
+        basicHeuristics, 
+        include_dfs, 
+        budget::Int, 
+        verbose=true, 
+        ILDS=nothing,
+        save_experiment_metrics=true
+    )
+    if isnothing(model_folder)
+        model_names = ["model_"*string(i) for i in 1:length(models)]
+    else
+        models, model_names = load_models(model_folder)
+    end
     reward = SeaPearl.GeneralReward
-
     eval_strategies, search_strategy_names, budget_for_strat = set_strategies(include_dfs, budget, ILDS)
-
-    valueSelectionArray, models_names = set_agents_and_value_selection(models, models_names, reward, chosen_features, generator, basicHeuristics)
-
-    variableHeuristic = SeaPearl.MinDomainVariableSelection{has_objective}()
-
-    evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; nbInstances=n)
-    
-    dir = manage_evaluation_folder(folder, evaluator)
-
-
+    valueSelectionArray, model_names = set_agents_and_value_selection(models, model_names, reward, chosen_features, generator, basicHeuristics)
+    variableHeuristic = SeaPearl.MinDomainVariableSelection{take_objective}()
+    evaluator = SeaPearl.SameInstancesEvaluator(valueSelectionArray, generator; nbInstances=num_instances)
+    if !isnothing(model_folder)
+        dir = manage_evaluation_folder(model_folder, evaluator)
+    end
+    if !save_experiment_metrics
+        df = DataFrame()
+    end
     for (j, search_strategy) in enumerate(eval_strategies)
         println("Evaluation with strategy : ", search_strategy)
-
         SeaPearl.setNodesBudget!(evaluator, budget_for_strat[j])
-
         SeaPearl.evaluate(evaluator, variableHeuristic, search_strategy; verbose = verbose)
         eval_metrics = evaluator.metrics
-        save_metrics(eval_metrics, "test_benchmark_gc.csv")
-
+        if save_experiment_metrics
+            save_metrics(eval_metrics, "test_benchmark.csv")
+        else
+            new_df = get_metrics_dataframe(eval_metrics)
+            df = vcat(df, new_df)
+        end
         SeaPearl.resetNodesBudget!(evaluator)
-
         empty!(evaluator)
     end
+    if !save_experiment_metrics
+        return df
+    end
 end
-
-
-
-dir = "saved_model/gc" # path to the folder with the saved models
-
-chosen_features = Dict(
-    "node_number_of_neighbors" => true,
-    "constraint_type" => true,
-    "constraint_activity" => true,
-    "nb_not_bounded_variable" => true,
-    "variable_initial_domain_size" => true,
-    "variable_domain_size" => true,
-    "variable_is_objective" => true,
-    "variable_assigned_value" => true,
-    "variable_is_bound" => true,
-    "values_raw" => true)
-
-# generator = SeaPearl.MaximumIndependentSetGenerator(30, 6)
-generator = SeaPearl.ClusterizedGraphColoringGenerator(80, 12, 0.9)
-
-n = 20 # Number of instances to evaluate on
-budget = 10000 # Budget of visited nodes
-has_objective = false # Set it to true if we have to branch on the object ive variable
-eval_strategy = SeaPearl.DFSearch()
-include_dfs = true # Set it to true if you want to evaluate with DFS in addition to ILDS
-
-selectMin(x::SeaPearl.IntVar; cpmodel=nothing) = SeaPearl.minimum(x.domain)
-heuristic_min = SeaPearl.BasicHeuristic(selectMin)
-basicHeuristics = Dict()
-for i in 1:10
-    push!(basicHeuristics,"random"*string(i) => SeaPearl.RandomHeuristic())
-end
-
-push!(basicHeuristics,"min" => heuristic_min)
-
-benchmark(dir, n, chosen_features, has_objective, generator, basicHeuristics, include_dfs, budget; ILDS = eval_strategy)
-
