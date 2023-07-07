@@ -44,7 +44,7 @@ function solve_learning_coloring(
         restartPerInstances = coloring_settings.restartPerInstances
     )
 
-    folder_path = "saved_model"
+    folder_path = "saved_model/gc"
 
     if !isdir(folder_path)
         mkdir(folder_path)
@@ -55,11 +55,11 @@ function solve_learning_coloring(
 
     if save_model 
         if (hasfield(typeof(agent.policy),:approximator)) # PPO
-            model_to_save = agent.policy.approximator
+            model = agent.policy.approximator
         else # DQN
-            model_to_save = agent.policy.learner.approximator
+            model = agent.policy.learner.approximator
         end
-        @save folder_path*"/model_gc"*string(instance_generator.n)*"_"*string(coloring_settings.nbNodes)*"_"*string(coloring_settings.nbNodesEval)*"_"*string(coloring_settings.nbEpisodes)*".bson" model_to_save
+        @save folder_path*"/model_gc"*string(instance_generator.n)*"_"*string(coloring_settings.nbNodes)*"_"*string(coloring_settings.nbNodesEval)*"_"*string(coloring_settings.nbEpisodes)*".bson" model
     end
 
     return metricsArray, eval_metricsArray

@@ -175,5 +175,5 @@ function set_settings()
     instance_generator = SeaPearl.ClusterizedGraphColoringGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor, coloring_settings.density)
     eval_generator = SeaPearl.ClusterizedGraphColoringGenerator(coloring_settings.nbNodesEval, coloring_settings.nbMinColor, coloring_settings.density)
     
-    return coloring_settings, instance_generator, eval_generator, csv_path, save_model, device
+    return coloring_settings, instance_generator, eval_generator, csv_path, save_model, device, save_performance
 end

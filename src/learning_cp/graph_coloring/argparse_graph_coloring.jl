@@ -73,5 +73,5 @@ function set_settings()
     coloring_settings = ColoringExperimentSettings(nb_episodes, 1, eval_freq, 60, 42, 50, 1, 20, 20, 5, 0.95)
     instance_generator = SeaPearl.BarabasiAlbertGraphGenerator(coloring_settings.nbNodes, coloring_settings.nbMinColor)
 
-    return coloring_settings, instance_generator, csv_path
+    return coloring_settings, instance_generator, csv_path, save_performance
 end

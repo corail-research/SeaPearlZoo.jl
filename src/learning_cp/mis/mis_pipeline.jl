@@ -44,7 +44,7 @@ function solve_learning_mis(
         restartPerInstances = mis_settings.restartPerInstances
     )
 
-    folder_path = "saved_model"
+    folder_path = "saved_model/mis"
 
     if !isdir(folder_path)
         mkdir(folder_path)
@@ -55,11 +55,11 @@ function solve_learning_mis(
 
     if save_model 
         if (hasfield(typeof(agent.policy),:approximator)) # PPO
-            model_to_save = agent.policy.approximator
+            model = agent.policy.approximator
         else # DQN
-            model_to_save = agent.policy.learner.approximator
+            model = agent.policy.learner.approximator
         end
-        @save folder_path*"/model_mis"*string(instance_generator.n)*"_"*string(mis_settings.nbNewVertices)*"_"*string(mis_settings.nbInitialVertices)*"_"*string(mis_settings.nbEpisodes)*".bson" model_to_save
+        @save folder_path*"/model_mis"*string(instance_generator.n)*"_"*string(mis_settings.nbNewVertices)*"_"*string(mis_settings.nbInitialVertices)*"_"*string(mis_settings.nbEpisodes)*".bson" model
     end
 
     return metricsArray, eval_metricsArray
