@@ -159,5 +159,5 @@ function set_settings()
     mis_settings = MisExperimentSettings(nb_episodes, restart_per_instances, eval_freq, eval_timeout, seed_eval, nb_instances, nb_random_heuristics, nb_new_vertices, nb_initial_vertices)
     instance_generator = SeaPearl.MaximumIndependentSetGenerator(mis_settings.nbNewVertices, mis_settings.nbInitialVertices)
 
-    return mis_settings, instance_generator, csv_path, save_model, device
+    return mis_settings, instance_generator, csv_path, save_model, device, save_performance
 end
