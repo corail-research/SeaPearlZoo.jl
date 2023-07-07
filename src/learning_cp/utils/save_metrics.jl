@@ -20,9 +20,9 @@ function get_last_solution(solutions::Vector{Union{Nothing, Float32}})
 end
 
 
-function save_metrics(eval_metricsArray::Matrix{SeaPearl.AbstractMetrics}, save_path::AbstractString)
+function save_metrics(eval_metricsArray::Matrix{SeaPearl.AbstractMetrics}, save_path::AbstractString; eval_freq::Int=1)
 
-    column_names = ["num_heuristic", "num_instance", "num_experiment", "heuristic_type", "reward_type", "policy_type", "first_sol", "last_sol", "node_visited_first_sol", "total_node_visited", "total_time"]
+    column_names = ["num_heuristic", "num_instance", "num_experiment", "heuristic_type", "reward_type", "policy_type", "first_sol", "last_sol", "node_visited", "total_node_visited", "total_time"]
     # Check if the file exists
     if !isfile(save_path)
         CSV.write(save_path, DataFrame([]); header=column_names)
@@ -32,7 +32,6 @@ function save_metrics(eval_metricsArray::Matrix{SeaPearl.AbstractMetrics}, save_
 
     nb_experiment = length(eval_metricsArray[1,1].scores)
 
-    
     for j = 1:nb_heuristic
         num_heuristic = j
         heuristic = eval_metricsArray[1,j].heuristic
@@ -42,11 +41,12 @@ function save_metrics(eval_metricsArray::Matrix{SeaPearl.AbstractMetrics}, save_
         if isa(heuristic, SeaPearl.SimpleLearnedHeuristic)
             if isa(heuristic.agent.policy, PPOPolicy)
                 policy_type = "PPOPolicy"
+                save_ppo_loss(eval_metricsArray[:,j], save_path, num_heuristic)
             end
             if isa(heuristic.agent.policy, QBasedPolicy)
                 policy_type = "QBasedPolicy"
             end
-            reward_type = split(split(string(eval_metricsArray[1,j].heuristic.reward), "(")[1], ".")[2]
+            reward_type = split(string(eval_metricsArray[1,j].heuristic.reward), "(")[1]
             heuristic_type = "SimpleLearnedHeuristic"
         end
         if isa(heuristic, SeaPearl.BasicHeuristic)
@@ -55,7 +55,7 @@ function save_metrics(eval_metricsArray::Matrix{SeaPearl.AbstractMetrics}, save_
         for i = 1:nb_instance
             num_instance = i
             for k = 1:nb_experiment
-                num_experiment = k
+                num_experiment = (k-1) * eval_freq
                 first_sol = get_first_solution(eval_metricsArray[i,j].scores[k])
                 last_sol = get_last_solution(eval_metricsArray[i,j].scores[k])
                 node_visited_first_sol = eval_metricsArray[i,j].meanNodeVisitedUntilfirstSolFound[k]
@@ -69,6 +69,36 @@ function save_metrics(eval_metricsArray::Matrix{SeaPearl.AbstractMetrics}, save_
                 # Convert the matrix to a DataFrame and Write the updated data to the CSV file
                 CSV.write(save_path, DataFrame(hcat(new_row...), :auto); append=true)
             end
+        end
+    end
+end
+
+
+function save_ppo_loss(eval_metricsArray::Vector{SeaPearl.AbstractMetrics}, save_path::AbstractString, num_heuristic::Int)
+    save_path = split(save_path, ".")[1] * "_loss_$num_heuristic.csv"
+    
+    column_names = ["num_instance", "num_update", "actor_loss", "critic_loss", "entropy_loss", "total_loss"]
+
+    if !isfile(save_path)
+        CSV.write(save_path, DataFrame([]); header=column_names)
+    end
+
+    nb_instance = length(eval_metricsArray)
+    for i = 1:nb_instance
+        num_instance = i
+        actor_loss = eval_metricsArray[i].heuristic.agent.policy.actor_loss
+        critic_loss = eval_metricsArray[i].heuristic.agent.policy.critic_loss
+        entropy_loss = eval_metricsArray[i].heuristic.agent.policy.entropy_loss
+        loss = eval_metricsArray[i].heuristic.agent.policy.loss
+
+        for j = 1:size(actor_loss)[1]
+            num_update = j
+            
+            new_row = [num_instance, num_update, actor_loss[j,end], critic_loss[j,end], entropy_loss[j,end], loss[j,end]]
+            new_row = map(x -> x === nothing ? "nothing" : x, new_row)
+            
+            # Convert the matrix to a DataFrame and Write the updated data to the CSV file
+            CSV.write(save_path, DataFrame(hcat(new_row...), :auto); append=true)
         end
     end
 end
