@@ -39,7 +39,7 @@ function parse_commandline()
             required = false
         "--correlation"
             help = "Maximum weight for items"
-            arg_type = Float
+            arg_type = Float64
             default = 0.2
             required = false
         
@@ -68,23 +68,23 @@ function parse_commandline()
         #PPO settings
         "--gamma"
             help = "Gamma"
-            arg_type = Float
-            default = 0.99f0
+            arg_type = Float64
+            default = 0.99
             required = false
         "--lambda"
             help = "Lambda"
-            arg_type = Float
-            default = 0.95f0
+            arg_type = Float64
+            default = 0.95
             required = false
         "--clip_range"
             help = "Clip Range (epsilon)"
-            arg_type = Float
-            default = 0.2f0
+            arg_type = Float64
+            default = 0.2
             required = false
         "--max_grad_norm"
             help = "Maximum norm for loss gradient"
-            arg_type = Float
-            default = 0.5f0
+            arg_type = Float64
+            default = 0.5
             required = false
         "--n_epochs"
             help = "Number of epochs for each update"
@@ -98,18 +98,23 @@ function parse_commandline()
             required = false
         "--actor_loss_weight"
             help = "Weight for actor loss in total loss"
-            arg_type = Float
-            default = 1.0f0
+            arg_type = Float64
+            default = 1.0
             required = false
         "--critic_loss_weight"
             help = "Weight for critic loss in total loss"
-            arg_type = Int
-            default = 0.5f0
+            arg_type = Float64
+            default = 0.5
             required = false
         "--entropy_loss_weight"
             help = "Weight for entropy loss in total loss"
+            arg_type = Float64
+            default = 0.1
+            required = false
+        "--output_size"
+            help = "Output size of the actor and critic networks"
             arg_type = Int
-            default = 0.1f0
+            default = 2
             required = false
         "--update_freq"
             help = "Network weight update frequency"
@@ -148,6 +153,7 @@ function set_settings()
     n_microbatches = parsed_args["n_microbatches"]
     actor_loss_weight = parsed_args["actor_loss_weight"]
     critic_loss_weight = parsed_args["critic_loss_weight"]
+    output_size = parsed_args["output_size"]
     entropy_loss_weight = parsed_args["entropy_loss_weight"]
     update_freq = parsed_args["update_freq"]
     trajectory_capacity = update_freq
@@ -167,5 +173,5 @@ function set_settings()
     experiment_setup = KnapsackExperimentConfig(num_episodes, eval_freq, num_instances, num_random_heuristics)
     knapsack_agent_config = KnapsackPPOAgentConfig(gamma, lambda, clip_range, max_grad_norm, n_epochs, n_microbatches, actor_loss_weight, critic_loss_weight, entropy_loss_weight, output_size, update_freq, trajectory_capacity)
 
-    return knapsack_generator, experiment_setup, knapsack_agent_config, csv_path, save_model
+    return knapsack_generator, experiment_setup, knapsack_agent_config, csv_path
 end

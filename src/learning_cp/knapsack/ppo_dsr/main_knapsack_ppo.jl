@@ -15,13 +15,14 @@ include("../models.jl")
 include("../rewards.jl")
 
 include("knapsack_models_ppo.jl")
-inclde("argparse_knapsack_ppo.jl")
+include("argparse_knapsack_ppo.jl")
 
 
-knapsack_generator, experiment_setup, knapsack_agent_config, csv_path, save_model = set_settings()
+knapsack_generator, experiment_setup, knapsack_agent_config, csv_path = set_settings()
 
-actor_model = build_knapsack_actor_model(agent_config.output_size)
-critic_model = build_knapsack_critic_model(agent_config.output_size)
+numInFeatures=[6,5,2]
+actor_model = build_knapsack_actor_model(knapsack_agent_config.output_size)
+critic_model = build_knapsack_critic_model(knapsack_agent_config.output_size)
 agent = build_knapsack_ppo_agent(actor_model, critic_model, knapsack_agent_config)
 
 # Value Heuristic definition
