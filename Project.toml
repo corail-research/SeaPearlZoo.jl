@@ -30,6 +30,8 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 TensorBoardLogger = "899adc3e-224a-11e9-021f-63837185c80f"
 VegaLite = "112f6efa-9a02-5b7d-90c0-432ed331239a"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+SeaPearlExtras = "90978a9a-af5e-4113-9033-e3aa0a1ac968"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 
 [compat]
 ArgParse = "1.0 - 1.1.4"
@@ -47,6 +49,8 @@ SeaPearl = "0.4.4"
 TensorBoardLogger = "< 0.1.19"
 Zygote = "0.6.26"
 julia = "1.8 - 1.9"
+SeaPearlExtras = "0.3.0"
+CUDA = "2 - 3"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
