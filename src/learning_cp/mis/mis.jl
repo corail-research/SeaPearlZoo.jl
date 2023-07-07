@@ -15,7 +15,7 @@ include("../utils/save_metrics.jl")
 # -------------------
 # Get and set the arguments
 # -------------------
-mis_settings, instance_generator, csv_path, save_model, device = set_settings()
+mis_settings, instance_generator, csv_path, save_model, device, save_performance = set_settings()
 output_size = instance_generator.n
 agent_config = MisAgentConfig(0.99f0, 64, output_size, 4, 400, 1, 100, 20000)
 
@@ -102,4 +102,6 @@ metricsArray, eval_metricsArray = solve_learning_mis(agent_ffcpnn, agent_config,
 # -------------------
 # Save the metrics
 # -------------------
-save_metrics(eval_metricsArray, csv_path)
+if save_performance
+    save_metrics(eval_metricsArray, csv_path)
+end
