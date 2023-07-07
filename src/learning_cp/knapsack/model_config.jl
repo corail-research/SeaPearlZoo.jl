@@ -16,3 +16,18 @@ struct KnapsackAgentConfig
     target_update_freq :: Int
     num_episodes :: Int
 end
+
+struct KnapsackPPOAgentConfig
+    gamma               :: Float32
+    lambda              :: Float32
+    clip_range          :: Float32
+    max_grad_norm       :: Float32
+    n_epochs            :: Int
+    n_microbatches      :: Int
+    actor_loss_weight   :: Float32
+    critic_loss_weight  :: Float32
+    entropy_loss_weight :: Float32
+    output_size         :: Int
+    update_freq         :: Int
+    trajectory_capacity :: Int
+end
