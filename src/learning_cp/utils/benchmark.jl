@@ -15,7 +15,6 @@ function generate_graph_txt(graph)
     return str
 end
 
-
 function load_models(folder::String)
     println("Computing benchmarks...")
     models=[]
@@ -121,9 +120,9 @@ function manage_evaluation_folder(folder, evaluator)
 end
 
 function benchmark(;
-        models::Array{}, 
+        models=nothing, 
         model_folder=nothing, 
-        evaluation_folder::String, 
+        evaluation_folder=nothing, 
         num_instances::Int, 
         chosen_features, 
         take_objective::Bool, 
