@@ -173,5 +173,5 @@ function set_settings()
     experiment_setup = KnapsackExperimentConfig(num_episodes, eval_freq, num_instances, num_random_heuristics)
     knapsack_agent_config = KnapsackPPOAgentConfig(gamma, lambda, clip_range, max_grad_norm, n_epochs, n_microbatches, actor_loss_weight, critic_loss_weight, entropy_loss_weight, output_size, update_freq, trajectory_capacity)
 
-    return knapsack_generator, experiment_setup, knapsack_agent_config, csv_path
+    return knapsack_generator, experiment_setup, knapsack_agent_config, csv_path, save_performance
 end
