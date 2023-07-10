@@ -4,6 +4,7 @@ using JSON
 using ReinforcementLearning
 const RL = ReinforcementLearning
 using SeaPearl
+using Flux
 
 include("mis_config.jl")
 
