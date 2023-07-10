@@ -57,9 +57,9 @@ function solve_learning_coloring(
 
     if save_model 
         if (hasfield(typeof(agent.policy),:approximator)) # PPO
-            model = agent.policy.approximator
+            model = Flux.cpu(agent.policy.approximator)
         else # DQN
-            model = agent.policy.learner.approximator
+            model = Flux.cpu(agent.policy.learner.approximator)
         end
         @save folder_path*"/model_gc"*string(instance_generator.n)*"_"*string(coloring_settings.nbNodes)*"_"*string(coloring_settings.nbNodesEval)*"_"*string(coloring_settings.nbEpisodes)*".bson" model
     end
