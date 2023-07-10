@@ -20,7 +20,10 @@ include("argparse_knapsack_ppo.jl")
 
 knapsack_generator, experiment_setup, knapsack_agent_config, csv_path = set_settings()
 
-numInFeatures=[6,5,2]
+StateRepresentation = SeaPearl.DefaultStateRepresentation{KnapsackFeaturization, SeaPearl.DefaultTrajectoryState}
+numInFeatures = SeaPearl.feature_length(StateRepresentation)
+
+numInFeatures = 16
 actor_model = build_knapsack_actor_model(knapsack_agent_config.output_size)
 critic_model = build_knapsack_critic_model(knapsack_agent_config.output_size)
 agent = build_knapsack_ppo_agent(actor_model, critic_model, knapsack_agent_config)
