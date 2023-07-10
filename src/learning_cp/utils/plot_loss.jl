@@ -1,3 +1,7 @@
+using Plots
+using CSV
+using DataFrames
+
 function plot_ppo_losses(csv_path::AbstractString)
     df = CSV.read(csv_path, DataFrame)
 
