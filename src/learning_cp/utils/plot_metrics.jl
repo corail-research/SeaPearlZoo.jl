@@ -32,7 +32,7 @@ function plot_first_solution(csv_path::AbstractString)
     end
 end
 
-function plot_first_solution(df::DataFrames.DataFrame)
+function plot_first_solution(df::DataFrames.DataFrame, min_y::Int64, max_y::Int64)
     instance_ids = unique(df.num_instance)
 
     figs = [plot(size=(1200, 1600)) for _ in instance_ids]
@@ -54,6 +54,7 @@ function plot_first_solution(df::DataFrames.DataFrame)
             xlabel!(figs[i], "Evaluation step")
             ylabel!(figs[i], "Optimum")
             title!(figs[i], string("Instance", i))
+            ylims!(figs[i], (min_y, max_y))
         end
     end
 
