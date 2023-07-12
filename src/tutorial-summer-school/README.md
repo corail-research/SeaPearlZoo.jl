@@ -32,11 +32,17 @@ The tutorial is written in the form of Jupyter notebooks. To install Jupyter, yo
 ```bash
 julia -e 'using Pkg; Pkg.add("IJulia")'
 ```
-To speed things up, we will be using Revise:
-```bash
-julia -e 'using Pkg; Pkg.add("Revise")'
-```
 
+### Julia
+
+Julia is super fast once compiled, but it needs to compile first. This means that running code cells for the first time is -painfully- slow. Unfortunately, there is no real way around it. In order not to lose too much time, we recommend that you run the first cell of the nqueens notebook (src/tutorial-summer-school/classic-cp/queens/nqueens.ipynb) before the break. This will make you gain around 20 minutes... 
+
+### The notebooks
+
+This tutorial contains 3 notebooks, with both classic CP and learning-based CP. The notebooks are located in the src/tutorial-summer-school folder. The notebooks are:
+	- N-Queens, where we build and solve the 8x8 n-queens problem with regular CP
+	- Graph coloring, where we have both an exercise where you can complete the model, as well as a simple solution. The problem is then solved with clasic CP
+    - MIS, where we train a DQN agent to solve (ridiculously small) MIS instances and load a pre-trained model to compare its performances with other heuristics
 
 ## Enjoy the tutorial!
 
