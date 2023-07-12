@@ -32,6 +32,11 @@ The tutorial is written in the form of Jupyter notebooks. To install Jupyter, yo
 ```bash
 julia -e 'using Pkg; Pkg.add("IJulia")'
 ```
+To speed things up, we will be using Revise:
+```bash
+julia -e 'using Pkg; Pkg.add("Revise")'
+```
+
 
 ## Enjoy the tutorial!
 
