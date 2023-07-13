@@ -35,7 +35,11 @@ julia -e 'using Pkg; Pkg.add("IJulia")'
 
 ### Julia
 
-Julia is super fast once compiled, but it needs to compile first. This means that running code cells for the first time is -painfully- slow. Unfortunately, there is no real way around it. In order not to lose too much time, we recommend that you run the first cell of the nqueens notebook (src/tutorial-summer-school/classic-cp/queens/nqueens.ipynb) before the break. This will make you gain around 20 minutes... 
+Julia is super fast once compiled, but it needs to compile first. This means that running code cells for the first time is -painfully- slow. Unfortunately, there is no real way around it. In order not to lose too much time, we recommend that you run the first cell of the nqueens notebook 
+
+`src/tutorial-summer-school/classic-cp/queens/nqueens.ipynb` 
+
+before the break. This will make you gain around 20 minutes... 
 
 ### The notebooks
 
