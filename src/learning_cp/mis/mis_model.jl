@@ -82,7 +82,7 @@ function build_mis_approximator_model(device)
 end
 
 function build_mis_target_approximator_model(device)
-    approximator_model = SeaPearl.HeterogeneousFullFeaturedCPNN(
+    target_approximator_model = SeaPearl.HeterogeneousFullFeaturedCPNN(
         graphChain = Flux.Chain(HeterogeneousModel([6,5,2], 8, 8, 3)),
         varChain = Flux.Chain(
             Flux.Dense(8, 16, Flux.leakyrelu, init=Flux.glorot_uniform(MersenneTwister(42))),
@@ -96,7 +96,7 @@ function build_mis_target_approximator_model(device)
             Flux.Dense(16, 1, init=Flux.glorot_uniform(MersenneTwister(42))),
             )
     )|> device
-    return approximator_model
+    return target_approximator_model
 end
 
 function build_mis_agent(approximator_model, target_approximator_model, agent_config::MisAgentConfig, rng, decay_steps)
